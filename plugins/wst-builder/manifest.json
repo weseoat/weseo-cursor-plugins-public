@@ -1,0 +1,35 @@
+{
+  "$schema": "../../schemas/plugin-manifest.schema.json",
+  "name": "wst-builder",
+  "displayName": "WST Builder Plugin",
+  "version": "0.1.0",
+  "responsibility": "Package reusable WESEO Smart Template Builder workflows for creating WordPress, ACF, CPT, and WST foundations before local frontend implementation.",
+  "assumptions": [
+    "The plugin is used in a Cursor workspace that has access to a WordPress and WST project checkout.",
+    "Project-specific CPT names, URL slugs, Flexible Content field keys, field post IDs, clone group keys, WPGB IDs, WordPress paths, WP-CLI commands, cache commands, theme quirks, URLs, and branch details live in the project-local template.",
+    "Server-side WST setup writes a handoff before final CSS, responsive QA, and Playwright checks begin in the local frontend phase."
+  ],
+  "rules": [
+    {
+      "name": "acf-wst-patterns",
+      "path": "rules/acf-wst-patterns.mdc",
+      "source": "weseo-smartflow-frontend-guide/.cursor/rules/acf-wst-patterns.mdc",
+      "description": "Preserve reusable ACF Flexible Content, clone field, shortcode, and WST template invariants for WST Builder work."
+    }
+  ],
+  "skills": [
+    {
+      "name": "wst-new-fc-section",
+      "path": "skills/wst-new-fc-section/SKILL.md",
+      "source": "weseo-smartflow-frontend-guide/.cursor/skills/wst-new-fc-section/SKILL.md",
+      "description": "Create a WST Flexible Content Section foundation, wire ACF layout and clone fields, register the template, and update the Section handoff."
+    },
+    {
+      "name": "wst-new-post-type",
+      "path": "skills/wst-new-post-type/SKILL.md",
+      "source": "weseo-smartflow-frontend-guide/.cursor/skills/wst-new-post-type/SKILL.md",
+      "description": "Create a WST Custom Post Type foundation, including optional taxonomy, ACF CPT fields, WP Grid Builder grid/card foundation, card template, optional single template, and CPT foundation handoff."
+    }
+  ],
+  "releaseNotes": "release-notes/0.1.0.md"
+}

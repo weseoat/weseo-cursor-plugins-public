@@ -1,0 +1,16 @@
+{
+  "name": "frontend-design-qa",
+  "version": "0.1.0",
+  "description": "WESEO local frontend implementation guidance for CSS and SCSS conventions, Figma-to-code translation, Chrome Local Overrides spikes, and Playwright-oriented Section and CPT QA.",
+  "author": {
+    "name": "WESEO"
+  },
+  "keywords": [
+    "weseo",
+    "css",
+    "scss",
+    "figma",
+    "playwright",
+    "qa"
+  ]
+}

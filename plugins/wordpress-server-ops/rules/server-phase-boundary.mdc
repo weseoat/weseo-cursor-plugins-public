@@ -1,0 +1,49 @@
+---
+description: Keep WordPress server work distinct from local frontend implementation
+alwaysApply: false
+---
+
+# Server Phase Boundary
+
+Use this Rule when working in a WordPress root over Cursor Remote-SSH.
+
+## Server Phase Responsibilities
+
+Keep these tasks server-side because they depend on the running WordPress environment:
+
+- Inspecting the WordPress root, active theme, plugins, and upload paths.
+- Creating or updating WST PHP templates and shortcode-driven template files.
+- Creating or updating ACF field groups, Flexible Content layouts, and content values.
+- Running WP-CLI commands from the project-approved WordPress root.
+- Flushing object/page caches after template, DB, content, or media changes.
+- Importing files into the WordPress Media Library.
+- Capturing Section handoff context after WST foundation work is complete.
+
+## Local Frontend Phase Responsibilities
+
+Hand these tasks to the local frontend phase:
+
+- Final CSS/SCSS implementation.
+- Visual refinement after any Chrome Local Overrides spike.
+- Responsive browser checks.
+- Playwright acceptance checks against the dev or staging URL.
+- Final commits for frontend code and updated Section handoff notes.
+
+## Handoff Rule
+
+When server work creates or changes a WST Flexible Content Section, update a Section handoff document before local frontend work starts. The handoff travels with the same Git branch or PR as the code.
+
+The handoff must include:
+
+- Page URL.
+- Template files.
+- ACF field group and layout references.
+- CSS hooks/classes expected by the template.
+- Expected visual behavior.
+- QA notes and open questions.
+
+Use `section-handoffs/section-handoff.template.md` as the contract.
+
+## Project Context
+
+Do not hardcode environment facts in reusable plugin content. Read the current project's `PROJECT-CONTEXT.md` for WordPress root, theme path, WST path, WP-CLI command, cache command, editable path policy, upload policy, and verification URLs.

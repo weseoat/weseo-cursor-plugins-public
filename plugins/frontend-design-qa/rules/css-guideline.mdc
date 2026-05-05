@@ -1,0 +1,134 @@
+---
+description: CSS and SCSS conventions for local WESEO frontend implementation
+globs:
+  - "**/*.css"
+  - "**/*.scss"
+alwaysApply: true
+---
+
+# CSS Guideline
+
+Use this Rule when writing or reviewing local frontend CSS or SCSS for a WESEO WordPress/WST project.
+
+## Required Context
+
+Before styling a Section, read:
+
+- The project-local context for theme path, style loader, breakpoints, tokens, and local build commands.
+- The filled Section handoff for the page URL, template references, CSS hooks, expected visual behavior, and QA notes.
+- Existing nearby CSS files for indentation, selector depth, variable names, and responsive patterns.
+
+Do not invent brand colors, font families, container widths, button variants, Figma style names, URLs, repository names, or deployment steps. If the value differs by project, read it from project context or leave an explicit placeholder in the handoff.
+
+## Rem Scaling
+
+Use the project rem scale when converting design values. Many WESEO Astra child themes use a fluid `html` font-size with different desktop, tablet, and mobile bases.
+
+When a project documents a rem basis, convert with:
+
+```text
+rem = design px / project rem basis px
+```
+
+Record any uncertain conversion in the Section handoff instead of hardcoding a universal value.
+
+## File Structure
+
+Keep reusable CSS organized in this order:
+
+1. Variables on `:root` or the component's main selector.
+2. Responsive variable overrides inside media queries.
+3. Resets for inherited theme or plugin defaults.
+4. Visual styles that consume the variables.
+5. Interaction, responsive, or print-only refinements when needed.
+
+For Section files, prefer component-scoped custom properties when the value belongs only to that Section. Use global custom properties only when the project context defines them as shared theme tokens.
+
+## Directory Expectations
+
+Read the project context for the actual style paths and loader. Common WESEO theme layouts include:
+
+- Global tokens and typography files.
+- Global base styles and layout primitives.
+- Element styles such as buttons and image boxes.
+- Section styles under a section-focused directory.
+- Post type or commerce-specific styles when the project uses them.
+
+Do not create new directories or loader entries until you confirm the local project pattern.
+
+## CSS Variables
+
+Use variables for reusable values:
+
+- Global tokens for colors, fonts, spacing, transitions, container widths, and theme-level layout values.
+- Typography tokens for headings, paragraphs, sublines, and special text styles.
+- Element tokens for buttons and reusable components.
+- Component-scoped tokens prefixed by the component or Section name.
+- Context tokens that cascade through background, text alignment, spacing, or theme modifiers.
+
+Never hardcode project values when a token exists. If the token is missing, add a narrowly scoped Section variable or ask for the intended project token.
+
+## Selectors
+
+Follow existing WST and Astra selector style:
+
+- Use stable `wso-` classes from the handoff as the primary hooks.
+- Preserve selectors that templates, scripts, or Playwright checks rely on.
+- Keep specificity as low as the theme allows.
+- Match existing heading and paragraph specificity when overriding global typography.
+- Use state classes such as `.is-active`, `.is-open`, or project-established equivalents.
+
+Use `!important` only when overriding a theme or plugin rule that cannot be changed through a cleaner selector or source order.
+
+## Units And Values
+
+- Use `rem` for spacing, font sizes, and most dimensions when the theme scale supports it.
+- Use unitless line-height unless the project pattern requires otherwise.
+- Use `em` for values that should follow the local font size.
+- Use viewport units only for viewport-relative layout such as hero height or full-bleed media.
+- Append easing to transition duration tokens instead of baking a single transition shorthand into every rule.
+- Prefer `:focus-visible` for keyboard focus states.
+
+## Responsive Strategy
+
+Read breakpoints from project context and existing files. When possible, redefine variables inside media queries while keeping the visual rule body stable.
+
+For each Section, check:
+
+- Desktop, tablet, and mobile behavior from the handoff.
+- Long copy, empty optional fields, repeated items, and missing media.
+- Hover, focus, active, loading, and reduced-motion states that apply.
+
+## Formatting
+
+Match the file you are editing. For new files:
+
+- Use English comments.
+- Use one selector per line for grouped selectors.
+- Use one declaration per line.
+- Keep property order roughly: positioning, layout, typography, visual, motion.
+- Add the new file to the project style loader when the project requires explicit registration.
+
+## Minimal Section Pattern
+
+```css
+/* ========================================================================== */
+/*                              FEATURE CARDS                                 */
+/* ========================================================================== */
+.wso-section-feature-cards {
+  /* ----------------------------------- var ---------------------------------- */
+  --feature-cards-gap: var(--section-gap);
+  --feature-cards-card-radius: var(--global-border-radius);
+}
+
+.wso-section-feature-cards .wso-feature-card-grid {
+  display: grid;
+  gap: var(--feature-cards-gap);
+}
+
+@media only screen and (max-width: 767px) {
+  .wso-section-feature-cards {
+    --feature-cards-gap: var(--section-gap-mobile);
+  }
+}
+```

@@ -1,0 +1,16 @@
+{
+  "name": "wordpress-server-ops",
+  "version": "0.1.0",
+  "description": "WESEO server-phase guidance for safe Cursor Remote-SSH work in WordPress and WST projects, including setup orientation, file boundaries, webroot safety, WP-CLI and cache use, content editing, and media import.",
+  "author": {
+    "name": "WESEO"
+  },
+  "keywords": [
+    "weseo",
+    "wordpress",
+    "wst",
+    "remote-ssh",
+    "wp-cli",
+    "server-ops"
+  ]
+}

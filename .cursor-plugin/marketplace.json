@@ -1,0 +1,27 @@
+{
+  "name": "weseo-cursor-plugins",
+  "owner": {
+    "name": "WESEO"
+  },
+  "metadata": {
+    "description": "Internal WESEO Cursor plugins for WordPress, WST, server-side WordPress operations, and local frontend QA.",
+    "pluginRoot": "plugins"
+  },
+  "plugins": [
+    {
+      "name": "wst-builder",
+      "source": "wst-builder",
+      "description": "WESEO WST Builder workflows for WordPress, ACF, and WST Section and Custom Post Type foundation work."
+    },
+    {
+      "name": "frontend-design-qa",
+      "source": "frontend-design-qa",
+      "description": "WESEO local frontend implementation guidance for CSS, Figma-to-code translation, and Playwright-oriented Section and CPT QA."
+    },
+    {
+      "name": "wordpress-server-ops",
+      "source": "wordpress-server-ops",
+      "description": "WESEO server-phase guidance for safe Cursor Remote-SSH work in WordPress and WST projects."
+    }
+  ]
+}

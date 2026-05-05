@@ -1,0 +1,44 @@
+---
+description: Restrict WordPress file edits to project-approved source paths
+alwaysApply: true
+---
+
+# File Edit Boundary
+
+Before editing files in a WordPress root, read the project-local file boundary policy in `PROJECT-CONTEXT.md`.
+
+## Default Editable Areas
+
+Only edit paths that the project marks as editable. In WESEO WST projects this usually includes:
+
+- The active child theme path, such as `wp-content/themes/astra-child/`.
+- WST template paths when the project explicitly treats WST as project code.
+- Project-local documentation and handoff files that are tracked by the current branch.
+
+## Default Off-Limits Areas
+
+Do not create, edit, or delete files in these areas unless project context explicitly allows the exact change:
+
+- WordPress core files, including `wp-admin/`, `wp-includes/`, and root `wp-*.php` files.
+- Parent themes and third-party themes.
+- Third-party plugin code.
+- Upload files, except through approved media import or upload workflows.
+- Root configuration files such as `wp-config.php` and `.htaccess`.
+- Runtime, language, cache, and generated directories.
+
+## If A Task Needs An Exception
+
+Stop and ask for direction when the requested change is outside the approved boundary. Do not assume a plugin, upload, root config, or runtime file can be edited because it exists in the workspace.
+
+## Preferred Extension Points
+
+When behavior needs to change, prefer project-approved extension points:
+
+- Child theme includes.
+- Dedicated theme function files.
+- Project-owned mu-plugin files only when the project explicitly allows them.
+- WST templates when WST is part of the project's editable source.
+
+## Uploads
+
+Treat `wp-content/uploads/` as content storage. Files may be added through the media import workflow, but direct deletion or manual mutation requires explicit instruction and verification.

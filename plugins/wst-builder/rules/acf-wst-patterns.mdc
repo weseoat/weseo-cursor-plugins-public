@@ -1,0 +1,45 @@
+---
+description: ACF Flexible Content, clone field, shortcode, and WST template invariants for WST Builder work
+globs:
+  - "**/smart-template-builder/**/*.php"
+  - "**/flexible-content.php"
+alwaysApply: false
+---
+
+# ACF/WST Patterns
+
+Use this Rule when writing or reviewing WST Builder work for Section templates, ACF section field groups, Flexible Content layouts, clone child fields, WST shortcodes, or `flexible-content.php` registrations.
+
+## Required Context
+
+Before changing WST or ACF structure, read the project-local context for:
+
+- WST template paths and the active `flexible-content.php` registration point.
+- Flexible Content field key and field post ID.
+- Standard clone group keys for content, button, and layout.
+- Existing Section templates and ACF field group patterns.
+- Section handoff location and target dev or staging URL.
+
+Do not invent real field keys, field post IDs, clone group keys, layout keys, page IDs, URLs, theme values, access details, or client examples. Use placeholders such as `<fc-field-key>`, `<fc-post-id>`, `<section-field-group-key>`, `<layout-key>`, and `<staging-url>` until Project Context supplies the real values.
+
+## Flexible Content Invariants
+
+- Every reusable Section layout has a Flexible Content layout entry, one clone child field under the Flexible Content field post, and one Section field group cloned by that child field.
+- The clone child field's `parent_layout` must exactly match the generated Flexible Content layout key.
+- Layout names should follow the project pattern, usually `layout_<section_slug_with_underscores>`.
+- Section field groups should keep shared content, button, and layout fields as clones, with Section-specific fields added separately.
+- Cloned fields with `prefix_name: 1` change the saved meta key shape; account for that when reviewing shortcode field names.
+
+## WST Template Invariants
+
+- Guard PHP templates with `if (! defined('ABSPATH')) exit;`.
+- Preserve project placeholders such as `{{conditional_logic_start}}` and `{{conditional_logic_end}}` when existing templates use them.
+- Use a stable primary Section class such as `.wso-section-<section-slug>`.
+- Keep WST row, wrap, column, and column-attribute classes consistent with nearby templates.
+- Register the template include with the matching layout name in the Flexible Content render block.
+
+## Scope Boundary
+
+This Rule owns reusable WST Builder structure and review checks. Final visual CSS, responsive QA, Chrome Local Overrides spikes, and Playwright checks belong to Frontend Design QA. WordPress server access, cache policy, media import, and access setup belong to WordPress Server Ops or Project Context.
+
+See `acf-wst-patterns-reference.md` for shortcode tables, template examples, field shape details, and post-meta notes.

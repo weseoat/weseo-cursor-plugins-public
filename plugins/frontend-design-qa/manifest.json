@@ -1,0 +1,47 @@
+{
+  "$schema": "../../schemas/plugin-manifest.schema.json",
+  "name": "frontend-design-qa",
+  "displayName": "Frontend Design QA Plugin",
+  "version": "0.1.0",
+  "responsibility": "Package reusable local frontend implementation guidance for CSS conventions, Figma-to-code translation, Chrome Local Overrides spikes, and Playwright-oriented Section and CPT verification.",
+  "assumptions": [
+    "The plugin is used from a local Git checkout that contains or mirrors the project frontend source files.",
+    "A filled Section handoff or CPT foundation handoff exists before local CSS, responsive QA, and Playwright checks begin.",
+    "Project-specific theme tokens, URLs, Figma style mappings, repository details, deployment steps, WP Grid Builder IDs, and validation commands live in project context, the Section handoff, or the CPT foundation handoff."
+  ],
+  "rules": [
+    {
+      "name": "css-guideline",
+      "path": "rules/css-guideline.mdc",
+      "source": "weseo-smartflow-frontend-guide/.cursor/rules/css-guideline.mdc",
+      "description": "Define reusable CSS and SCSS conventions for rem scaling, file structure, selectors, variables, responsive strategy, and formatting."
+    },
+    {
+      "name": "css-theme-styles",
+      "path": "rules/css-theme-styles.mdc",
+      "source": "weseo-smartflow-frontend-guide/.cursor/rules/css-theme-styles.mdc",
+      "description": "Preserve reusable WST and Astra styling patterns while leaving brand values and variants in project context."
+    },
+    {
+      "name": "figma-to-code",
+      "path": "rules/figma-to-code.mdc",
+      "source": "weseo-smartflow-frontend-guide/.cursor/rules/figma-to-code.mdc",
+      "description": "Guide Figma-to-code translation for grid sizing, spacing, typography, image behavior, and specificity checks."
+    }
+  ],
+  "skills": [
+    {
+      "name": "frontend-section-qa",
+      "path": "skills/frontend-section-qa/SKILL.md",
+      "source": "weseo-smartflow-frontend-guide/anleitungen/smartflow-frontend-guide.md",
+      "description": "Implement and verify a local frontend Section from a filled Section handoff using CSS or SCSS, optional Overrides spikes, and Playwright-oriented checks."
+    },
+    {
+      "name": "cpt-frontend-qa",
+      "path": "skills/cpt-frontend-qa/SKILL.md",
+      "source": "weseo-smartflow-frontend-guide/.cursor/skills/wst-new-post-type/SKILL.md",
+      "description": "Implement and verify local frontend presentation for WST CPT cards, archive or grid views, and optional single templates from a filled CPT foundation handoff."
+    }
+  ],
+  "releaseNotes": "release-notes/0.1.0.md"
+}

@@ -1,0 +1,73 @@
+---
+description: Safely edit WordPress content that uses ACF Flexible Content
+alwaysApply: false
+---
+
+# WordPress Content Editing
+
+Use this Rule when editing WordPress page content through REST, MCP, or WP-CLI in a project that uses ACF Flexible Content.
+
+## Core Model
+
+ACF Flexible Content stores page sections as an ordered array. Each item has an `acf_fc_layout` value that identifies the layout type. The available layout names, page IDs, field keys, and clone group keys belong in project context.
+
+## Read Before Writing
+
+Before changing content:
+
+1. Read the page or post including its ACF data.
+2. Identify the target block by page ID, array index, layout name, visible content, or Section handoff.
+3. Preserve the full Flexible Content array.
+4. Change only the fields requested by the task.
+5. Verify the resulting content on the target URL.
+
+## Write The Complete Array
+
+When updating a page through REST, send the complete `flexible_content` array back. Do not send only the changed block.
+
+Generic REST shape:
+
+```http
+POST /wp-json/wp/v2/pages/<page-id>
+```
+
+```json
+{
+  "acf": {
+    "flexible_content": []
+  }
+}
+```
+
+Populate the array from the read response, then apply the intended minimal edit.
+
+## Fields To Preserve
+
+Do not change these unless the user explicitly asks:
+
+- `acf_fc_layout`
+- ACFE layout metadata fields.
+- Layout/style fields.
+- Image and media attachment IDs.
+- Button link targets, variants, and IDs.
+- Nested Flexible Content structure.
+
+Nested Flexible Content blocks follow the same rule: preserve the full nested array and edit only the intended fields.
+
+## Type Normalization
+
+REST reads may return values in a shape that differs from what writes accept. Before writing:
+
+- Convert ACFE toggle booleans to the value shape accepted by the project.
+- Keep enum fields on valid project-defined values.
+- Use attachment IDs for media fields, not URLs.
+- Preserve existing HTML patterns in rich text fields.
+
+## Handoff Notes
+
+If content edits affect a Section that will receive local frontend work, update the Section handoff with:
+
+- Page URL.
+- Changed content fields.
+- Any layout/style fields deliberately preserved.
+- Any visual behavior that still needs CSS or Playwright verification.

@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://weseo.internal/schemas/section-handoff.schema.json",
+  "title": "WESEO WST Section Handoff",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "handoffCarrier",
+    "sectionIdentity",
+    "wordpressAndWstReferences",
+    "cssHooks",
+    "expectedVisualBehavior",
+    "serverPhaseResponsibilities",
+    "localFrontendResponsibilities",
+    "qaNotes",
+    "openQuestions"
+  ],
+  "properties": {
+    "handoffCarrier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project",
+        "branchOrPr",
+        "handoffOwner",
+        "serverPhaseStatus",
+        "localFrontendPhaseStatus"
+      ],
+      "properties": {
+        "project": { "type": "string", "minLength": 1 },
+        "branchOrPr": { "type": "string", "minLength": 1 },
+        "handoffOwner": { "type": "string", "minLength": 1 },
+        "serverPhaseStatus": { "type": "string", "minLength": 1 },
+        "localFrontendPhaseStatus": { "type": "string", "minLength": 1 }
+      }
+    },
+    "sectionIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sectionName",
+        "layoutName",
+        "pageUrl",
+        "sourceDesignReference"
+      ],
+      "properties": {
+        "sectionName": { "type": "string", "minLength": 1 },
+        "layoutName": { "type": "string", "minLength": 1 },
+        "pageUrl": { "type": "string", "minLength": 1 },
+        "sourceDesignReference": { "type": "string", "minLength": 1 }
+      }
+    },
+    "wordpressAndWstReferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "templateFile",
+        "cssFile",
+        "acfSectionFieldGroup",
+        "acfFlexibleContentLayout",
+        "acfFields",
+        "contentSetupNotes"
+      ],
+      "properties": {
+        "templateFile": { "type": "string", "minLength": 1 },
+        "cssFile": { "type": "string", "minLength": 1 },
+        "acfSectionFieldGroup": { "type": "string", "minLength": 1 },
+        "acfFlexibleContentLayout": { "type": "string", "minLength": 1 },
+        "acfFields": { "type": "string", "minLength": 1 },
+        "contentSetupNotes": { "type": "string", "minLength": 1 }
+      }
+    },
+    "cssHooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primarySectionClass",
+        "wrapperClasses",
+        "cssCustomProperties",
+        "selectorsToPreserve"
+      ],
+      "properties": {
+        "primarySectionClass": { "type": "string", "minLength": 1 },
+        "wrapperClasses": { "type": "string", "minLength": 1 },
+        "cssCustomProperties": { "type": "string", "minLength": 1 },
+        "selectorsToPreserve": { "type": "string", "minLength": 1 }
+      }
+    },
+    "expectedVisualBehavior": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "desktopBehavior",
+        "tabletBehavior",
+        "mobileBehavior",
+        "contentVariations",
+        "interactionStates"
+      ],
+      "properties": {
+        "desktopBehavior": { "type": "string", "minLength": 1 },
+        "tabletBehavior": { "type": "string", "minLength": 1 },
+        "mobileBehavior": { "type": "string", "minLength": 1 },
+        "contentVariations": { "type": "string", "minLength": 1 },
+        "interactionStates": { "type": "string", "minLength": 1 }
+      }
+    },
+    "serverPhaseResponsibilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "localFrontendResponsibilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "qaNotes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "playwrightTargetUrl",
+        "checksToRun",
+        "cacheState",
+        "knownRisks",
+        "qaResult"
+      ],
+      "properties": {
+        "playwrightTargetUrl": { "type": "string", "minLength": 1 },
+        "checksToRun": { "type": "string", "minLength": 1 },
+        "cacheState": { "type": "string", "minLength": 1 },
+        "knownRisks": { "type": "string", "minLength": 1 },
+        "qaResult": { "type": "string", "minLength": 1 }
+      }
+    },
+    "openQuestions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

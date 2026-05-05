@@ -1,0 +1,85 @@
+---
+description: Rules for translating Figma designs into local frontend code
+alwaysApply: true
+---
+
+# Figma To Code
+
+Use this Rule whenever a Section implementation references Figma design data, screenshots, exported assets, or designer notes.
+
+## Required Context
+
+Before writing code:
+
+- Read the filled Section handoff for the target page URL, design reference, CSS hooks, expected behavior, and QA notes.
+- Read project context for Bootstrap or grid assumptions, theme tokens, typography mappings, image policy, and asset workflow.
+- Inspect existing Section variants before adding a new layout pattern.
+
+Do not assume one Figma canvas size, token mapping, or grid width applies to every project.
+
+## Grid Translation
+
+When the project uses Bootstrap or another column grid:
+
+- Calculate column spans from the actual design frame, container width, and project grid configuration.
+- Prefer explicit column spans over unconstrained auto columns.
+- Compare with existing templates that use the same visual pattern.
+- Remove or override gutters only at the Section scope when Figma shows flush elements.
+- Use margin utilities or local CSS for asymmetric alignment only after checking parent and child alignment.
+
+Record uncertain grid decisions in the handoff.
+
+## Layout And Spacing
+
+Check every Figma frame for:
+
+- Gap values.
+- Padding.
+- Alignment.
+- Child-specific alignment overrides.
+- Spacer components or explicit vertical rhythm tokens.
+- Whether visual spacing comes from the design system or from local composition.
+
+Map repeated Section spacing to scoped custom properties. Do not rely on global defaults when the design shows explicit spacing.
+
+## Typography Verification
+
+For every text style used in the Section:
+
+- Compare Figma typography to project typography tokens.
+- Reuse global heading, paragraph, subline, or special text classes when they match.
+- Add Section-scoped variable overrides only for real deviations.
+- Confirm desktop and mobile scale from project context rather than blindly converting pixels.
+
+If a Figma style has no project mapping, note the open mapping in the handoff before introducing a new global token.
+
+## Images And Assets
+
+Map Figma image behavior to CSS intentionally:
+
+- Filled frames usually become `object-fit: cover`.
+- Stretched frames need confirmation because browser stretching can distort content.
+- Proportional images should preserve natural aspect ratio.
+- Multi-image groups with no gap should stay visually flush.
+
+Use the project's asset and media workflow for final files. Figma exports are reference material until they are placed in the approved project source or media path.
+
+## Specificity And Existing CSS
+
+Before writing CSS for a new Section or variant:
+
+- Search for shared selectors that target the same `wso-` classes.
+- Check whether existing section files already define the same spacing, image, or typography behavior.
+- Resolve conflicts with scoped selectors, source-order-aware edits, or targeted exclusions.
+- Avoid using `!important` to fight another `!important` unless the theme pattern leaves no better option.
+
+When a project uses SCSS as a convenience layer, update the SCSS and the generated CSS according to the project build workflow.
+
+## Verification
+
+After implementation:
+
+- Compare the rendered Section against the Figma frame or screenshot at the breakpoints named in the handoff.
+- Verify text wrapping, media crop, spacing, focus states, and interactive states.
+- Capture Playwright checks or manual notes in the handoff's QA section.
+- Keep design-token gaps or unresolved questions visible in the handoff.
