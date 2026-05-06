@@ -2,6 +2,283 @@
 
 Supporting checks for the `setup-orientation` Skill. Keep real project values in Project Context or local developer storage. The Skill should complete all safe first-setup work automatically and leave only credential or policy decisions as explicit open questions.
 
+## Communication Language
+
+Communicate with the user in German throughout setup. Keep command names, file paths, placeholders, and external UI labels such as `Repository settings`, `Access tokens`, and `Remote-SSH: Connect to Host` unchanged when useful, but explain every user-facing instruction in German.
+
+## Guided Wizard Flow
+
+The Skill follows the old SmartFlow setup guide as an interactive wizard. Missing setup items are not passive blockers by default. Ask the user what to do next, execute the chosen branch, verify, and continue.
+
+| Step | If present | If missing |
+|---|---|---|
+| Remote-SSH WordPress root | Verify `wp-content/`, `wp-admin/`, `wp-includes/`. | Guide the user to connect with `Remote-SSH: Connect to Host` and open the concrete WordPress directory. |
+| Git repository | Record repo root, branch, redacted remote, identity. | Ask whether to initialize here, connect existing Bitbucket repo, open/clone another folder, or consciously skip Git. |
+| Git credentials | Verify `git fetch origin`. | Guide user through Bitbucket Access Token creation/storage and local-only remote configuration. |
+| Project Context | Update missing non-secret facts. | Create `PROJECT-CONTEXT.md` and fill detected facts as setup progresses. |
+| WP-CLI | Verify `--info` and `core version`. | Ask whether to install local `wp-cli.phar`, use maintainer-provided global `wp`, or consciously skip. |
+| Cache flush | Document command. | Fill WESEO default after WP-CLI path is known, then ask before executing. |
+| Cursor guidance | Verify `.cursor/rules` and `.cursor/skills` or marketplace availability. | Ask whether to install/refresh plugin guidance, use manual projection, or skip because marketplace is active. |
+| Safe temp path | Create/verify outside webroot path. | Ask before using any path that may be publicly served. |
+| MCP | Verify local-only `.cursor/mcp.json` or recorded skip. | Ask whether to create skeleton, configure WordPress MCP, configure Figma MCP, or skip. |
+
+## SmartFlow Walkthrough Coverage
+
+The old `smartflow-setup-guide.md` contains several places where the user needs more than a yes/no choice. Use a step-by-step walkthrough for these areas:
+
+- Remote-SSH connection and opening the correct WordPress root.
+- Git identity setup.
+- Bitbucket Access Token and local remote URL setup.
+- Cursor guidance / SmartFlow content installation.
+- Project Context placeholder filling.
+- WordPress MCP setup.
+- Figma MCP setup.
+- Final setup verification.
+
+WP-CLI and safe temp path are newer server-ops additions, so keep them guided as well even though they were not full sections in the old guide.
+
+## Wizard Question Templates
+
+Ask one decision at a time. Use concrete choices like these:
+
+```md
+Ich habe kein Git-Repository in `<wp-root>` gefunden.
+Was soll ich als Nächstes tun?
+- Hier ein neues Git-Repository initialisieren.
+- Diesen WordPress-Root mit einem bestehenden Bitbucket-Repository verbinden.
+- Einen anderen Ordner öffnen oder klonen, weil das hier nicht der Repo-Root ist.
+- Git vorerst überspringen und den Skip in `PROJECT-CONTEXT.md` dokumentieren.
+```
+
+```md
+Ich finde keinen WP-CLI-Befehl: kein `wp-cli.phar` und kein globales `wp`.
+Was soll ich als Nächstes tun?
+- Lokales `wp-cli.phar` im WordPress-Root installieren.
+- Ein globales `wp` verwenden, nachdem du es installiert/bereitgestellt hast.
+- WP-CLI vorerst überspringen und den fehlenden Befehl dokumentieren.
+```
+
+```md
+Ich finde keine projektlokalen `.cursor/rules` oder `.cursor/skills`.
+Was soll ich als Nächstes tun?
+- WESEO Plugin-Guidance für diesen Workspace installieren oder aktualisieren.
+- Manuelle Projektion verwenden, weil Marketplace-Installation hier nicht verfügbar ist.
+- Nur Marketplace-Guidance verwenden und dokumentieren, dass kein lokaler `.cursor/` Content erwartet wird.
+- Cursor-Guidance vorerst überspringen.
+```
+
+```md
+MCP ist optional.
+Was soll ich als Nächstes tun?
+- Ein lokales `.cursor/mcp.json` Grundgerüst erstellen.
+- WordPress MCP konfigurieren, nachdem du ein Application Password erstellt hast.
+- Figma MCP konfigurieren, nachdem du ein Figma Token erstellt hast.
+- MCP vorerst überspringen.
+```
+
+## Bitbucket Setup Guide
+
+When Git must be connected to Bitbucket, guide the user in German through the same sequence as the old SmartFlow setup guide:
+
+1. Öffne Bitbucket im Browser.
+2. Öffne das Ziel-Repository.
+3. Gehe zu `Repository settings` -> `Access tokens` -> `Create`.
+4. Erstelle einen Repository Access Token mit `Read` und `Write`.
+5. Kopiere den Token nur einmal und speichere ihn im freigegebenen Passwortmanager oder OS-Keychain.
+6. Füge den echten Token nicht in Chat, Doku, Screenshots, Commits oder `PROJECT-CONTEXT.md` ein.
+7. Verwende den echten Token nur lokal im Terminal für die Remote-URL.
+
+Show the command shape with placeholders:
+
+```sh
+git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
+```
+
+If the repository does not yet have `origin`, use:
+
+```sh
+git remote add origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
+```
+
+Then verify:
+
+```sh
+git fetch origin
+git branch --show-current
+```
+
+If the branch does not exist locally yet, ask before creating or checking out a branch. Existing WESEO projects commonly use `master`, but do not assume it for a new repository without confirmation.
+
+## Remote-SSH Setup Guide
+
+When the user has not connected to the server or has opened the wrong folder, guide them in German:
+
+1. Öffne in Cursor die Command Palette mit `F1`.
+2. Wähle `Remote-SSH: Connect to Host`.
+3. Wenn der Host noch nicht existiert, wähle `Add New SSH Host`.
+4. Lege den Host mit dem freigegebenen WESEO SSH-Alias an. Zeige nur Platzhalter:
+
+```sshconfig
+Host <ssh-host-alias>
+  HostName <server-hostname>
+  User <ssh-user>
+  Port <ssh-port>
+  IdentityFile <local-private-key-path>
+  AddKeysToAgent yes
+```
+
+5. Speichere die SSH-Config lokal, nicht im Projekt.
+6. Verbinde dich mit dem Host.
+7. Wähle `Open Folder` und öffne den konkreten WordPress-Root, z. B. einen `wordpress-*` Ordner.
+8. Verifiziere danach:
+
+```sh
+pwd
+test -d wp-content && test -d wp-admin && test -d wp-includes
+```
+
+Do not ask the user to paste private SSH keys, passphrases, or private server coordinates into tracked files or chat.
+
+## Git Identity Setup Guide
+
+When Git identity is missing, guide the user:
+
+1. Erkläre, dass die Git Identity repository-lokal auf dem Server gesetzt wird.
+2. Frage nach dem freigegebenen Namen und der WESEO E-Mail-Adresse, aber nicht nach Zugangsdaten.
+3. Setze die Werte nur lokal im Repository:
+
+```sh
+git config user.name "<developer-name>"
+git config user.email "<developer-email>"
+```
+
+4. Verifiziere:
+
+```sh
+git config user.name
+git config user.email
+```
+
+Do not change global Git config unless the maintainer explicitly requests it.
+
+## Cursor Guidance Setup Guide
+
+The old guide installed SmartFlow content into the WordPress root. In the plugin flow, first prefer the approved marketplace/plugin install. If that is unavailable in the SSH workspace, use the documented manual projection fallback.
+
+Guide the user:
+
+1. Prüfe zuerst, ob die Team Marketplace Plugins aktiv sind.
+2. Wenn Marketplace funktioniert, dokumentiere in `PROJECT-CONTEXT.md`, dass keine projektlokale `.cursor/` Kopie nötig ist.
+3. Wenn Marketplace im SSH-Kontext nicht verfügbar ist, frage, ob die manuelle Projektion verwendet werden soll.
+4. Installiere nur freigegebene Rules/Skills, keine privaten Setup-Notizen, Dumps oder Credentials.
+5. Verifiziere:
+
+```sh
+ls .cursor
+ls .cursor/rules
+ls .cursor/skills
+```
+
+Expected guidance may include WordPress Server Ops, WST Builder, and Frontend Design QA content depending on the project role. Do not recreate the legacy SmartFlow repo layout blindly if marketplace plugins are the approved source.
+
+## Project Context Fill Guide
+
+When placeholders or missing project facts remain, guide the user through the fields instead of leaving generic placeholders:
+
+1. Erkläre, dass `PROJECT-CONTEXT.md` nur nicht-geheime Projektdaten enthält.
+2. Fülle automatisch erkannte Werte zuerst.
+3. Frage dann nacheinander nach fehlenden nicht-geheimen Werten:
+   - Projektname.
+   - Live URL.
+   - Staging/dev URL, falls vorhanden.
+   - Repository-Name und Default Branch.
+   - Bestätigte editierbare Pfade.
+   - WP-CLI Command.
+   - Cache Flush Command.
+   - Safe Temp Path außerhalb des Public Webroot.
+4. Lasse geheime Werte aus:
+   - Tokens.
+   - Application Passwords.
+   - SSH private keys.
+   - Token-bearing URLs.
+   - Datenbank-Zugangsdaten.
+   - Dumps.
+5. Verifiziere, dass keine offensichtlichen Secrets in `PROJECT-CONTEXT.md` stehen.
+
+## WordPress MCP Setup Guide
+
+When the user chooses WordPress MCP, guide them:
+
+1. Öffne WordPress im Browser.
+2. Gehe zu `Benutzer` -> `Profil` -> `Application Passwords`.
+3. Erstelle ein neues Application Password für Cursor/MCP.
+4. Kopiere das Passwort nur einmal und speichere es lokal im Passwortmanager.
+5. Erstelle oder aktualisiere `.cursor/mcp.json` lokal und untracked.
+6. Trage echte Werte nur lokal in `.cursor/mcp.json` ein, nie in Chat oder getrackte Dateien.
+7. Nutze in Doku/Chat nur die Platzhalterform:
+
+```json
+{
+  "mcpServers": {
+    "wordpress": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "<wordpress-mcp-package>",
+        "--url=https://<domain>",
+        "--username=<user>",
+        "--password=<app-password>"
+      ]
+    }
+  }
+}
+```
+
+8. Starte Cursor neu und prüfe `Settings` -> `Tools & MCP`.
+
+## Figma MCP Setup Guide
+
+When the user chooses Figma MCP, guide them:
+
+1. Öffne Figma im Browser.
+2. Gehe zu `Profile` -> `Settings` -> `Personal Access Tokens`.
+3. Erstelle ein neues Token für Cursor/MCP.
+4. Kopiere das Token nur einmal und speichere es lokal im Passwortmanager.
+5. Ergänze `.cursor/mcp.json` lokal und untracked.
+6. Nutze in Doku/Chat nur die Platzhalterform:
+
+```json
+{
+  "mcpServers": {
+    "figma": {
+      "command": "npx",
+      "args": ["-y", "<figma-mcp-package>", "--stdio"],
+      "env": {
+        "FIGMA_API_KEY": "<figma-api-key>"
+      }
+    }
+  }
+}
+```
+
+7. Starte Cursor neu und prüfe `Settings` -> `Tools & MCP`.
+
+## Final Verification Walkthrough
+
+Lead the user through the final checklist in German before saying setup is complete:
+
+1. Cursor ist per Remote-SSH mit dem richtigen Host verbunden.
+2. Der geöffnete Ordner ist der WordPress-Root.
+3. Git Identity ist gesetzt.
+4. Git Remote ist lokal eingerichtet und `git fetch origin` funktioniert.
+5. `PROJECT-CONTEXT.md` existiert und enthält keine Secrets.
+6. WP-CLI ist verfügbar oder bewusst geskippt.
+7. Cache Flush Command ist dokumentiert.
+8. Cursor Guidance ist verfügbar oder bewusst geskippt.
+9. `.cursor/mcp.json` ist lokal-only oder MCP bewusst geskippt.
+10. Safe Temp Path liegt außerhalb des Public Webroot.
+11. Keine echten Tokens, Application Passwords, SSH Keys oder tokenhaltigen URLs wurden in Chat, Docs oder Commits geschrieben.
+
 ## Discovery Commands
 
 Run discovery from the opened Remote-SSH workspace. Redact secret-bearing output before reporting it.
@@ -86,14 +363,28 @@ If the WordPress root is `/usr/home/<account>/public_html/wordpress-<id>`, a str
 | Local MCP config | `.cursor/mcp.json`, if needed, exists only locally and is not tracked. |
 | Scratch policy | Temporary scripts, dumps, and exports use `<path-outside-webroot>`, stay untracked, and are removed after use. |
 
-## Open Question Format
+## Completion Gates
 
-When setup cannot complete automatically, record the blocker with evidence and next action:
+Do not say "setup orientation is complete" unless every required gate is either verified or explicitly skipped by the user:
+
+- Valid WordPress root opened over Remote-SSH.
+- `PROJECT-CONTEXT.md` exists and contains the detected non-secret setup facts.
+- Git is working, or Git was consciously skipped with reason and next action.
+- WP-CLI is working, or WP-CLI was consciously skipped with reason and next action.
+- Cache flush command is documented, or blocked because WP-CLI is intentionally unavailable.
+- Cursor guidance is installed/available, or consciously skipped with reason and next action.
+- Safe temp path exists outside the public webroot.
+- MCP is configured locally or consciously skipped.
+- No secrets were written to tracked files or chat.
+
+## Open Question And Skip Format
+
+When setup cannot complete automatically, ask the user what to do next. If the user chooses to stop or skip, record it with evidence and next action:
 
 ```md
-- Git repository missing: no `.git` found in `<wp-root>`. Maintainer must confirm whether to initialize here or clone/open another root.
-- WP-CLI unavailable: neither `wp-cli.phar` nor global `wp` found. Maintainer must provide approved WP-CLI install method.
-- Temp path unresolved: candidate path is under `public_html`; maintainer must confirm whether it is not publicly served or approve `$HOME/.weseo-tmp`.
+- Skipped Git setup: no `.git` found in `<wp-root>`. User chose to skip because `<reason>`. Next action: initialize here, connect existing Bitbucket repo, or open the real repo root.
+- Skipped WP-CLI setup: neither `wp-cli.phar` nor global `wp` found. User chose to skip because `<reason>`. Next action: install local `wp-cli.phar` or provide global `wp`.
+- Temp path unresolved: candidate path is under `public_html`. User chose to stop. Next action: approve `$HOME/.weseo-tmp` or confirm the candidate path is not publicly served.
 ```
 
 ## Redaction Rules

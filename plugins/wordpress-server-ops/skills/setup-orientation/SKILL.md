@@ -7,15 +7,42 @@ description: Use when performing the complete first setup for a WESEO WordPress/
 
 Use this Skill for first-run setup or re-orientation in a WESEO WordPress/WST project opened through Cursor Remote-SSH. The expected outcome is a usable SSH development workspace, not just a list of open questions.
 
+This is a guided setup wizard. Do not run discovery, create a partial `PROJECT-CONTEXT.md`, and then stop with blockers unless the user explicitly chooses to stop. When a required setup item is missing, explain the next SmartFlow setup step, ask the user which path to take, perform the chosen action, verify it, update Project Context, and continue to the next step.
+
+Communicate with the user in German throughout the wizard. Keep commands, file names, placeholders, and external UI labels in their original language when that makes them easier to find, but explain what the user should do in German.
+
 Work in this order:
 
 1. Discover what is already present.
-2. Create or update `PROJECT-CONTEXT.md` with non-secret facts.
-3. Configure only local machine or repository settings that are safe to apply.
-4. Verify Git, Cursor guidance, WP-CLI, cache, temp policy, and optional MCP.
-5. Ask the maintainer only for values that cannot be detected or safely generated.
+2. Guide the user through each missing first-setup step from the old SmartFlow setup guide, using the walkthroughs in `reference.md`.
+3. Create or update `PROJECT-CONTEXT.md` with non-secret facts as each step is completed.
+4. Configure only local machine or repository settings that are safe to apply.
+5. Verify Git, Cursor guidance, WP-CLI, cache, temp policy, and optional MCP.
+6. Finish only when all completion gates pass or the user explicitly records a conscious skip.
 
 Never ask the user to paste real tokens, application passwords, SSH keys, token-bearing URLs, private server coordinates, or credentials into tracked files, diagnostics, screenshots, shared chat, or commit messages.
+
+## Guided Wizard Contract
+
+For every setup step:
+
+1. State what was detected.
+2. State why the next step matters.
+3. Offer concrete choices.
+4. Ask the user to choose before sensitive, destructive, credential, or live-site-affecting actions.
+5. Execute the chosen safe action.
+6. Verify the result.
+7. Update `PROJECT-CONTEXT.md` or local-only setup state.
+8. Continue to the next step.
+
+Use structured choices when possible. Ask one decision at a time. Good prompts are:
+
+- "Ich habe kein Git-Repository im WordPress-Root gefunden. Soll ich hier ein neues Git-Repo initialisieren, diesen Root mit einem bestehenden Bitbucket-Repo verbinden, oder ist vermutlich der falsche Ordner geöffnet?"
+- "Ich finde keinen WP-CLI-Befehl. Soll ich ein lokales `wp-cli.phar` im WordPress-Root installieren, ein globales `wp` verwenden nachdem du es bereitgestellt hast, oder WP-CLI bewusst als nicht verfügbar dokumentieren?"
+- "Ich finde keine `.cursor/rules` oder `.cursor/skills`. Soll ich die freigegebene WESEO Plugin-Guidance in diesem SSH-Workspace installieren, nur die Marketplace-Guidance verwenden, oder lokale Cursor-Inhalte bewusst überspringen?"
+- "MCP ist optional. Soll ich jetzt ein lokales `.cursor/mcp.json` Grundgerüst erstellen, MCP überspringen, oder warten bis Application Passwords/Tokens bereit sind?"
+
+Do not treat these as terminal blockers by default. They are wizard branches.
 
 ## WESEO SSH Defaults
 
@@ -45,6 +72,16 @@ test -d wp-content && test -d wp-admin && test -d wp-includes
 ```
 
 If the opened folder is not the WordPress root, locate candidate WordPress roots without scanning unrelated account data. Check the current folder and one parent level for directories containing `wp-content/`, `wp-admin/`, and `wp-includes/`, then ask before switching if more than one candidate exists.
+
+If no valid WordPress root is open, guide the user through the old SmartFlow Remote-SSH flow:
+
+1. Open Command Palette.
+2. Select `Remote-SSH: Connect to Host`.
+3. Add or choose the WESEO host alias.
+4. Open the concrete WordPress folder.
+5. Return to the Skill and re-run root verification.
+
+Use the detailed German Remote-SSH walkthrough in `reference.md` when the user needs help adding the host or choosing the folder.
 
 ## Step 2: Discover Project Facts
 
@@ -93,9 +130,41 @@ At minimum, fill:
 
 Never store real tokens, application passwords, SSH private keys, database dumps, complete token-bearing URLs, or REST credentials in Project Context.
 
+If required non-secret values are missing, guide the user through the Project Context walkthrough in `reference.md` instead of leaving generic placeholders unexplained.
+
 ## Step 4: Confirm Or Configure Local Git
 
 Work from the WordPress root. If the Git repository already exists, use it. If no repository exists, do not `git init` unless the maintainer confirms the repository should be created in this WordPress root.
+
+If no repository exists, start the Git setup branch instead of finishing with a blocker. Ask which path applies:
+
+- Initialize a new Git repository in this WordPress root.
+- Connect this WordPress root to an existing Bitbucket repository.
+- Open or clone a different folder because this is not the repo root.
+- Skip Git only for a consciously non-versioned emergency workspace.
+
+After the user chooses, complete the chosen setup. For an existing Bitbucket repository, guide the user through creating or retrieving the approved Access Token in Bitbucket, storing it in the approved local credential storage, and configuring the local remote URL with the real token only in local Git config. Show tracked docs only the placeholder form:
+
+When Bitbucket must be set up, guide the user step by step like the old SmartFlow setup guide:
+
+1. Open Bitbucket in the browser.
+2. Open the target repository.
+3. Go to `Repository settings` -> `Access tokens` -> `Create`.
+4. Create a repository access token with `Read` and `Write`.
+5. Copy the token once and store it in the approved password manager or OS keychain.
+6. Do not paste the token into chat, tracked docs, screenshots, commit messages, or `PROJECT-CONTEXT.md`.
+7. Tell the user the exact local command shape and instruct them to insert the real token only in their local terminal command.
+
+```sh
+git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
+```
+
+Then verify with:
+
+```sh
+git fetch origin
+git branch --show-current
+```
 
 Check repository-local identity:
 
@@ -112,6 +181,8 @@ git config user.email "<developer-email>"
 ```
 
 Do not change global Git config unless the maintainer explicitly asks.
+
+If the user does not know which Git identity to use, guide them through the Git identity walkthrough in `reference.md`.
 
 Use the approved repository access method from Project Context or detected existing config.
 
@@ -137,7 +208,16 @@ Prefer the command shape already documented in Project Context or project Rules.
 
 - Use `php wp-cli.phar <command>` when `wp-cli.phar` exists in the WordPress root.
 - Otherwise use `wp <command>` only if `command -v wp` succeeds.
-- If neither exists, record an open setup question and do not invent a command.
+- If neither exists, ask whether to install a local `wp-cli.phar`, use a maintainer-provided global `wp`, or consciously skip WP-CLI for this workspace.
+
+For the normal WESEO setup path, install local WP-CLI only after the user confirms:
+
+```sh
+curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+php wp-cli.phar --info
+```
+
+If `curl` is unavailable, ask before using an alternate download method. Do not download tools into a public scratch path; the local `wp-cli.phar` belongs in the WordPress root only when the project accepts that command shape.
 
 Verify WP-CLI without changing site state:
 
@@ -190,11 +270,30 @@ ls .cursor/rules
 ls .cursor/skills
 ```
 
-If `.cursor/` is ignored by Git, that is acceptable for existing SSH projects when the internal install flow expects local Cursor guidance. Record the local-only status in Project Context or setup notes. Do not copy private setup notes, real access values, database dumps, or operational scratch files into tracked plugin or template content.
+If `.cursor/rules` or `.cursor/skills` are missing, do not finish with only a blocker. Ask which setup path the user wants:
+
+- Install or refresh WESEO plugin guidance through the approved marketplace/plugin flow.
+- Project local copy/projection for SSH workspaces that cannot use marketplace plugins.
+- Skip project-local Cursor content because the team marketplace is already active for this workspace.
+
+After the chosen path, verify the guidance shape again. If `.cursor/` is ignored by Git, that is acceptable for existing SSH projects when the internal install flow expects local Cursor guidance. Record the local-only status in Project Context or setup notes. Do not copy private setup notes, real access values, database dumps, or operational scratch files into tracked plugin or template content.
+
+Use the Cursor guidance walkthrough in `reference.md` when the user needs a step-by-step explanation of marketplace install versus manual projection.
 
 ## Step 8: Create Local-Only MCP Config If Needed
 
 Create `.cursor/mcp.json` only as a local developer file. It must stay untracked.
+
+MCP setup is a guided optional step. Ask whether to:
+
+- Create a local-only `.cursor/mcp.json` skeleton now.
+- Configure WordPress MCP after the user creates a WordPress application password.
+- Configure Figma MCP after the user creates a Figma token.
+- Skip MCP for this project.
+
+If the user chooses WordPress or Figma MCP, guide them through creating the credential in the external UI, storing it locally, and inserting it only into local `.cursor/mcp.json`. Never ask them to paste the real value into chat.
+
+Use the WordPress MCP and Figma MCP walkthroughs in `reference.md` when those branches are selected.
 
 Use placeholders in examples and keep real values in approved local storage:
 
@@ -239,6 +338,10 @@ Use `reference.md` for the detailed verification checklist. At minimum, confirm:
 - `.cursor/mcp.json`, if present, is local-only and untracked.
 - Operational scratch policy is recorded and uses an outside-webroot path.
 
+If any required gate is not satisfied, ask the user whether to fix it now, consciously skip it, or stop setup. Do not claim setup is complete while required gates are still unresolved.
+
+Use the final verification walkthrough in `reference.md` to lead the user through the same checklist style as the old SmartFlow setup guide.
+
 ## Outputs
 
 When setup orientation is complete, leave behind:
@@ -251,7 +354,7 @@ When setup orientation is complete, leave behind:
 - A safe temp/scratch path outside the public webroot.
 - Local-only MCP config only when needed, never tracked.
 
-If a setup item cannot be completed automatically, record it as an explicit open question with the detected evidence and the exact next action needed.
+If the user consciously skips a setup item, record it as an explicit skipped item with the detected evidence, reason, and exact next action needed. Do not call it complete without marking the skip.
 
 ## Stop Conditions
 
