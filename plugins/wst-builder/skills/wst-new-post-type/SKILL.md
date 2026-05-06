@@ -7,15 +7,37 @@ description: Create a WESEO Smart Template Builder Custom Post Type foundation. 
 
 ## Quick Start
 
-Use this Skill for the server-side WST foundation of a new Custom Post Type. Before editing, read the project-local context for:
+Use this Skill for the server-side WST foundation of a new Custom Post Type. Start with a `grill-me` preflight before creating or modifying CPT registration, taxonomy setup, ACF field groups, WP Grid Builder card/grid foundations, card templates, archive/grid integration, optional single templates, CSS hooks, or handoff content.
+
+Before asking the maintainer for technical values, search the project-local context for:
 
 - WordPress root, WST template path, theme path, and style registration path.
 - CPT naming conventions, URL slug policy, and whether the CPT has a detail page.
 - ACF field creation approach, field key naming expectations, and existing CPT field groups.
 - WP Grid Builder grid/card conventions and where grid/card IDs are recorded.
-- Section handoff location, branch or PR carrier, and target dev or staging URL.
+- CPT handoff storage location, branch or PR carrier, and target dev or staging URL.
+- Existing selectors, CPT references, taxonomy references, card/grid/single template paths, source references, and project workflow notes.
 
-If any required value is missing, ask the maintainer or leave an explicit placeholder in the handoff. Do not invent CPT names, rewrite slugs, ACF keys, post IDs, WPGB IDs, paths, URLs, or theme values.
+If any blocking value is missing, stop and ask the maintainer or record an explicit unresolved placeholder in the dedicated CPT handoff draft. Do not invent CPT names, rewrite slugs, taxonomy names, ACF keys, field post IDs, WPGB IDs, paths, URLs, selectors, storage locations, or theme values.
+
+## Mandatory Preflight
+
+Run a `grill-me` preflight before implementation starts. The preflight output is a dedicated CPT handoff draft, not only a chat summary and not the Section handoff template.
+
+The draft must record:
+
+- Project-configured handoff storage location.
+- CPT slug, registered post type, singular and plural labels, admin visibility, and source brief.
+- Public detail-page decision, URL slug or explicit no-detail-page decision, archive/search behavior, and unresolved detail-page questions.
+- Taxonomy decision, taxonomy name, labels, hierarchy, public archive decision, purpose, and unresolved taxonomy questions.
+- ACF field group, field names, field ownership decisions, generated field references, and unresolved field questions.
+- WP Grid Builder grid/card IDs or explicit no-WPGB decision, plus display target: grid, carousel, existing Section, or dedicated Section.
+- Card, archive/grid, optional single, and optional Section integration template paths.
+- Expected card, archive/grid, optional single, and Section integration selectors to preserve.
+- Expected desktop, tablet, mobile, content variation, filtering, linking, and interaction behavior.
+- Server phase status, cache status, known risks, open questions, local frontend responsibilities, and unresolved placeholders.
+
+Do not proceed to CPT implementation until the draft exists in the project-configured storage location or the maintainer explicitly confirms where it should live.
 
 ## Inputs
 
@@ -36,7 +58,7 @@ Track progress with this checklist:
 
 ```text
 New WST CPT Foundation:
-- [ ] Decide public detail-page, taxonomy, field, card, and display shape
+- [ ] Run grill-me preflight and create dedicated CPT handoff draft
 - [ ] Register CPT
 - [ ] Register taxonomy if needed
 - [ ] Create ACF field group for CPT fields
@@ -58,7 +80,7 @@ Before writing files or changing WordPress configuration, decide:
 - Whether WP Grid Builder should render a grid, carousel, or card only.
 - Whether a dedicated WST Flexible Content Section is required, or an existing grid/slider Section can consume the grid.
 
-Record unresolved decisions in the handoff rather than guessing.
+Record unresolved decisions in the CPT handoff draft rather than guessing.
 
 ### 2. Register CPT
 
@@ -144,9 +166,9 @@ Template invariants:
 - Use the project-local WST single template location.
 - Keep markup compatible with existing WST element, row, wrap, and typography patterns.
 - Establish stable `.wso-<resource>-single` hooks.
-- Record any required local CSS and QA expectations in the handoff.
+- Record any required local CSS and QA expectations in the CPT handoff draft.
 
-If no public detail page exists, record that decision in the handoff so later frontend QA does not look for a single view.
+If no public detail page exists, record that decision in the CPT handoff draft so later frontend QA does not look for a single view.
 
 ### 8. Register Minimal Style Hooks
 
@@ -175,18 +197,21 @@ Run the project-local cache flush command. Then verify:
 
 ### 10. Emit Or Update CPT Foundation Handoff
 
-Update the handoff on the same branch or PR as the CPT foundation work.
+Update the dedicated CPT handoff draft on the same branch or PR as the CPT foundation work. Keep it separate from the Section handoff template because CPT work has its own detail-page, taxonomy, WP Grid Builder, card, archive, and optional single-template decisions.
 
 Fill these handoff areas before local frontend work starts:
 
-- Handoff carrier and owner.
+- Handoff carrier, owner, project-configured storage location, and server phase status.
 - CPT name, labels, detail-page decision, taxonomy decision, and display target.
 - Template files for card, optional single, and any Section integration.
 - ACF field group, field names, and unresolved field questions.
 - WP Grid Builder grid/card IDs as project-local values.
 - Expected card, archive/grid, and optional single selectors.
-- Server responsibilities completed, cache state, known risks, and open questions.
+- Expected desktop, tablet, mobile, content variation, filtering, linking, and interaction behavior.
+- Server responsibilities completed, cache state, known risks, open questions, and unresolved placeholders.
 - Local frontend responsibilities for final CSS, responsive checks, Chrome Local Overrides spikes, and Playwright-oriented verification.
+
+Completed CPT handoffs route to the Frontend Design QA `cpt-frontend-qa` Skill. Treat the filled CPT handoff as the shared workflow contract between WST Builder server-side ownership and Frontend Design QA local implementation ownership. If the CPT display becomes primarily a dedicated WST Section layout, record the split between `frontend-section-qa` for Section-level behavior and `cpt-frontend-qa` for CPT card, archive/grid, and optional single-template QA in the same CPT handoff.
 
 ## Outputs
 
@@ -197,4 +222,4 @@ When this Skill is complete, the project should have:
 - A WP Grid Builder card/grid foundation when the CPT is displayed through WPGB.
 - WST card template foundation and optional single template foundation.
 - Minimal tracked hooks or style registration only when the project requires them upfront.
-- A handoff that lets Frontend Design QA finish card/archive/single presentation locally.
+- A dedicated CPT handoff that routes the next local frontend phase to `cpt-frontend-qa` so Frontend Design QA can finish card/archive/single presentation locally.

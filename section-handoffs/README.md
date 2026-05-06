@@ -1,6 +1,6 @@
 # Section Handoffs
 
-Section handoffs are the checkpoint between the server-side WordPress/WST phase and the local frontend phase.
+Section handoffs start as the `grill-me` preflight draft before server-side WordPress/WST Section implementation begins, then remain the checkpoint between the server phase and the local frontend phase.
 
 Use one handoff document per Flexible Content Section. The document travels with the same Git branch or PR as the Section work, even when the same person or agent performs both phases. Server work writes the WordPress, WST, ACF, template, content, and cache context. Local work reads that context, implements CSS/SCSS, runs visual checks, and commits the final code.
 
@@ -21,18 +21,20 @@ scripts/
 ## Create A Handoff
 
 1. Copy `section-handoffs/section-handoff.template.md`.
-2. Save it as `section-handoffs/<section-slug>.md` or inside the project-local handoff directory used by the current branch.
-3. Fill every required table value before starting local frontend work.
-4. Keep the file on the same Git branch or PR as the Section code.
-5. Run `python scripts/validate-section-handoffs.py`.
+2. Save the concrete handoff in the project-configured handoff storage location from Project Context.
+3. Search Project Context for URLs, paths, IDs, selectors, ACF references, and storage before asking the maintainer.
+4. Fill every required table value before creating or modifying Section files, ACF structures, or local frontend work.
+5. Use explicit `<unresolved: ...>` placeholders for missing blocking values instead of inventing technical values.
+6. Keep the file on the same Git branch or PR as the Section code.
+7. Run `python scripts/validate-section-handoffs.py` when the filled handoff lives in this repository.
 
 ## Required Contract
 
 Each handoff must record:
 
-- Handoff carrier: project, branch or PR, owner, server phase status, local phase status.
+- Handoff carrier: project, branch or PR, project-configured storage location, owner, preflight status, server phase status, local phase status.
 - Section identity: Section name, layout name, page URL, source design/reference.
-- WordPress and WST references: template file, CSS file, ACF section field group, Flexible Content layout, generated field or layout keys, and content setup notes.
+- WordPress and WST references: template file, CSS file, ACF section field group, Flexible Content field, Flexible Content layout, clone child field, generated field or layout keys, and content setup notes.
 - CSS hooks: primary section class, expected wrapper/classes, custom properties, and selectors the local phase should use.
 - Expected visual behavior: responsive behavior, states, content variations, and design constraints.
 - QA notes: cache state, Playwright target URL, checks to run, and known risks.

@@ -2,6 +2,19 @@
 
 Reusable lookup material for the `wst-new-post-type` Skill. Values shown with angle brackets come from Project Context or the current issue brief.
 
+This reference is intentionally generic. Project-specific CPT names, rewrite slugs, ACF keys, field post IDs, WP Grid Builder IDs, URLs, paths, selectors, credentials, and theme tokens must stay in Project Context or the concrete CPT handoff.
+
+## Safe Defaults
+
+Use these defaults only as starting points for discussion during the `grill-me` preflight:
+
+- Prefer a non-detail CPT unless the brief explicitly needs public single pages.
+- Prefer core post title, featured image, editor, excerpt, and taxonomy terms before duplicating data in ACF fields.
+- Add taxonomy only when it has a clear filtering, grouping, card-label, archive, or editor-organization purpose.
+- Create WP Grid Builder card/grid foundations only when the display target uses WPGB.
+- Keep generated IDs and field keys in Project Context or the CPT handoff, never in reusable plugin docs.
+- Route completed CPT handoffs to `cpt-frontend-qa`; if a dedicated WST Section becomes the main display surface, record the split with `frontend-section-qa`.
+
 ## CPT UI Settings
 
 For CPTs without public detail pages:
@@ -25,6 +38,8 @@ For CPTs without public detail pages:
 }
 ```
 
+Stop if the no-detail-page decision is unclear. Do not create public URLs accidentally just because the CPT is visible in the admin.
+
 For CPTs with public detail pages, review these settings together:
 
 ```json
@@ -38,6 +53,8 @@ For CPTs with public detail pages, review these settings together:
   "supports": ["title", "thumbnail", "editor", "excerpt"]
 }
 ```
+
+Only enable detail pages after the handoff records the URL slug, archive/search behavior, expected single-template path, selectors, and local frontend responsibilities.
 
 ## Taxonomy Settings
 
@@ -61,6 +78,8 @@ Use a taxonomy when the CPT needs filtering, grouping, labels, or editor organiz
 ```
 
 Set `hierarchical` to `true` for category-style terms and `false` for tag-style terms. Keep `rewrite` disabled unless taxonomy archives are a deliberate requirement.
+
+Record an explicit no-taxonomy decision when the CPT does not need taxonomy. If public taxonomy archives are required, the handoff must capture rewrite slug, archive behavior, selectors, and frontend QA expectations.
 
 ## ACF Field Group Shape
 
@@ -90,6 +109,7 @@ Field group conventions:
 - Prefer core post title, thumbnail, editor, excerpt, and taxonomy fields before adding duplicate ACF fields.
 - Keep ACF field names stable and prefixed consistently with the CPT.
 - Record generated field keys in Project Context or the handoff when later work needs them.
+- Stop when field ownership is unclear; do not invent field names, field keys, or generated IDs.
 
 Common field types:
 
@@ -114,9 +134,10 @@ Common field types:
 WST projects commonly use WP Grid Builder for CPT card lists:
 
 - Create an empty WPGB card when WST PHP templates render the markup.
-- Create a WPGB grid whose source is the new CPT.
+- Create a WPGB grid whose source is the new CPT when the display target is a grid or carousel.
 - Select the created card in the grid settings.
 - Record generated `<grid-id>` and `<card-id>` in Project Context or the handoff.
+- Record an explicit no-WPGB decision when the CPT is rendered only by a custom Section, single template, or other project-specific path.
 
 Template lookup usually follows these shapes:
 
@@ -128,6 +149,8 @@ smart-template-builder/post-types/<resource>/singles/<resource>-single.php
 ```
 
 Use the equivalent paths from Project Context when a project differs.
+
+Do not hardcode WPGB IDs in card templates, reusable references, or plugin docs. Generated IDs belong in concrete project context and handoffs.
 
 ## WST Card Shortcodes
 
@@ -148,17 +171,26 @@ Common card data:
 | `[wst_if_a field='<field-a>' ... field_2='<field-b>' ... relation='AND']...[/wst_if_a]` | Multi-field conditional output |
 | `[wst_variable name='<name>']...[/wst_variable]` | Define reusable output |
 
-## Handoff Fields
+## CPT Handoff Draft
 
-The CPT foundation handoff should capture:
+The CPT handoff draft is separate from the Section handoff template. Create it during the `grill-me` preflight at the project-configured storage location from Project Context, then keep updating it as server-side CPT foundation work proceeds.
 
-- CPT registered name, labels, and detail-page decision.
-- URL slug or explicit "no public detail page" decision.
-- Taxonomy name, hierarchy, and purpose, if any.
+The draft should capture:
+
+- Handoff carrier, owner, project-configured storage location, and source brief.
+- CPT slug, registered name, singular label, plural label, and admin visibility.
+- Detail-page decision, URL slug or explicit "no public detail page" decision, archive/search behavior, and unresolved detail-page questions.
+- Taxonomy decision, taxonomy name, labels, hierarchy, public archive decision, purpose, and unresolved taxonomy questions.
 - ACF field group, field names, and unresolved field questions.
-- WPGB grid/card IDs as project-local values.
-- Card template files and optional single template files.
-- Display target: existing grid Section, slider Section, or dedicated Section.
-- Expected selectors for card, archive/grid, and optional single template.
+- WPGB grid/card IDs as project-local values, or an explicit no-WPGB decision.
+- Display target: grid, carousel, existing Section, or dedicated Section.
+- Card template files, archive/grid integration, optional single template files, and optional Section integration files.
+- Expected selectors for card, archive/grid, optional single template, and Section integration.
+- Expected desktop, tablet, mobile, content variation, filtering, linking, and interaction behavior.
 - Server verification results and cache state.
+- Known risks, open questions, unresolved placeholders, and stop conditions.
 - Local frontend checklist for CSS/SCSS, responsive checks, Chrome Local Overrides spikes, and Playwright-oriented verification.
+
+Stop instead of guessing when the draft lacks blocking values such as CPT names, rewrite slugs, taxonomy decisions, ACF field ownership, WPGB IDs, target URLs, stable selectors, template paths, storage location, or expected visible behavior.
+
+Completed CPT handoffs route to the Frontend Design QA `cpt-frontend-qa` Skill. When the CPT display becomes primarily a dedicated WST Section layout, keep the CPT handoff explicit about the split: `frontend-section-qa` owns the Section layout behavior, while `cpt-frontend-qa` owns CPT card, archive/grid, and optional single-template behavior.

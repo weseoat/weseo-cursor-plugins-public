@@ -12,13 +12,15 @@ Use this Rule when writing or reviewing local frontend CSS or SCSS for a WESEO W
 
 ## Required Context
 
-Before styling a Section, read:
+Before styling a Section or CPT frontend surface, read:
 
 - The project-local context for theme path, style loader, breakpoints, tokens, and local build commands.
-- The filled Section handoff for the page URL, template references, CSS hooks, expected visual behavior, and QA notes.
+- The filled Section or CPT handoff for target URLs, template references, ACF/WST references, WP Grid Builder references when applicable, CSS hooks, expected visual behavior, local frontend responsibilities, storage facts, and QA notes.
 - Existing nearby CSS files for indentation, selector depth, variable names, and responsive patterns.
 
-Do not invent brand colors, font families, container widths, button variants, Figma style names, URLs, repository names, or deployment steps. If the value differs by project, read it from project context or leave an explicit placeholder in the handoff.
+If the handoff is missing target URLs, stable selectors, ACF/WST references, WP Grid Builder IDs, visual requirements, CSS paths, local frontend responsibilities, or storage facts, stop and ask for the missing information before writing final CSS or SCSS.
+
+Do not invent brand colors, font families, container widths, button variants, Figma style names, URLs, selectors, ACF keys, WP Grid Builder IDs, repository names, storage locations, or deployment steps. If the value differs by project, read it from project context or leave an explicit placeholder in the handoff.
 
 ## Rem Scaling
 
@@ -30,7 +32,7 @@ When a project documents a rem basis, convert with:
 rem = design px / project rem basis px
 ```
 
-Record any uncertain conversion in the Section handoff instead of hardcoding a universal value.
+Record any uncertain conversion in the active Section or CPT handoff instead of hardcoding a universal value.
 
 ## File Structure
 
@@ -42,7 +44,7 @@ Keep reusable CSS organized in this order:
 4. Visual styles that consume the variables.
 5. Interaction, responsive, or print-only refinements when needed.
 
-For Section files, prefer component-scoped custom properties when the value belongs only to that Section. Use global custom properties only when the project context defines them as shared theme tokens.
+For Section files, prefer component-scoped custom properties when the value belongs only to that Section. For CPT cards, grids, archives, and optional singles, use CPT-scoped or display-target-scoped custom properties when the value belongs only to that presentation. Use global custom properties only when the project context defines them as shared theme tokens.
 
 ## Directory Expectations
 
@@ -52,7 +54,7 @@ Read the project context for the actual style paths and loader. Common WESEO the
 - Global base styles and layout primitives.
 - Element styles such as buttons and image boxes.
 - Section styles under a section-focused directory.
-- Post type or commerce-specific styles when the project uses them.
+- CPT card, archive, grid, optional single, post type, or commerce-specific styles when the project uses them.
 
 Do not create new directories or loader entries until you confirm the local project pattern.
 
@@ -63,7 +65,7 @@ Use variables for reusable values:
 - Global tokens for colors, fonts, spacing, transitions, container widths, and theme-level layout values.
 - Typography tokens for headings, paragraphs, sublines, and special text styles.
 - Element tokens for buttons and reusable components.
-- Component-scoped tokens prefixed by the component or Section name.
+- Component-scoped tokens prefixed by the component, Section, or CPT display name.
 - Context tokens that cascade through background, text alignment, spacing, or theme modifiers.
 
 Never hardcode project values when a token exists. If the token is missing, add a narrowly scoped Section variable or ask for the intended project token.
@@ -74,6 +76,7 @@ Follow existing WST and Astra selector style:
 
 - Use stable `wso-` classes from the handoff as the primary hooks.
 - Preserve selectors that templates, scripts, or Playwright checks rely on.
+- Preserve WP Grid Builder wrapper, grid, card, filter, and pagination selectors named in a CPT handoff.
 - Keep specificity as low as the theme allows.
 - Match existing heading and paragraph specificity when overriding global typography.
 - Use state classes such as `.is-active`, `.is-open`, or project-established equivalents.
@@ -93,10 +96,10 @@ Use `!important` only when overriding a theme or plugin rule that cannot be chan
 
 Read breakpoints from project context and existing files. When possible, redefine variables inside media queries while keeping the visual rule body stable.
 
-For each Section, check:
+For each Section or CPT display target, check:
 
 - Desktop, tablet, and mobile behavior from the handoff.
-- Long copy, empty optional fields, repeated items, and missing media.
+- Long copy, empty optional fields, repeated items, card counts, filters, pagination, and missing media.
 - Hover, focus, active, loading, and reduced-motion states that apply.
 
 ## Formatting

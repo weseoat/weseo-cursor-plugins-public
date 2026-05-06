@@ -1,6 +1,6 @@
-# Section Handoff: <section-name>
+# Section Handoff Draft: <section-name>
 
-Copy this document for each WST Flexible Content Section. Replace placeholders before the local frontend phase starts.
+Copy this document for each WST Flexible Content Section into the project-configured handoff storage location from Project Context. Replace placeholders before Section implementation or local frontend work starts. If a blocking value is unknown, keep an explicit `<unresolved: ...>` placeholder instead of inventing a technical value.
 
 ## Handoff Carrier
 
@@ -8,7 +8,9 @@ Copy this document for each WST Flexible Content Section. Replace placeholders b
 |-------|-------|
 | Project | `<project-name>` |
 | Branch or PR | `<branch-or-pr-url>` |
+| Handoff storage location | `<project-configured-handoff-path>` |
 | Handoff owner | `<person-or-agent>` |
+| Preflight status | `<not-started/in-progress/done>` |
 | Server phase status | `<not-started/in-progress/done>` |
 | Local frontend phase status | `<not-started/in-progress/done>` |
 
@@ -28,7 +30,9 @@ Copy this document for each WST Flexible Content Section. Replace placeholders b
 | Template file | `smart-template-builder/sections/<section-template>.php` |
 | CSS file | `styles/sections/<section-template>.css` |
 | ACF section field group | `<group-key-or-title>` |
+| ACF Flexible Content field | `<fc-field-key-or-post-id>` |
 | ACF Flexible Content layout | `<layout-key-and-layout-name>` |
+| ACF clone child field | `<clone-child-field-key-or-post-id>` |
 | ACF fields | `<field-keys-or-field-names>` |
 | Content setup notes | `<page-id-language-content-state>` |
 
@@ -53,6 +57,9 @@ Copy this document for each WST Flexible Content Section. Replace placeholders b
 
 ## Server Phase Responsibilities
 
+- [ ] Run `grill-me` preflight before creating or modifying Section files or ACF structures.
+- [ ] Search Project Context for URLs, paths, IDs, selectors, ACF references, and handoff storage before asking the maintainer.
+- [ ] Create this prefilled handoff draft in the project-configured storage location.
 - [ ] Create or update the WST Section template.
 - [ ] Create or update the ACF section field group and Flexible Content layout.
 - [ ] Register the Section in `flexible-content.php`.

@@ -5,17 +5,19 @@ alwaysApply: true
 
 # Figma To Code
 
-Use this Rule whenever a Section implementation references Figma design data, screenshots, exported assets, or designer notes.
+Use this Rule whenever a Section or CPT frontend implementation references Figma design data, screenshots, exported assets, or designer notes.
 
 ## Required Context
 
 Before writing code:
 
-- Read the filled Section handoff for the target page URL, design reference, CSS hooks, expected behavior, and QA notes.
+- Read the filled Section or CPT handoff for target URLs, design reference, CSS hooks, ACF/WST references, WP Grid Builder references when applicable, expected behavior, local frontend responsibilities, storage facts, and QA notes.
 - Read project context for Bootstrap or grid assumptions, theme tokens, typography mappings, image policy, and asset workflow.
-- Inspect existing Section variants before adding a new layout pattern.
+- Inspect existing Section variants, CPT cards, grids, archives, optional singles, and shared component styles before adding a new layout pattern.
 
 Do not assume one Figma canvas size, token mapping, or grid width applies to every project.
+
+If the handoff is missing target URLs, stable selectors, ACF/WST references, WP Grid Builder IDs, visual requirements, asset workflow, local frontend responsibilities, or storage facts, stop and ask for the missing information before translating the design into final tracked code.
 
 ## Grid Translation
 
@@ -27,7 +29,7 @@ When the project uses Bootstrap or another column grid:
 - Remove or override gutters only at the Section scope when Figma shows flush elements.
 - Use margin utilities or local CSS for asymmetric alignment only after checking parent and child alignment.
 
-Record uncertain grid decisions in the handoff.
+Record uncertain grid, archive, card, carousel, filter, or optional single-template decisions in the handoff.
 
 ## Layout And Spacing
 
@@ -40,11 +42,11 @@ Check every Figma frame for:
 - Spacer components or explicit vertical rhythm tokens.
 - Whether visual spacing comes from the design system or from local composition.
 
-Map repeated Section spacing to scoped custom properties. Do not rely on global defaults when the design shows explicit spacing.
+Map repeated Section, card, grid, archive, or single-template spacing to scoped custom properties. Do not rely on global defaults when the design shows explicit spacing.
 
 ## Typography Verification
 
-For every text style used in the Section:
+For every text style used in the Section or CPT display:
 
 - Compare Figma typography to project typography tokens.
 - Reuse global heading, paragraph, subline, or special text classes when they match.
@@ -66,10 +68,10 @@ Use the project's asset and media workflow for final files. Figma exports are re
 
 ## Specificity And Existing CSS
 
-Before writing CSS for a new Section or variant:
+Before writing CSS for a new Section, CPT card, grid, archive, or optional single variant:
 
 - Search for shared selectors that target the same `wso-` classes.
-- Check whether existing section files already define the same spacing, image, or typography behavior.
+- Check whether existing Section, CPT, card, grid, archive, single, or shared component files already define the same spacing, image, or typography behavior.
 - Resolve conflicts with scoped selectors, source-order-aware edits, or targeted exclusions.
 - Avoid using `!important` to fight another `!important` unless the theme pattern leaves no better option.
 
@@ -79,7 +81,7 @@ When a project uses SCSS as a convenience layer, update the SCSS and the generat
 
 After implementation:
 
-- Compare the rendered Section against the Figma frame or screenshot at the breakpoints named in the handoff.
-- Verify text wrapping, media crop, spacing, focus states, and interactive states.
+- Compare the rendered Section or CPT display against the Figma frame or screenshot at the breakpoints named in the handoff.
+- Verify text wrapping, media crop, spacing, card counts, filter or carousel behavior, focus states, and interactive states.
 - Capture Playwright checks or manual notes in the handoff's QA section.
 - Keep design-token gaps or unresolved questions visible in the handoff.

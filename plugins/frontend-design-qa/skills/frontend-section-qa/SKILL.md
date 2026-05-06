@@ -7,19 +7,25 @@ description: Implement and verify a local frontend Section from a filled Section
 
 Use this Skill for the local frontend phase after the server phase has created or updated a WST Section foundation and filled a Section handoff.
 
+## Required Starting Point
+
+Start from a concrete filled Section handoff produced by the WST Builder server phase. The handoff is the contract for local frontend work and the place where QA results are written back.
+
+Do not begin final CSS, SCSS, Chrome Local Overrides spikes, responsive checks, or Playwright-oriented work from chat context alone. If the handoff path or project-configured storage location is unknown, stop and ask for it.
+
 ## Inputs
 
 Read these before editing:
 
-- Section handoff path and current handoff status.
+- Section handoff path, project-configured storage location, and current handoff status.
 - Target dev or staging URL.
-- Section slug, primary section class, wrapper classes, and selectors to preserve.
-- Template and CSS or SCSS file references.
+- Section slug, layout name, primary section class, wrapper classes, and selectors to preserve.
+- Template, WST, ACF, and CSS or SCSS file references.
 - Expected desktop, tablet, mobile, content variation, and interaction behavior.
 - Source design or reference notes.
 - Project context for theme tokens, style loader, local build command, Playwright command, and Git branch or PR.
 
-If the handoff is missing the target URL, CSS hook, expected visual behavior, or local frontend responsibilities, stop and ask for the missing information.
+If the handoff is missing the target URL, stable selectors, ACF or WST references, CSS path, visual requirements, local frontend responsibilities, or storage facts, stop and ask for the missing information. Do not invent URLs, selectors, ACF references, WST layout names, theme tokens, file paths, storage locations, or expected behavior.
 
 ## Workflow
 
@@ -45,11 +51,13 @@ The Section handoff is the contract for local work. Confirm it includes:
 - Page URL.
 - Source design or reference.
 - Template file and CSS file.
-- ACF layout and fields that affect rendering.
+- WST template, ACF layout, clone child field, and fields that affect rendering.
 - Primary section class and wrapper hooks.
 - Selectors that tests, scripts, or templates rely on.
 - Expected visual behavior across breakpoints.
-- QA notes, cache state, known risks, and open questions.
+- Project-configured handoff storage location, local frontend responsibilities, QA notes, cache state, known risks, and open questions.
+
+Do not start final CSS work while the handoff contains unresolved placeholders for markup, selectors, ACF/WST references, visual behavior, target URLs, or storage location.
 
 Run the handoff validator when the handoff lives in this repository:
 
@@ -135,7 +143,17 @@ test("feature cards section renders responsively", async ({ page }) => {
 
 Treat this as a shape example. Use the project's test runner, environment variables, locators, and viewport list.
 
-## 7. Commit The Local Phase
+## 7. Update The Handoff
+
+Write QA notes back to the same Section handoff that started the local phase. Include:
+
+- Local frontend phase status.
+- Responsive browser findings for the handoff's desktop, tablet, and mobile expectations.
+- Playwright result or documented acceptance path tied to the visible behavior in the handoff.
+- Implementation notes for changed CSS or SCSS files and generated CSS when applicable.
+- Remaining risks, open questions, cache notes, and confirmation that Chrome Local Overrides were discarded or copied into tracked source.
+
+## 8. Commit The Local Phase
 
 Before finishing:
 

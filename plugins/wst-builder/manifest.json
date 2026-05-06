@@ -7,7 +7,7 @@
   "assumptions": [
     "The plugin is used in a Cursor workspace that has access to a WordPress and WST project checkout.",
     "Project-specific CPT names, URL slugs, Flexible Content field keys, field post IDs, clone group keys, WPGB IDs, WordPress paths, WP-CLI commands, cache commands, theme quirks, URLs, and branch details live in the project-local template.",
-    "Server-side WST setup writes a handoff before final CSS, responsive QA, and Playwright checks begin in the local frontend phase."
+    "Server-side WST setup starts from a project-configured handoff draft before final CSS, responsive QA, and Playwright checks begin in the local frontend phase."
   ],
   "rules": [
     {
@@ -28,7 +28,7 @@
       "name": "wst-new-post-type",
       "path": "skills/wst-new-post-type/SKILL.md",
       "source": "weseo-smartflow-frontend-guide/.cursor/skills/wst-new-post-type/SKILL.md",
-      "description": "Create a WST Custom Post Type foundation, including optional taxonomy, ACF CPT fields, WP Grid Builder grid/card foundation, card template, optional single template, and CPT foundation handoff."
+      "description": "Create a WST Custom Post Type foundation, including required preflight, dedicated CPT handoff draft, optional taxonomy, ACF CPT fields, WP Grid Builder grid/card foundation, card template, and optional single template."
     }
   ],
   "releaseNotes": "release-notes/0.1.0.md"

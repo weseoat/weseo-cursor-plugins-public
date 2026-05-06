@@ -2,6 +2,8 @@
 
 These examples are non-normative. They show reusable structure only; replace names, labels, fields, selectors, and paths with values from Project Context and the current issue brief.
 
+Keep generated ACF keys, field post IDs, WP Grid Builder IDs, target URLs, rewrite slugs, and storage locations in the concrete CPT handoff. Completed CPT handoffs route to `cpt-frontend-qa`; Section-level layouts that display CPT content route their Section behavior to `frontend-section-qa`.
+
 ## Simple Logo Card
 
 Use this shape when the CPT has no public detail page and the card mostly displays a featured image with an optional link.

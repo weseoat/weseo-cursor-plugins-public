@@ -22,14 +22,18 @@
       "required": [
         "project",
         "branchOrPr",
+        "handoffStorageLocation",
         "handoffOwner",
+        "preflightStatus",
         "serverPhaseStatus",
         "localFrontendPhaseStatus"
       ],
       "properties": {
         "project": { "type": "string", "minLength": 1 },
         "branchOrPr": { "type": "string", "minLength": 1 },
+        "handoffStorageLocation": { "type": "string", "minLength": 1 },
         "handoffOwner": { "type": "string", "minLength": 1 },
+        "preflightStatus": { "type": "string", "minLength": 1 },
         "serverPhaseStatus": { "type": "string", "minLength": 1 },
         "localFrontendPhaseStatus": { "type": "string", "minLength": 1 }
       }
@@ -57,7 +61,9 @@
         "templateFile",
         "cssFile",
         "acfSectionFieldGroup",
+        "acfFlexibleContentField",
         "acfFlexibleContentLayout",
+        "acfCloneChildField",
         "acfFields",
         "contentSetupNotes"
       ],
@@ -65,7 +71,9 @@
         "templateFile": { "type": "string", "minLength": 1 },
         "cssFile": { "type": "string", "minLength": 1 },
         "acfSectionFieldGroup": { "type": "string", "minLength": 1 },
+        "acfFlexibleContentField": { "type": "string", "minLength": 1 },
         "acfFlexibleContentLayout": { "type": "string", "minLength": 1 },
+        "acfCloneChildField": { "type": "string", "minLength": 1 },
         "acfFields": { "type": "string", "minLength": 1 },
         "contentSetupNotes": { "type": "string", "minLength": 1 }
       }

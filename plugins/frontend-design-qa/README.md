@@ -4,11 +4,14 @@ Reusable local frontend guidance for turning a filled WST Section handoff or CPT
 
 This plugin covers the local implementation phase. It consumes handoffs produced by server-side WST work, guides CSS and Figma-to-code decisions, allows Chrome Local Overrides as short-lived spike work, and documents a Playwright-oriented acceptance path against a dev or staging WordPress URL. Values that differ per project belong in `project-template/PROJECT-CONTEXT.md` or the current handoff.
 
+The filled Section or CPT handoff is the source of truth for local frontend work. Do not start from chat context, legacy SmartFlow guide material, browser overrides, or reusable examples alone. If a blocking implementation or verification fact is missing, stop and update the handoff or ask for the missing value before writing final tracked CSS or SCSS.
+
 ## Responsibility
 
 Use this plugin for local frontend work:
 
-- Read the Section handoff before styling begins.
+- Read the filled Section or CPT handoff before styling begins.
+- Stop when the handoff is missing blocking facts such as target URLs, stable selectors, ACF/WST references, WP Grid Builder IDs, visual requirements, local frontend responsibilities, or project-configured storage location.
 - Implement final CSS or SCSS-derived changes in tracked local project files.
 - Apply reusable CSS conventions for variables, selectors, rem scaling, responsive strategy, and formatting.
 - Translate Figma layout, spacing, typography, and media behavior into project tokens and scoped CSS.
@@ -45,6 +48,8 @@ Before using the Skill or Rules, fill or locate these project-local values:
 
 Start from a filled Section handoff created by the server phase. The handoff should name the target URL, template and CSS files, ACF references, CSS hooks, expected visual behavior, QA notes, and local frontend responsibilities.
 
+If the Section handoff is missing the target URL, stable selectors, ACF or WST references, CSS path, visual requirements, local frontend responsibilities, or project-configured storage facts, stop and ask for the missing information instead of guessing.
+
 After implementation, update the handoff with:
 
 - Local frontend phase status.
@@ -53,9 +58,13 @@ After implementation, update the handoff with:
 - Remaining risks or open questions.
 - Confirmation that final CSS or SCSS-derived changes live in tracked files.
 
+Commit the updated handoff with the local frontend code so the server-side context, implementation notes, and QA result stay together on the same branch or PR.
+
 ## CPT Foundation Handoff
 
 Start from a filled CPT foundation handoff created by the WST Builder `wst-new-post-type` Skill when finishing CPT presentation locally. The handoff should name the target dev or staging URL, CPT labels, detail-page decision, display target, card/archive/single templates, WP Grid Builder IDs, stable selectors, CSS or SCSS file paths, expected behavior, QA notes, and local frontend responsibilities.
+
+If the CPT handoff is missing target URLs, stable selectors, ACF references, WP Grid Builder IDs or an explicit no-WPGB decision, visual requirements, local frontend responsibilities, project-configured storage facts, or detail-page/display decisions, stop and ask for the missing information instead of guessing.
 
 Use `cpt-frontend-qa` for:
 
@@ -66,6 +75,8 @@ Use `cpt-frontend-qa` for:
 - Playwright-oriented checks for card/archive/grid visibility and optional single-page visibility.
 
 If a CPT display becomes primarily a new WST Section layout, use `frontend-section-qa` for the Section-level work and keep CPT card-specific checks in the CPT handoff.
+
+After implementation, write QA results, responsive findings, Playwright result or documented acceptance path, changed CSS/SCSS files, generated CSS notes, Chrome Local Overrides disposition, cache notes, risks, and open questions back to the same CPT handoff.
 
 ## Chrome Local Overrides
 

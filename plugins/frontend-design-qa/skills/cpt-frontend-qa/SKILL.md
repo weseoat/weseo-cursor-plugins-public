@@ -9,11 +9,17 @@ Use this Skill for the local frontend phase after the WST Builder `wst-new-post-
 
 This Skill owns final tracked CSS or SCSS work, responsive checks, and Playwright-oriented verification for CPT cards, archive/grid presentation, and optional single-template presentation. It does not own CPT registration, taxonomy setup, ACF field groups, WP Grid Builder card/grid foundation, WST templates, WP-CLI, or Remote-SSH operations.
 
+## Required Starting Point
+
+Start from a concrete filled CPT foundation handoff produced by the WST Builder server phase. The handoff is the contract for CPT local frontend work and the place where QA results are written back.
+
+Do not begin final card, archive/grid, optional single-template CSS, Chrome Local Overrides spikes, responsive checks, or Playwright-oriented work from chat context alone. If the handoff path or project-configured storage location is unknown, stop and ask for it.
+
 ## Inputs
 
 Read these before editing:
 
-- CPT foundation handoff path and current handoff status.
+- CPT foundation handoff path, project-configured storage location, and current handoff status.
 - Target dev or staging URL for the card/archive/grid view and optional single view.
 - CPT registered name, labels, detail-page decision, taxonomy decision, and display target.
 - Card, archive/grid, and optional single template file references.
@@ -23,7 +29,7 @@ Read these before editing:
 - Expected desktop, tablet, mobile, content variation, empty-state, and interaction behavior.
 - Project Context for theme tokens, breakpoints, rem scale, style loader, build command, Playwright command, viewport conventions, repository policy, and design references.
 
-If the handoff is missing the target URL, expected selectors, local frontend responsibilities, or detail-page decision, stop and ask for the missing information.
+If the handoff is missing target URLs, stable selectors, ACF references, WP Grid Builder IDs or an explicit no-WPGB decision, visual requirements, local frontend responsibilities, storage facts, or detail-page/display decisions, stop and ask for the missing information. Do not invent URLs, selectors, ACF references, WP Grid Builder IDs, theme tokens, file paths, storage locations, detail-page behavior, taxonomy behavior, or expected behavior.
 
 ## Workflow
 
@@ -57,9 +63,9 @@ The CPT foundation handoff is the contract for local work. Confirm it includes:
 - ACF fields, taxonomy terms, featured image usage, and optional data that affect visible output.
 - WPGB grid/card IDs, recorded as handoff or Project Context values rather than reusable plugin prose.
 - Expected visual behavior across breakpoints, including long copy, missing images, empty fields, repeated cards, and filter or carousel behavior.
-- Server verification status, cache notes, known risks, and open questions.
+- Project-configured handoff storage location, local frontend responsibilities, server verification status, cache notes, known risks, and open questions.
 
-Do not start final CSS work when the handoff still has unresolved server-side questions that affect markup or selectors.
+Do not start final CSS work when the handoff still has unresolved placeholders or server-side questions that affect target URLs, markup, selectors, ACF references, WPGB IDs, display target, detail-page behavior, expected visual behavior, or storage location.
 
 ## 2. Inspect Existing Frontend Patterns
 
@@ -175,7 +181,17 @@ test("resource cards render responsively", async ({ page }) => {
 
 Treat this as a shape example. Use the project's environment variables, locators, viewport list, test runner, and expected counts.
 
-## 9. Commit The Local Phase
+## 9. Update The Handoff
+
+Write QA notes back to the same CPT foundation handoff that started the local phase. Include:
+
+- Local frontend phase status for card, archive/grid, and optional single-template scope.
+- Responsive browser findings for the handoff's desktop, tablet, and mobile expectations.
+- Playwright result or documented acceptance path tied to the CPT display target and visible behavior in the handoff.
+- Implementation notes for changed CSS or SCSS files, generated CSS, and any style loader changes.
+- Remaining risks, open questions, cache notes, and confirmation that Chrome Local Overrides were discarded or copied into tracked source.
+
+## 10. Commit The Local Phase
 
 Before finishing:
 

@@ -7,15 +7,35 @@ description: Create a new WESEO Smart Template Builder Flexible Content Section 
 
 ## Quick Start
 
-Use this Skill for the server-side WST foundation of a new Flexible Content Section. Before editing, read the project-local context for:
+Use this Skill for the server-side WST foundation of a new Flexible Content Section. Start with a `grill-me` preflight before creating or modifying Section templates, ACF structures, Flexible Content wiring, CSS hooks, or handoff content.
+
+Before asking the maintainer for technical values, search the project-local context for:
 
 - WST template path and theme CSS path.
 - Flexible Content field key and field post ID.
 - Standard clone group keys for content, button, and layout.
 - WP-CLI command and cache flush command.
-- Section handoff location and target dev or staging URL.
+- Section handoff storage location and target dev or staging URL.
+- Existing selectors, ACF references, layout names, page IDs, source references, and project workflow notes.
 
-If any required value is missing, ask the maintainer or leave an explicit placeholder in the handoff. Do not invent ACF keys, post IDs, project paths, URLs, or theme values.
+If any blocking value is missing, stop and ask the maintainer or record an explicit unresolved placeholder in the prefilled handoff draft. Do not invent ACF keys, field post IDs, project paths, URLs, selectors, storage locations, or theme values.
+
+## Mandatory Preflight
+
+Run a `grill-me` preflight before implementation starts. The preflight output is a prefilled Section handoff draft, not only a chat summary.
+
+The draft must record:
+
+- Project-configured handoff storage location.
+- Target URL or planned verification URL.
+- Section name, layout name, and source design or written brief.
+- WST template path and CSS path.
+- ACF section field group, Flexible Content field, layout key/name, clone child field, and Section-specific fields.
+- Primary section class, wrapper classes, custom properties, and selectors to preserve.
+- Expected desktop, tablet, mobile, content variation, and interaction behavior.
+- Server phase status, cache status, known risks, open questions, and unresolved placeholders.
+
+Do not proceed to Section implementation until the draft exists in the project-configured storage location or the maintainer explicitly confirms where it should live.
 
 ## Inputs
 
@@ -35,6 +55,7 @@ Track progress with this checklist:
 
 ```text
 New WST FC Section:
+- [ ] Run grill-me preflight and create prefilled Section handoff draft
 - [ ] Create Section template
 - [ ] Create ACF section field group
 - [ ] Add Flexible Content layout entry
@@ -72,6 +93,8 @@ Standard structure:
 
 Use ACF field group posts or the project's established ACF tooling. Do not place `acf_add_local_field()` snippets in theme bootstrap files unless the project has already chosen local PHP field registration as its source of truth.
 
+Use `reference.md` for reusable FC Section field group, clone group, and field-shape guidance. Treat all keys, IDs, paths, labels, and URLs in that reference as placeholders supplied by Project Context or the Section handoff draft.
+
 ### 3. Add Flexible Content Layout
 
 Update the project Flexible Content field using the project-local field key or field post ID.
@@ -84,6 +107,8 @@ Add a layout entry with:
 - `display`: usually `block`.
 
 Record the generated layout key immediately. The clone child field must reference it exactly.
+
+Use `reference.md` for generic Flexible Content layout wiring and `parent_layout` guidance.
 
 ### 4. Create Clone Child Field
 
@@ -134,18 +159,20 @@ Run the project-local cache flush command. Then verify:
 
 ### 8. Emit Or Update Section Handoff
 
-Copy or update `section-handoffs/section-handoff.template.md` on the same branch or PR as the Section work.
+Use `section-handoffs/section-handoff.template.md` as the reusable contract source, then create or update the concrete handoff at the project-configured storage location from Project Context. Keep the concrete handoff on the same branch or PR as the Section work.
 
 Fill these handoff areas before local CSS work starts:
 
-- Handoff carrier and owner.
+- Handoff carrier, owner, project-configured storage location, and server phase status.
 - Section name, layout name, target page URL, and source reference.
-- Template file, CSS file, ACF section field group, Flexible Content layout key/name, and ACF fields.
+- Template file, CSS file, ACF section field group, Flexible Content field, layout key/name, clone child field, and ACF fields.
 - Primary section class, wrapper classes, custom properties, and selectors to preserve.
 - Expected desktop, tablet, mobile, content variation, and interaction behavior.
 - Server responsibilities completed, cache state, known risks, and open questions.
 
 Run `python scripts/validate-section-handoffs.py` when the handoff lives in this repository.
+
+Completed Section handoffs route to the Frontend Design QA `frontend-section-qa` Skill. Treat the filled Section handoff as the shared workflow contract between WST Builder server-side ownership and Frontend Design QA local implementation ownership.
 
 ## Generic Example
 
@@ -157,4 +184,4 @@ For a `feature-cards` Section:
 - Primary class: `.wso-section-feature-cards`.
 - ACF group: `<section-field-group-key>` from the project-local ACF setup.
 - Flexible Content field: `<fc-field-key>` or `<fc-post-id>` from project context.
-- Handoff: records the generated layout key, created fields, target URL, cache state, and local frontend checklist.
+- Handoff: records the generated layout key, created fields, target URL, cache state, local frontend checklist, and the next Skill route to `frontend-section-qa`.
