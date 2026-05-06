@@ -9,7 +9,7 @@ This plugin keeps WordPress-root work constrained and explicit. It covers setup 
 Use this plugin for server-side work:
 
 - WordPress root orientation and Remote-SSH safety.
-- First-run setup orientation for opening the WordPress root, local Git access, Project Context placeholders, and local-only MCP config.
+- Complete first-run setup for Remote-SSH WordPress roots, including root detection, Project Context creation, local Git access, WP-CLI/cache verification, Cursor guidance, safe temp policy, and local-only MCP config.
 - WST template and server-side PHP context.
 - ACF field and content updates.
 - WP-CLI commands and cache flushes.
@@ -18,9 +18,9 @@ Use this plugin for server-side work:
 
 Do not use this plugin as the source of truth for final visual implementation. Final CSS/SCSS work, Chrome Local Overrides spikes, responsive checks, and Playwright acceptance checks belong to the local frontend phase and should consume the Section handoff document.
 
-## Project Context Required
+## Project Context
 
-Before applying these Rules or Skills, fill the project-local context with:
+The `setup-orientation` Skill should create or update the project-local context during first setup. The final context should contain:
 
 - WordPress root and theme path.
 - WP-CLI command.
@@ -43,7 +43,7 @@ Before applying these Rules or Skills, fill the project-local context with:
 
 ## Setup Orientation
 
-Use `setup-orientation` when a developer needs first-run orientation in a WESEO WordPress/WST project over Cursor Remote-SSH. The Skill covers opening the project-approved WordPress root, confirming local Git identity, configuring repository access through the approved local method, installing or verifying internal plugin content, filling non-secret Project Context placeholders, creating local-only `.cursor/mcp.json` when needed, and keeping dumps or scratch files outside the public webroot.
+Use `setup-orientation` when a developer needs first setup in a WESEO WordPress/WST project over Cursor Remote-SSH. The Skill should actively detect the WordPress root, Git repository, branch, redacted remote identity, available WP-CLI command, cache command, existing Cursor Rules/Skills, and safe temp path. If `PROJECT-CONTEXT.md` is missing, it creates one and fills detected non-secret facts. Only credentials, unclear repository creation, ambiguous roots, and live-site-affecting actions require maintainer input.
 
 Tracked examples use placeholders such as `<token>`, `<repo-host>`, `<repo-name>`, `<domain>`, `<user>`, `<app-password>`, and `<figma-api-key>`. Real tokens, application passwords, SSH keys, database dumps, and token-bearing URLs stay local-only and untracked.
 
