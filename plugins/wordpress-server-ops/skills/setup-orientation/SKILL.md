@@ -27,6 +27,8 @@ For every setup step:
 
 Run safe, reversible, or verifying steps automatically (`pwd`, root checks, `mkdir -p`, `git fetch origin`, writing `PROJECT-CONTEXT.md`, writing `.gitignore` and `.cursor` skeleton, MCP skeleton). Ask for short confirmation before: changing or adding a Git remote, the initial commit and push, executing `cache flush` against the live site, writing real Application Passwords or Figma tokens into local `.cursor/mcp.json`.
 
+When the wizard is invoked after an interruption (long pause, terminal action, chat reset, or partial run), do not claim setup is complete based on a vague memory. Re-read `PROJECT-CONTEXT.md`, find the first step whose status is missing, `pending`, or unverified, resume from there, and finish with the mandatory frontend onboarding handoff (Step 11). Setup is only complete when every gate from Step 1 to Step 11 has a recorded outcome in `PROJECT-CONTEXT.md`.
+
 The detailed step-by-step walkthroughs, prompt templates, terminal flows, `.gitignore` baseline, MCP setup guides, completion gates, redaction rules, and the old-guide coverage mapping live in [reference.md](reference.md).
 
 ## WESEO SSH Defaults
@@ -284,12 +286,41 @@ Use the final verification walkthrough in [reference.md](reference.md). Confirm 
 - WordPress MCP and Figma MCP are active or recorded as `pending: <reason>` with next action.
 - Safe temp path exists outside the public webroot.
 - No real tokens, application passwords, SSH keys, or token-bearing URLs were written to chat, tracked docs, or commits.
+- The frontend onboarding handoff (Step 11) has been performed and the decision is recorded in `PROJECT-CONTEXT.md`.
 
 If any required gate is not satisfied, ask the user whether to fix it now, consciously skip with reason and next action, or stop. Do not claim setup complete while required gates are unresolved.
 
-## Optional Handoff
+## Step 11: Frontend Onboarding Handoff (Mandatory Final Step)
 
-After setup is complete or recorded as `pending`, offer the modern frontend onboarding resource [frontend-onboarding.md](frontend-onboarding.md) for users who are new to the WESEO three-plugin workflow (`wordpress-server-ops`, `wst-builder`, `frontend-design-qa`), Remote vs local work, Figma usage in WST preparation, and `PROJECT-CONTEXT.md` as the project facts source. Experienced users can skip it.
+This step is mandatory and must always run as the very last action of the wizard, even after long pauses, terminal interruptions, or chat resets. The wizard is not finished until `PROJECT-CONTEXT.md` records a `frontend_onboarding` decision.
+
+Before declaring setup complete, the wizard must:
+
+1. Check `PROJECT-CONTEXT.md` for a `frontend_onboarding` field. If it is missing or unset, this step still has to run.
+2. Display the German handoff question shown below in chat. Do not paraphrase it; do not skip it; do not collapse it into the final summary.
+3. Wait for an explicit user answer before saying setup is complete.
+4. Record the answer in `PROJECT-CONTEXT.md` as `frontend_onboarding: read` or `frontend_onboarding: skipped (<reason>)`.
+5. If the user chose to read it, open or display [frontend-onboarding.md](frontend-onboarding.md) inline so the user actually sees the content.
+
+Mandatory German handoff prompt:
+
+```md
+Setup ist durch. Letzter Schritt: das Frontend-Onboarding.
+
+`frontend-onboarding.md` erklärt kompakt:
+- die drei WESEO-Plugins (`wordpress-server-ops`, `wst-builder`, `frontend-design-qa`),
+- die Aufteilung Remote-Server vs. lokale Frontend-Arbeit,
+- wie Figma in beiden Phasen genutzt wird,
+- wie `PROJECT-CONTEXT.md` als zentrale Projektquelle funktioniert,
+- die wichtigsten Regeln und den Handoff-Workflow.
+
+Soll ich es dir jetzt zeigen, oder kennst du den Workflow schon?
+- "Zeig es mir": ich öffne `frontend-onboarding.md` direkt im Chat.
+- "Kenne ich schon, überspringen": ich dokumentiere `frontend_onboarding: skipped (already familiar)` in `PROJECT-CONTEXT.md`.
+- "Später": ich dokumentiere `frontend_onboarding: pending` mit nächstem Schritt.
+```
+
+Only after this answer is recorded may the wizard say the setup is complete.
 
 ## Outputs
 
@@ -302,6 +333,7 @@ When the wizard finishes, leave behind:
 - Tracked `.cursor` skeleton (`.gitkeep` files) and untracked `.cursor/mcp.json`.
 - Local-only MCP config for WordPress and Figma, or recorded `pending: <reason>` for either.
 - Safe temp/scratch path outside the public webroot.
+- A recorded `frontend_onboarding` decision in `PROJECT-CONTEXT.md` (`read`, `skipped (<reason>)`, or `pending`).
 
 ## Stop Conditions
 

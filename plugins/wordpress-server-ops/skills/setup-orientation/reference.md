@@ -21,6 +21,7 @@ Communicate with the user in German throughout setup. Keep command names, file p
 | Cursor guidance | Verify personal plugin guidance is loaded; document. | Walk through plugin verification, fall back to manual projection if SSH plugin guidance is unavailable. |
 | MCP (WordPress + Figma) | Verify both servers under `Settings → Tools & MCP`. | Walk through credential creation, write `.cursor/mcp.json` locally, or record `pending: <reason>`. |
 | Safe temp path | Verify path exists outside public webroot. | Create `$HOME/.weseo-tmp` after confirmation. |
+| Frontend onboarding handoff | `frontend_onboarding: read`, `skipped (<reason>)`, or `pending` is recorded in `PROJECT-CONTEXT.md`. | Mandatory final step. Display the German handoff prompt, wait for an explicit answer, and record it before claiming setup complete. |
 
 ## Wizard Question Templates
 
@@ -460,6 +461,20 @@ When configuring Figma MCP:
 
 If the user cannot create a token right now, record the gate as `pending: Figma Personal Access Token fehlt` with the next concrete action in `PROJECT-CONTEXT.md`.
 
+## Frontend Onboarding Handoff Walkthrough
+
+The mandatory final step (Step 11) must run even when the wizard resumes after a long pause, terminal interruption, or chat reset. Before declaring setup complete:
+
+1. Read `PROJECT-CONTEXT.md` and look for a `frontend_onboarding` field. If it is missing or unset, the handoff still has to happen.
+2. Display the German handoff prompt from `SKILL.md` Step 11 verbatim. Do not paraphrase it, do not collapse it into a generic summary, and do not embed it inside another question.
+3. Wait for an explicit user answer. The three accepted shapes are:
+   - "Zeig es mir": display [frontend-onboarding.md](frontend-onboarding.md) inline in chat. Record `frontend_onboarding: read` in `PROJECT-CONTEXT.md`.
+   - "Kenne ich schon, überspringen": record `frontend_onboarding: skipped (already familiar)` in `PROJECT-CONTEXT.md`.
+   - "Später": record `frontend_onboarding: pending` and the next concrete action (for example: `re-run setup-orientation Step 11`).
+4. Only after the answer is recorded may the wizard say "Setup ist abgeschlossen".
+
+If the wizard is invoked again later and `frontend_onboarding` is missing, run Step 11 immediately even if all other gates are already done.
+
 ## WESEO Defaults
 
 ```sh
@@ -497,6 +512,7 @@ Lead the user through the final checklist in German before saying setup is compl
 13. Figma MCP ist aktiv oder als `pending: <reason>` dokumentiert.
 14. Safe Temp Path liegt außerhalb des Public Webroot.
 15. Keine echten Tokens, Application Passwords, SSH Keys oder tokenhaltigen URLs wurden in Chat, Docs oder Commits geschrieben.
+16. Der Frontend-Onboarding-Handoff (Schritt 11) wurde durchgeführt und das Ergebnis ist in `PROJECT-CONTEXT.md` als `frontend_onboarding: read`, `skipped (<reason>)` oder `pending` dokumentiert.
 
 ## Completion Gates
 
@@ -515,6 +531,7 @@ Do not say "setup orientation is complete" unless every required gate is verifie
 - Figma MCP is configured locally or pending with reason.
 - Safe temp path exists outside the public webroot.
 - No secrets were written to tracked files or chat.
+- Frontend onboarding handoff (Step 11) is recorded in `PROJECT-CONTEXT.md` as `frontend_onboarding: read`, `skipped (<reason>)`, or `pending`.
 
 ## Open Question And Skip Format
 
@@ -584,7 +601,7 @@ This mapping shows that every section of `weseo-smartflow-frontend-guide/anleitu
 | 6. Platzhalter ausfüllen (CPTs, Page IDs, FC Field Keys, Clone Group Keys, ACF IDs, button variants, container widths, clamp values) | Step 3 + Project Context fill walkthrough. Values are collected in `PROJECT-CONTEXT.md` instead of being edited into plugin Rules. |
 | 7. MCP-Server einrichten (WordPress + Figma) | Step 8 + WordPress MCP walkthrough + Figma MCP walkthrough. Both servers are required gates (with `pending: <reason>` allowed). |
 | 8. Überprüfen ob alles funktioniert | Step 10 + Final verification walkthrough + completion gates. |
-| Nächster Schritt: Frontend-Dev Guide | `frontend-onboarding.md` as optional handoff resource. |
+| Nächster Schritt: Frontend-Dev Guide | Step 11 (mandatory frontend onboarding handoff) + `frontend-onboarding.md` as the resource displayed during that step. |
 
 Additions not in the old guide that the wizard now covers:
 
