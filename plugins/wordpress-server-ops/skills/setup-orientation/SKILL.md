@@ -140,7 +140,7 @@ If no repository exists in the WordPress root, do not present multiple setup cho
 1. State that no Git repository was detected in the verified WordPress root.
 2. State that SmartFlow projects use the project Bitbucket repository as the required Git source.
 3. Ask the user for the Bitbucket repository name or URL if it was not detected from Project Context.
-4. Guide the user step by step through creating a repository Access Token in Bitbucket, then ask them to enter that token only in the local terminal prompt. Do not ask the user to paste the token into chat.
+4. Guide the user step by step through creating a repository Access Token in Bitbucket, then open a terminal prompt where the user can enter the token locally and invisibly. Do not ask the user to paste the token into chat.
 5. Run `git init` in the WordPress root only as part of this prescribed Bitbucket setup after explaining that the repository will be initialized locally and connected to Bitbucket.
 6. Add or update `origin` with the token-bearing HTTPS URL only in local Git config.
 7. Verify access with `git fetch origin`.
@@ -159,7 +159,7 @@ When Bitbucket must be set up, guide the user step by step like the old SmartFlo
 7. Create the token.
 8. Copy the token once and store it in the approved password manager or OS keychain.
 9. Do not paste the token into chat, tracked docs, screenshots, commit messages, or `PROJECT-CONTEXT.md`.
-10. Ask the user to enter the real token only into the local terminal prompt or to insert it only in their local terminal command, never into chat or tracked files.
+10. Immediately open a terminal prompt for token entry after the user has the token. The user must enter the real token only into that terminal prompt, never into chat or tracked files.
 
 Use this German prompt shape:
 
@@ -177,23 +177,41 @@ Use this German prompt shape:
 Wichtig: Bitte poste den Token nicht hier in den Chat. Gib ihn im nächsten Schritt nur im lokalen Terminal ein, wenn die verdeckte Token-Abfrage erscheint.
 ```
 
-Preferred local prompt flow:
+After showing the guide, open a terminal immediately for the token entry and remote setup. Use the detected repo host/name to prefill `REPO_HOST` and `REPO_NAME`; ask only for the missing repo name if it is not known.
+
+For a new `origin`, run this terminal prompt:
 
 ```sh
+REPO_HOST="<repo-host>"
+REPO_NAME="<repo-name>"
+printf "Bitbucket Access Token eingeben (Eingabe ist unsichtbar): "
 read -s BITBUCKET_TOKEN
-git remote add origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
+printf "\n"
+AUTH_USER="x-token-auth"
+REMOTE_URL="https://${AUTH_USER}:${BITBUCKET_TOKEN}@${REPO_HOST}/${REPO_NAME}.git"
+git remote add origin "$REMOTE_URL"
+git fetch origin
 unset BITBUCKET_TOKEN
+unset REMOTE_URL
 ```
 
-When running the `git remote` command locally, replace `<token>` with the token entered in the terminal prompt. If `origin` already exists, use:
+If `origin` already exists, run this terminal prompt:
 
 ```sh
+REPO_HOST="<repo-host>"
+REPO_NAME="<repo-name>"
+printf "Bitbucket Access Token eingeben (Eingabe ist unsichtbar): "
 read -s BITBUCKET_TOKEN
-git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
+printf "\n"
+AUTH_USER="x-token-auth"
+REMOTE_URL="https://${AUTH_USER}:${BITBUCKET_TOKEN}@${REPO_HOST}/${REPO_NAME}.git"
+git remote set-url origin "$REMOTE_URL"
+git fetch origin
 unset BITBUCKET_TOKEN
+unset REMOTE_URL
 ```
 
-Fallback placeholder shape, when the user inserts the token manually in their own local terminal:
+If the terminal prompt cannot be opened or interactive terminal input is unavailable, give the user this placeholder shape and tell them to run it only in their local terminal:
 
 ```sh
 git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
@@ -202,7 +220,6 @@ git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.g
 Then verify with:
 
 ```sh
-git fetch origin
 git branch --show-current
 ```
 

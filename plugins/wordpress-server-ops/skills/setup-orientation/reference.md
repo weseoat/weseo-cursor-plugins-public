@@ -45,7 +45,7 @@ Ask one decision at a time. Use concrete choices only for optional or policy-dep
 Ich habe kein Git-Repository in `<wp-root>` gefunden.
 SmartFlow-Projekte werden über das Bitbucket-Repository versioniert. Ich richte Git jetzt lokal in diesem WordPress-Root ein und verbinde es mit Bitbucket.
 
-Bitte nenne mir den Repository-Namen oder die Repository-URL, falls sie noch nicht in `PROJECT-CONTEXT.md` steht. Danach führe ich dich Schritt für Schritt durch die Erstellung des Bitbucket Access Tokens. Den Token gibst du anschließend nur lokal im Terminal ein, nicht hier im Chat.
+Bitte nenne mir den Repository-Namen oder die Repository-URL, falls sie noch nicht in `PROJECT-CONTEXT.md` steht. Danach führe ich dich Schritt für Schritt durch die Erstellung des Bitbucket Access Tokens und öffne dir direkt ein Terminal, in dem du den Token verdeckt eingibst. Den Token bitte nicht in den Chat schreiben.
 ```
 
 ```md
@@ -86,7 +86,7 @@ When Git must be connected to Bitbucket, guide the user in German through the sa
 6. Erstelle den Token.
 7. Kopiere den Token nur einmal und speichere ihn im freigegebenen Passwortmanager oder OS-Keychain.
 8. Füge den echten Token nicht in Chat, Doku, Screenshots, Commits oder `PROJECT-CONTEXT.md` ein.
-9. Gib den echten Token nur lokal im Terminal ein oder füge ihn nur dort in den lokalen Git-Befehl ein.
+9. Öffne direkt danach ein Terminal für die verdeckte Token-Eingabe. Der echte Token wird nur dort eingegeben, nie im Chat.
 
 Use this German prompt before token entry:
 
@@ -101,7 +101,7 @@ Use this German prompt before token entry:
 6. Berechtigungen: `Read` und `Write`.
 7. Erstelle den Token, kopiere ihn einmalig und speichere ihn im Passwortmanager.
 
-Wichtig: Bitte poste den Token nicht hier in den Chat. Gib ihn im nächsten Schritt nur im lokalen Terminal ein, wenn die verdeckte Token-Abfrage erscheint.
+Wichtig: Bitte poste den Token nicht hier in den Chat. Ich öffne dir jetzt ein Terminal. Gib den Token dort ein, wenn die verdeckte Token-Abfrage erscheint.
 ```
 
 When no Git repository exists in the verified WordPress root, initialize Git as part of the prescribed setup flow:
@@ -110,15 +110,23 @@ When no Git repository exists in the verified WordPress root, initialize Git as 
 git init
 ```
 
-Preferred token input flow:
+After showing the guide, open a terminal immediately for token entry and remote setup.
+
+For a new `origin`, run this terminal prompt:
 
 ```sh
+REPO_HOST="<repo-host>"
+REPO_NAME="<repo-name>"
+printf "Bitbucket Access Token eingeben (Eingabe ist unsichtbar): "
 read -s BITBUCKET_TOKEN
-git remote add origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
+printf "\n"
+AUTH_USER="x-token-auth"
+REMOTE_URL="https://${AUTH_USER}:${BITBUCKET_TOKEN}@${REPO_HOST}/${REPO_NAME}.git"
+git remote add origin "$REMOTE_URL"
+git fetch origin
 unset BITBUCKET_TOKEN
+unset REMOTE_URL
 ```
-
-When running the `git remote` command locally, replace `<token>` with the token entered in the terminal prompt.
 
 Show the command shape with placeholders:
 
@@ -126,15 +134,23 @@ Show the command shape with placeholders:
 git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
 ```
 
-If the repository already has `origin`, use the local prompt shape with `set-url`:
+If the repository already has `origin`, run this terminal prompt:
 
 ```sh
+REPO_HOST="<repo-host>"
+REPO_NAME="<repo-name>"
+printf "Bitbucket Access Token eingeben (Eingabe ist unsichtbar): "
 read -s BITBUCKET_TOKEN
-git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
+printf "\n"
+AUTH_USER="x-token-auth"
+REMOTE_URL="https://${AUTH_USER}:${BITBUCKET_TOKEN}@${REPO_HOST}/${REPO_NAME}.git"
+git remote set-url origin "$REMOTE_URL"
+git fetch origin
 unset BITBUCKET_TOKEN
+unset REMOTE_URL
 ```
 
-Fallback placeholder shape when the user inserts the token manually in their own local terminal:
+If the terminal prompt cannot be opened or interactive terminal input is unavailable, give the user this fallback placeholder shape and tell them to run it only in their local terminal:
 
 ```sh
 git remote add origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
@@ -143,7 +159,6 @@ git remote add origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
 Then verify:
 
 ```sh
-git fetch origin
 git branch --show-current
 ```
 
