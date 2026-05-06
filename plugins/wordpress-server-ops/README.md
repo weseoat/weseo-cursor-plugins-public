@@ -2,34 +2,39 @@
 
 Reusable server-phase guidance for safe Cursor Remote-SSH work in WESEO WordPress and WST projects.
 
-This plugin keeps WordPress-root work constrained and explicit. It covers setup orientation, file boundaries, public webroot safety, WP-CLI/cache expectations, WordPress content editing, and media imports. Values that differ per project belong in `project-template/PROJECT-CONTEXT.md`.
+This plugin keeps WordPress-root work constrained and explicit. It covers the guided first-setup wizard, file boundaries, public webroot safety, WP-CLI/cache expectations, WordPress content editing, and media imports. Project-specific values live in the project-local `PROJECT-CONTEXT.md`.
 
 ## Responsibility
 
 Use this plugin for server-side work:
 
 - WordPress root orientation and Remote-SSH safety.
-- Complete first-run setup for Remote-SSH WordPress roots, including root detection, Project Context creation, local Git access, WP-CLI/cache verification, Cursor guidance, safe temp policy, and local-only MCP config.
+- Guided first-run setup for Remote-SSH WordPress roots: root detection, `PROJECT-CONTEXT.md` creation as required contract, WST stack verification, local Bitbucket Git access, restrictive `.gitignore` with tracked `.cursor` skeleton, WP-CLI/cache verification and execution, personal Cursor plugin verification, local-only MCP for WordPress and Figma, safe temp policy.
 - WST template and server-side PHP context.
 - ACF field and content updates.
 - WP-CLI commands and cache flushes.
 - Media files that must be registered in the WordPress Media Library.
-- Handoff notes for later local CSS/Playwright implementation.
+- Handoff notes for later WST builder and local frontend implementation.
 
-Do not use this plugin as the source of truth for final visual implementation. Final CSS/SCSS work, Chrome Local Overrides spikes, responsive checks, and Playwright acceptance checks belong to the local frontend phase and should consume the Section handoff document.
+Do not use this plugin as the source of truth for final visual implementation. Final CSS/SCSS work, Chrome Local Overrides spikes, responsive checks, and Playwright acceptance checks belong to the local frontend phase via the `frontend-design-qa` plugin.
 
-## Project Context
+## Project Context Contract
 
-The `setup-orientation` Skill should create or update the project-local context during first setup. The final context should contain:
+`setup-orientation` creates and maintains `PROJECT-CONTEXT.md` in the WordPress root as the project's non-secret context contract. Later WordPress, WST, and Frontend Skills must read it first and update it when new non-secret facts are confirmed.
 
-- WordPress root and theme path.
-- WP-CLI command.
-- Cache flush command.
+The final context should contain:
+
+- Project name, environment URLs, server hostname, WordPress root.
+- Theme path and WST template path.
+- Repository host/name, default/current branch, redacted access method.
+- WP-CLI command, cache flush command.
 - Editable path policy and any approved plugin exceptions.
-- Upload directory policy.
-- Environment URLs used for verification.
-- Section handoff location for server-to-local work.
-- Approved repository access method, local credential storage, and setup scratch path outside the public webroot.
+- Approved temp path outside the public webroot.
+- WST stack status (active theme + plugins).
+- Project specifics carried over from the old SmartFlow setup: CPTs, Key Page IDs, WP Grid Builder Grids, FC Field Keys, Clone Group Keys, ACF IDs, button variants, container widths, clamp values.
+- Setup completion status per step (`done`, `pending: <reason>`, `skipped: <reason>` with next action).
+
+`PROJECT-CONTEXT.md` never holds tokens, application passwords, SSH keys, token-bearing URLs, REST credentials, or database dumps.
 
 ## Included Content
 
@@ -38,23 +43,35 @@ The `setup-orientation` Skill should create or update the project-local context 
 - Rule: `file-edit-boundary`
 - Rule: `wp-cli-cache`
 - Rule: `wordpress-content-editing`
-- Skill: `setup-orientation`
+- Skill: `setup-orientation` (with `reference.md` and `frontend-onboarding.md`)
 - Skill: `wp-media-import`
 
 ## Setup Orientation
 
-Use `setup-orientation` when a developer needs first setup in a WESEO WordPress/WST project over Cursor Remote-SSH. The Skill should actively detect the WordPress root, Git repository, branch, redacted remote identity, available WP-CLI command, cache command, existing Cursor Rules/Skills, and safe temp path. If `PROJECT-CONTEXT.md` is missing, it creates one and fills detected non-secret facts. Only credentials, unclear repository creation, ambiguous roots, and live-site-affecting actions require maintainer input.
+`setup-orientation` is a guided German wizard for the first setup of a WESEO WordPress/WST project over Cursor Remote-SSH. It works from any starting state: if Cursor has no Remote-SSH connection or the WordPress root is not open yet, the wizard leads the user through `Remote-SSH: Connect to Host` and `Open Folder` first; if those are already in place, it continues with discovery and setup.
 
-Tracked examples use placeholders such as `<token>`, `<repo-host>`, `<repo-name>`, `<domain>`, `<user>`, `<app-password>`, and `<figma-api-key>`. Real tokens, application passwords, SSH keys, database dumps, and token-bearing URLs stay local-only and untracked.
+The wizard:
+
+- Detects the WordPress root, project facts, and the WST stack (Astra Child Theme, WST plugin, ACF PRO, ACF Extended, WP Grid Builder, CPT UI).
+- Creates or updates `PROJECT-CONTEXT.md` and treats it as the required context contract for later Skills.
+- Configures local Bitbucket Git through a hidden terminal prompt with `x-token-auth`, with detailed step-by-step terminal instructions for users who are not familiar with the terminal. Verifies access with `git fetch origin`; never runs a blind `git pull origin master`.
+- Installs a deny-all WordPress-root `.gitignore` allowing only setup files, the `.cursor` skeleton (`.cursor/rules/.gitkeep`, `.cursor/skills/.gitkeep`), and detected child themes by default. Project-owned plugins (including `weseo-smart-template-builder`) are allowed only after explicit confirmation.
+- Verifies WP-CLI and runs the documented cache flush as part of setup once WP-CLI and the WordPress root are confirmed.
+- Verifies that the personal Cursor plugins (`wordpress-server-ops`, `wst-builder`, `frontend-design-qa`) are loaded for the Remote-SSH workspace and falls back to manual projection only when needed.
+- Configures local-only `.cursor/mcp.json` for both WordPress MCP and Figma MCP as required setup gates, with explicit `pending: <reason>` allowed.
+- Records a safe temp/scratch path outside the public webroot.
+- Offers `frontend-onboarding.md` as an optional handoff for users new to the three-plugin workflow.
+
+Tracked examples use placeholders such as `<token>`, `<repo-host>`, `<repo-name>`, `<domain>`, `<user>`, `<app-password>`, `<figma-api-key>`, `<wp-root>`, and `<path-outside-webroot>`. Real tokens, application passwords, SSH keys, database dumps, and token-bearing URLs stay local-only and untracked.
 
 ## Server-To-Local Handoff
 
-When server work creates or changes a WST Flexible Content Section, update a Section handoff on the same Git branch or PR. The handoff should name the page URL, template file, ACF references, CSS hooks, expected visual behavior, and QA notes before local frontend work begins.
+When server work creates or changes a WST Flexible Content Section or CPT foundation, the `wst-builder` plugin emits a handoff on the same Git branch or PR. The handoff names the page URL, template file, ACF references, CSS hooks, expected visual behavior, and QA notes before local frontend work begins through the `frontend-design-qa` plugin.
 
 ## Not Included
 
-- WST Builder Skill migration.
-- Frontend Design QA Plugin.
+- WST Builder Skill content (lives in the `wst-builder` plugin).
+- Frontend Design QA content (lives in the `frontend-design-qa` plugin).
 - Playwright implementation details.
 - Real project paths, site values, or private access values.
 - A full local WordPress runtime.
