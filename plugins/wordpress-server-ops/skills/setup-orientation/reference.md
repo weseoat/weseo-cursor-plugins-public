@@ -154,7 +154,16 @@ Never store: tokens, application passwords, SSH private keys, token-bearing URLs
 
 ## Bitbucket Git Setup Walkthrough
 
-When Git must be connected to Bitbucket, guide the user in German:
+When Git must be connected to Bitbucket, the wizard runs in this strict order:
+
+1. Confirm the repository name with the user.
+2. **Display the German token creation guide in chat and wait until the user confirms they have the token.** This step is non-skippable. Do not open a terminal or ask for the token before the user explicitly confirms the token is created and stored.
+3. Open and explain the integrated terminal (`Ctrl+Ö` / `Ctrl+Backtick`) and run the hidden token prompt.
+4. Verify with `git fetch origin`.
+
+Never collapse steps 1-2 into "paste your token". A user who does not yet have a token must always see the creation steps before any token prompt.
+
+Guide the user in German through token creation:
 
 1. Öffne `https://bitbucket.org/` im Browser.
 2. Wähle den WESEO-/Projekt-Workspace, falls Bitbucket dich danach fragt.

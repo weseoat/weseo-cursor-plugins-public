@@ -115,13 +115,37 @@ If required non-secret values are missing, follow the Project Context fill walkt
 
 If the WordPress root already has a working Git repository with `git fetch origin` succeeding, only verify identity and continue.
 
-If no Git repository is present, follow the prescribed Bitbucket flow in [reference.md](reference.md):
+If no Git repository is present, follow this prescribed Bitbucket flow in order. Steps 1 and 2 are mandatory and must not be skipped or shortened. The wizard must never open a token terminal prompt before Step 2 has been displayed in chat and the user has confirmed they have a token.
 
-1. Confirm the Bitbucket repository name or URL with the user.
-2. Walk the user through creating a Repository Access Token in Bitbucket with `Read` and `Write` scope.
-3. Open a terminal in Cursor and run the hidden token prompt to set up `origin` with `x-token-auth`. The user pastes the token only into that terminal.
+1. Confirm the Bitbucket repository name or URL with the user. If `PROJECT-CONTEXT.md` already names the repo, only ask the user to confirm.
+2. **Display the full Bitbucket Access Token creation guide in chat** (German, see template below) so the user knows exactly where the token comes from. Wait for explicit confirmation that the user has the token in their password manager or OS keychain before continuing.
+3. Open a terminal in Cursor and explain how to use it (`Ctrl+Ö` or `Ctrl+Backtick`, integrated terminal already runs in the WordPress root via Remote-SSH). Then run the hidden token prompt to set up `origin` with `x-token-auth`. The user pastes the token only into that terminal.
 4. Verify access with `git fetch origin`. Do not run `git pull origin master` blindly.
 5. Configure repo-local `git config user.name` and `git config user.email` if missing.
+
+Token creation guide that the wizard displays in chat before any terminal action:
+
+```md
+Bevor wir Git mit Bitbucket verbinden, brauchst du einen Repository Access Token. So bekommst du ihn:
+
+1. Öffne `https://bitbucket.org/` im Browser und logge dich ein.
+2. Wähle den WESEO-/Projekt-Workspace, falls Bitbucket dich danach fragt.
+3. Öffne `Repositories` und wähle das Ziel-Repository (`<repo-name>` aus PROJECT-CONTEXT.md).
+4. Öffne links im Repository `Repository settings`.
+5. Öffne dort `Access tokens`.
+6. Klicke `Create` bzw. `Create repository access token`.
+7. Vergib einen klaren Namen, z. B. `cursor-remote-ssh-<project>`.
+8. Scrolle im Token-Dialog zu `Permissions` bzw. `Repository permissions`.
+9. Hake bei den Repository-Berechtigungen `Read` und `Write` an. Vergib keine Admin-Rechte, außer der Maintainer verlangt sie ausdrücklich.
+10. Klicke `Create` und kopiere den Token sofort - Bitbucket zeigt ihn nur ein einziges Mal.
+11. Speichere den Token im Passwortmanager oder OS-Keychain.
+
+Hinweis: Wir verwenden HTTPS mit `x-token-auth`, weil SSH Keys in Bitbucket im SmartFlow Setup nur Read-only sind.
+
+Wichtig: Bitte poste den Token nicht in den Chat. Sobald du ihn hast, öffne ich gleich ein Terminal in Cursor; dort gibst du ihn bei einer verdeckten Eingabe ein.
+
+Sag mir Bescheid, sobald du den Token hast.
+```
 
 Never request the real token in chat. Tracked docs only show the placeholder shape:
 
@@ -129,7 +153,7 @@ Never request the real token in chat. Tracked docs only show the placeholder sha
 git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
 ```
 
-The wizard must clearly explain how to open Cursor's integrated terminal (`Ctrl+Ö` or `Ctrl+Backtick`) and what to type when the hidden prompt appears, and provide a copy-paste fallback if the integrated terminal is unavailable. Detailed terminal guidance lives in [reference.md](reference.md).
+The wizard must clearly explain how to open Cursor's integrated terminal (`Ctrl+Ö` or `Ctrl+Backtick`) and what to type when the hidden prompt appears, and provide a copy-paste fallback if the integrated terminal is unavailable. Detailed terminal guidance and the full Bitbucket walkthrough live in [reference.md](reference.md).
 
 ## Step 5: Restrictive `.gitignore` And `.cursor` Skeleton
 
