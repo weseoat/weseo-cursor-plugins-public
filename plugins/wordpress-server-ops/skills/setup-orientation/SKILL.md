@@ -144,7 +144,10 @@ If no repository exists in the WordPress root, do not present multiple setup cho
 5. Run `git init` in the WordPress root only as part of this prescribed Bitbucket setup after explaining that the repository will be initialized locally and connected to Bitbucket.
 6. Add or update `origin` with the token-bearing HTTPS URL only in local Git config.
 7. Verify access with `git fetch origin`.
-8. Update Project Context only with the redacted repository host/name, branch, and non-secret access method.
+8. Create or update the WordPress-root `.gitignore` before any initial `git add`, commit, or push so WordPress core, uploads, caches, and unmanaged plugins are not staged.
+9. Show `git status --short` and verify that only the `.gitignore`, non-secret setup docs, and approved source paths appear as trackable changes.
+10. Perform the initial commit and push only after the ignore policy is in place.
+11. Update Project Context only with the redacted repository host/name, branch, and non-secret access method.
 
 Guide the user through creating or retrieving the approved Access Token in Bitbucket, storing it in the approved local credential storage, and configuring the local remote URL with the real token only in local Git config. Show tracked docs only the placeholder form:
 
@@ -221,6 +224,69 @@ Then verify with:
 
 ```sh
 git branch --show-current
+```
+
+Before the first `git add`, commit, or push from the WordPress root, install or update a restrictive `.gitignore`. The goal is to avoid pushing the full WordPress installation. Start from this baseline unless Project Context defines a stricter project allowlist:
+
+```gitignore
+# Ignore everything by default.
+/**
+
+# Keep repository setup files.
+!/.gitignore
+!/PROJECT-CONTEXT.md
+!/README.md
+
+# Allow wp-content as a parent only; contents stay ignored unless explicitly unignored below.
+!/wp-content/
+/wp-content/**
+
+# Allow approved theme source paths.
+!/wp-content/themes/
+/wp-content/themes/**
+!/wp-content/themes/ReadMe.md
+!/wp-content/themes/betheme-child/
+!/wp-content/themes/betheme-child/**
+!/wp-content/themes/smarttheme-child/
+!/wp-content/themes/smarttheme-child/**
+!/wp-content/themes/astra-child/
+!/wp-content/themes/astra-child/**
+
+# Optional project-owned plugin allowlist.
+# Enable only when Project Context confirms the plugin is project source, not a vendor/runtime plugin.
+# !/wp-content/plugins/
+# /wp-content/plugins/**
+# !/wp-content/plugins/<plugin-name>/
+# !/wp-content/plugins/<plugin-name>/**
+
+# Ignore system and IDE files.
+.idea/
+.vscode/
+.DS_Store
+```
+
+If `.gitignore` already exists, do not overwrite project-specific rules blindly. Update it so it still starts from deny-all behavior and explicitly unignores only project-approved source paths.
+
+After writing `.gitignore`, verify the staging scope before the first push:
+
+```sh
+git status --short
+git add .gitignore
+test -f PROJECT-CONTEXT.md && git add PROJECT-CONTEXT.md
+test -f README.md && git add README.md
+test -d wp-content/themes/betheme-child && git add wp-content/themes/betheme-child
+test -d wp-content/themes/smarttheme-child && git add wp-content/themes/smarttheme-child
+test -d wp-content/themes/astra-child && git add wp-content/themes/astra-child
+git status --short
+```
+
+Stop and correct `.gitignore` before committing if `git status --short` shows WordPress core directories, uploads, cache directories, vendor plugins, database dumps, media files, token-bearing config, `.cursor/mcp.json`, or unrelated runtime artifacts.
+
+For the normal initial push after the staging scope is verified:
+
+```sh
+git commit -m "Initial SmartFlow project setup"
+git push -u origin "$(git branch --show-current)"
 ```
 
 Check repository-local identity:
@@ -388,6 +454,7 @@ Use `reference.md` for the detailed verification checklist. At minimum, confirm:
 - The opened folder is the WordPress root and contains `wp-content/`, `wp-admin/`, and `wp-includes/`.
 - Git repository location, current branch, and redacted remote identity are known.
 - Git identity and repository access work locally without exposing secrets.
+- The WordPress-root `.gitignore` deny-all allowlist is in place before any initial commit or push, and `git status --short` does not show WordPress core, uploads, caches, unmanaged plugins, dumps, media, or local secret files.
 - `PROJECT-CONTEXT.md` exists and contains non-secret setup coordinates.
 - WP-CLI command is verified or recorded as an open setup question.
 - Cache flush command is documented.

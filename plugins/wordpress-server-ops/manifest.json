@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "wordpress-server-ops",
   "displayName": "WordPress Server Ops Plugin",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "responsibility": "Package reusable server-phase guidance for safe Cursor Remote-SSH work in WESEO WordPress and WST project roots.",
   "assumptions": [
     "The plugin is used from a Cursor workspace connected to a WordPress root or equivalent server-side project checkout.",
@@ -55,5 +55,5 @@
       "description": "Import media through WP-CLI with reusable filename, metadata, verification, cache, and cleanup steps."
     }
   ],
-  "releaseNotes": "release-notes/0.3.3.md"
+  "releaseNotes": "release-notes/0.3.4.md"
 }

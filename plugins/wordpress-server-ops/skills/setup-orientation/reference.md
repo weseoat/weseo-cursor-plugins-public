@@ -164,6 +164,73 @@ git branch --show-current
 
 If the branch does not exist locally yet, ask only for the required branch name before creating or checking out a branch. Existing WESEO projects commonly use `master`, but do not assume it for a new repository without confirmation.
 
+## Initial WordPress Root `.gitignore` And First Push
+
+When Git has just been initialized in a WordPress root, the next required step is not `git add .`. First install or update a restrictive `.gitignore` so the initial push contains only approved source paths.
+
+Use this baseline unless Project Context defines a stricter allowlist:
+
+```gitignore
+# Ignore everything by default.
+/**
+
+# Keep repository setup files.
+!/.gitignore
+!/PROJECT-CONTEXT.md
+!/README.md
+
+# Allow wp-content as a parent only; contents stay ignored unless explicitly unignored below.
+!/wp-content/
+/wp-content/**
+
+# Allow approved theme source paths.
+!/wp-content/themes/
+/wp-content/themes/**
+!/wp-content/themes/ReadMe.md
+!/wp-content/themes/betheme-child/
+!/wp-content/themes/betheme-child/**
+!/wp-content/themes/smarttheme-child/
+!/wp-content/themes/smarttheme-child/**
+!/wp-content/themes/astra-child/
+!/wp-content/themes/astra-child/**
+
+# Optional project-owned plugin allowlist.
+# Enable only when Project Context confirms the plugin is project source, not a vendor/runtime plugin.
+# !/wp-content/plugins/
+# /wp-content/plugins/**
+# !/wp-content/plugins/<plugin-name>/
+# !/wp-content/plugins/<plugin-name>/**
+
+# Ignore system and IDE files.
+.idea/
+.vscode/
+.DS_Store
+```
+
+If `.gitignore` already exists, do not overwrite project-specific rules blindly. Update it so it preserves deny-all behavior and explicitly unignores only project-approved source paths.
+
+After writing `.gitignore`, verify what will be staged:
+
+```sh
+git status --short
+git add .gitignore
+test -f PROJECT-CONTEXT.md && git add PROJECT-CONTEXT.md
+test -f README.md && git add README.md
+test -d wp-content/themes/betheme-child && git add wp-content/themes/betheme-child
+test -d wp-content/themes/smarttheme-child && git add wp-content/themes/smarttheme-child
+test -d wp-content/themes/astra-child && git add wp-content/themes/astra-child
+git status --short
+```
+
+Stop and fix `.gitignore` before committing if `git status --short` shows WordPress core directories, uploads, cache directories, vendor plugins, database dumps, media files, token-bearing config, `.cursor/mcp.json`, or unrelated runtime artifacts.
+
+For the normal initial push after the staging scope is verified:
+
+```sh
+git commit -m "Initial SmartFlow project setup"
+git push -u origin "$(git branch --show-current)"
+```
+
 ## Remote-SSH Setup Guide
 
 When the user has not connected to the server or has opened the wrong folder, guide them in German:
@@ -411,6 +478,7 @@ If the WordPress root is `/usr/home/<account>/public_html/wordpress-<id>`, a str
 | Project Context | `PROJECT-CONTEXT.md` exists and `<server-hostname>`, `<wp-root>`, `<theme-path>`, `<wst-template-path>`, `<repo-name>`, `<branch-name>`, `<wp-cli-command>`, `<cache-flush-command>`, and `<path-outside-webroot>` are filled with non-secret values. |
 | Git identity | `git config user.name` and `git config user.email` return maintainer-approved values for the local repository. |
 | Repository access | `git fetch origin` succeeds using the approved local access method. |
+| Initial push safety | `.gitignore` uses deny-all behavior with explicit source-path allowlists before any initial `git add`, commit, or push from the WordPress root. |
 | Secret handling | No real token, application password, SSH private key, complete token-bearing URL, or REST auth value is present in tracked docs. |
 | Plugin content | Project-appropriate `.cursor/rules/`, `.cursor/skills/`, and release snapshot content are installed according to the internal release flow. |
 | WP-CLI | `wp --info` or `php wp-cli.phar --info` succeeds, and the chosen command shape is documented. |
@@ -425,6 +493,7 @@ Do not say "setup orientation is complete" unless every required gate is either 
 - Valid WordPress root opened over Remote-SSH.
 - `PROJECT-CONTEXT.md` exists and contains the detected non-secret setup facts.
 - Git is working through the Bitbucket remote, or setup was stopped with an explicit reason and next action. Do not mark Git as a normal optional skip for SmartFlow projects.
+- A restrictive WordPress-root `.gitignore` is installed before any initial commit or push, and `git status --short` shows only approved setup files and source paths.
 - WP-CLI is working, or WP-CLI was consciously skipped with reason and next action.
 - Cache flush command is documented, or blocked because WP-CLI is intentionally unavailable.
 - Cursor guidance is installed/available, or consciously skipped with reason and next action.
