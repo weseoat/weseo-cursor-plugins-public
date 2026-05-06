@@ -78,28 +78,42 @@ Was soll ich als Nächstes tun?
 
 When Git must be connected to Bitbucket, guide the user in German through the same sequence as the old SmartFlow setup guide:
 
-1. Öffne Bitbucket im Browser.
-2. Öffne das Ziel-Repository. Wenn du im Workspace startest, wähle zuerst das konkrete Projekt-Repository.
-3. Gehe zu `Repository settings` -> `Access tokens` -> `Create`.
-4. Verwende einen klaren Namen, z. B. `cursor-remote-ssh-<project>`.
-5. Erteile Repository-Berechtigungen `Read` und `Write`.
-6. Erstelle den Token.
-7. Kopiere den Token nur einmal und speichere ihn im freigegebenen Passwortmanager oder OS-Keychain.
-8. Füge den echten Token nicht in Chat, Doku, Screenshots, Commits oder `PROJECT-CONTEXT.md` ein.
-9. Öffne direkt danach ein Terminal für die verdeckte Token-Eingabe. Der echte Token wird nur dort eingegeben, nie im Chat.
+1. Öffne `https://bitbucket.org/` im Browser.
+2. Wähle den WESEO-/Projekt-Workspace, falls Bitbucket dich danach fragt.
+3. Öffne `Repositories` und wähle das Ziel-Repository. Wenn du im Workspace startest, wähle zuerst das konkrete Projekt-Repository und prüfe den Repo-Namen gegen Project Context oder den vom User genannten Repo-Namen.
+4. Öffne links im Repository `Repository settings`.
+5. Öffne `Access tokens`.
+6. Klicke `Create` bzw. `Create repository access token`.
+7. Verwende einen klaren Namen, z. B. `cursor-remote-ssh-<project>`.
+8. Scrolle im Token-Dialog zu `Permissions` bzw. `Repository permissions`.
+9. Hake dort bei den Repository-Berechtigungen `Read` und `Write` an. Vergib keine Admin-Rechte, außer der Maintainer verlangt sie explizit.
+10. Erstelle den Token.
+11. Kopiere den Token sofort, weil Bitbucket ihn nur einmal anzeigt.
+12. Speichere ihn im freigegebenen Passwortmanager oder OS-Keychain.
+13. Erkläre, dass HTTPS mit `x-token-auth` verwendet wird, weil SSH Keys im alten SmartFlow Setup nur Read-only sind.
+14. Füge den echten Token nicht in Chat, Doku, Screenshots, Commits oder `PROJECT-CONTEXT.md` ein.
+15. Öffne direkt danach ein Terminal für die verdeckte Token-Eingabe. Der echte Token wird nur dort eingegeben, nie im Chat.
 
 Use this German prompt before token entry:
 
 ```md
 Öffne jetzt Bitbucket und erstelle den Repository Access Token:
 
-1. Öffne das Ziel-Repository in Bitbucket.
-2. Öffne `Repository settings`.
-3. Öffne `Access tokens`.
-4. Klicke `Create`.
-5. Name: `cursor-remote-ssh-<project>`.
-6. Berechtigungen: `Read` und `Write`.
-7. Erstelle den Token, kopiere ihn einmalig und speichere ihn im Passwortmanager.
+1. Öffne `https://bitbucket.org/`.
+2. Wähle den WESEO-/Projekt-Workspace, falls Bitbucket dich danach fragt.
+3. Öffne `Repositories` und wähle das Ziel-Repository. Prüfe den Repo-Namen gegen `<repo-name>`.
+4. Öffne links im Repository `Repository settings`.
+5. Öffne dort `Access tokens`.
+6. Klicke `Create` bzw. `Create repository access token`.
+7. Name: `cursor-remote-ssh-<project>`.
+8. Scrolle im Token-Dialog zu `Permissions` bzw. `Repository permissions`.
+9. Hake dort bei den Repository-Berechtigungen `Read` und `Write` an.
+10. Keine Admin-Rechte vergeben.
+11. Erstelle den Token.
+12. Kopiere den Token sofort, weil Bitbucket ihn nur einmal anzeigt.
+13. Speichere den Token im Passwortmanager oder OS-Keychain.
+
+Hinweis: Wir verwenden HTTPS mit `x-token-auth`, weil SSH Keys im alten SmartFlow Setup nur Read-only sind.
 
 Wichtig: Bitte poste den Token nicht hier in den Chat. Ich öffne dir jetzt ein Terminal. Gib den Token dort ein, wenn die verdeckte Token-Abfrage erscheint.
 ```
