@@ -8,12 +8,12 @@ Communicate with the user in German throughout setup. Keep command names, file p
 
 ## Guided Wizard Flow
 
-The Skill follows the old SmartFlow setup guide as an interactive wizard. Missing setup items are not passive blockers by default. Ask the user what to do next, execute the chosen branch, verify, and continue.
+The Skill follows the old SmartFlow setup guide as an interactive wizard. Missing setup items are not passive blockers by default. Follow the prescribed setup path, ask only for the exact missing input, verify, and continue.
 
 | Step | If present | If missing |
 |---|---|---|
 | Remote-SSH WordPress root | Verify `wp-content/`, `wp-admin/`, `wp-includes/`. | Guide the user to connect with `Remote-SSH: Connect to Host` and open the concrete WordPress directory. |
-| Git repository | Record repo root, branch, redacted remote, identity. | Ask whether to initialize here, connect existing Bitbucket repo, open/clone another folder, or consciously skip Git. |
+| Git repository | Record repo root, branch, redacted remote, identity. | Start the prescribed Bitbucket setup flow automatically: ask for repo name/URL if needed, ask the user to provide the Bitbucket token only through local terminal input, initialize locally, connect `origin`, verify with `git fetch origin`. |
 | Git credentials | Verify `git fetch origin`. | Guide user through Bitbucket Access Token creation/storage and local-only remote configuration. |
 | Project Context | Update missing non-secret facts. | Create `PROJECT-CONTEXT.md` and fill detected facts as setup progresses. |
 | WP-CLI | Verify `--info` and `core version`. | Ask whether to install local `wp-cli.phar`, use maintainer-provided global `wp`, or consciously skip. |
@@ -39,15 +39,13 @@ WP-CLI and safe temp path are newer server-ops additions, so keep them guided as
 
 ## Wizard Question Templates
 
-Ask one decision at a time. Use concrete choices like these:
+Ask one decision at a time. Use concrete choices only for optional or policy-dependent branches. Missing Git in a verified WordPress root is not a multiple-choice branch; use the prescribed Bitbucket setup prompt instead:
 
 ```md
 Ich habe kein Git-Repository in `<wp-root>` gefunden.
-Was soll ich als Nächstes tun?
-- Hier ein neues Git-Repository initialisieren.
-- Diesen WordPress-Root mit einem bestehenden Bitbucket-Repository verbinden.
-- Einen anderen Ordner öffnen oder klonen, weil das hier nicht der Repo-Root ist.
-- Git vorerst überspringen und den Skip in `PROJECT-CONTEXT.md` dokumentieren.
+SmartFlow-Projekte werden über das Bitbucket-Repository versioniert. Ich richte Git jetzt lokal in diesem WordPress-Root ein und verbinde es mit Bitbucket.
+
+Bitte nenne mir den Repository-Namen oder die Repository-URL, falls sie noch nicht in `PROJECT-CONTEXT.md` steht. Danach führe ich dich Schritt für Schritt durch die Erstellung des Bitbucket Access Tokens. Den Token gibst du anschließend nur lokal im Terminal ein, nicht hier im Chat.
 ```
 
 ```md
@@ -81,12 +79,46 @@ Was soll ich als Nächstes tun?
 When Git must be connected to Bitbucket, guide the user in German through the same sequence as the old SmartFlow setup guide:
 
 1. Öffne Bitbucket im Browser.
-2. Öffne das Ziel-Repository.
+2. Öffne das Ziel-Repository. Wenn du im Workspace startest, wähle zuerst das konkrete Projekt-Repository.
 3. Gehe zu `Repository settings` -> `Access tokens` -> `Create`.
-4. Erstelle einen Repository Access Token mit `Read` und `Write`.
-5. Kopiere den Token nur einmal und speichere ihn im freigegebenen Passwortmanager oder OS-Keychain.
-6. Füge den echten Token nicht in Chat, Doku, Screenshots, Commits oder `PROJECT-CONTEXT.md` ein.
-7. Verwende den echten Token nur lokal im Terminal für die Remote-URL.
+4. Verwende einen klaren Namen, z. B. `cursor-remote-ssh-<project>`.
+5. Erteile Repository-Berechtigungen `Read` und `Write`.
+6. Erstelle den Token.
+7. Kopiere den Token nur einmal und speichere ihn im freigegebenen Passwortmanager oder OS-Keychain.
+8. Füge den echten Token nicht in Chat, Doku, Screenshots, Commits oder `PROJECT-CONTEXT.md` ein.
+9. Gib den echten Token nur lokal im Terminal ein oder füge ihn nur dort in den lokalen Git-Befehl ein.
+
+Use this German prompt before token entry:
+
+```md
+Öffne jetzt Bitbucket und erstelle den Repository Access Token:
+
+1. Öffne das Ziel-Repository in Bitbucket.
+2. Öffne `Repository settings`.
+3. Öffne `Access tokens`.
+4. Klicke `Create`.
+5. Name: `cursor-remote-ssh-<project>`.
+6. Berechtigungen: `Read` und `Write`.
+7. Erstelle den Token, kopiere ihn einmalig und speichere ihn im Passwortmanager.
+
+Wichtig: Bitte poste den Token nicht hier in den Chat. Gib ihn im nächsten Schritt nur im lokalen Terminal ein, wenn die verdeckte Token-Abfrage erscheint.
+```
+
+When no Git repository exists in the verified WordPress root, initialize Git as part of the prescribed setup flow:
+
+```sh
+git init
+```
+
+Preferred token input flow:
+
+```sh
+read -s BITBUCKET_TOKEN
+git remote add origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
+unset BITBUCKET_TOKEN
+```
+
+When running the `git remote` command locally, replace `<token>` with the token entered in the terminal prompt.
 
 Show the command shape with placeholders:
 
@@ -94,7 +126,15 @@ Show the command shape with placeholders:
 git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
 ```
 
-If the repository does not yet have `origin`, use:
+If the repository already has `origin`, use the local prompt shape with `set-url`:
+
+```sh
+read -s BITBUCKET_TOKEN
+git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
+unset BITBUCKET_TOKEN
+```
+
+Fallback placeholder shape when the user inserts the token manually in their own local terminal:
 
 ```sh
 git remote add origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
@@ -107,7 +147,7 @@ git fetch origin
 git branch --show-current
 ```
 
-If the branch does not exist locally yet, ask before creating or checking out a branch. Existing WESEO projects commonly use `master`, but do not assume it for a new repository without confirmation.
+If the branch does not exist locally yet, ask only for the required branch name before creating or checking out a branch. Existing WESEO projects commonly use `master`, but do not assume it for a new repository without confirmation.
 
 ## Remote-SSH Setup Guide
 
@@ -352,7 +392,7 @@ If the WordPress root is `/usr/home/<account>/public_html/wordpress-<id>`, a str
 |---|---|
 | Cursor Remote-SSH | Cursor is connected to the expected project host alias or approved connection target. |
 | Workspace root | The opened folder matches `<wp-root>` and contains `wp-content/`, `wp-admin/`, and project-approved source paths. |
-| Git repository | The repo root is known. If missing, repository creation is explicitly approved or recorded as blocked. |
+| Git repository | The repo root is known. If missing in a verified WordPress root, the prescribed Bitbucket setup flow has been started and either completed or stopped with an explicit reason. |
 | Project Context | `PROJECT-CONTEXT.md` exists and `<server-hostname>`, `<wp-root>`, `<theme-path>`, `<wst-template-path>`, `<repo-name>`, `<branch-name>`, `<wp-cli-command>`, `<cache-flush-command>`, and `<path-outside-webroot>` are filled with non-secret values. |
 | Git identity | `git config user.name` and `git config user.email` return maintainer-approved values for the local repository. |
 | Repository access | `git fetch origin` succeeds using the approved local access method. |
@@ -369,7 +409,7 @@ Do not say "setup orientation is complete" unless every required gate is either 
 
 - Valid WordPress root opened over Remote-SSH.
 - `PROJECT-CONTEXT.md` exists and contains the detected non-secret setup facts.
-- Git is working, or Git was consciously skipped with reason and next action.
+- Git is working through the Bitbucket remote, or setup was stopped with an explicit reason and next action. Do not mark Git as a normal optional skip for SmartFlow projects.
 - WP-CLI is working, or WP-CLI was consciously skipped with reason and next action.
 - Cache flush command is documented, or blocked because WP-CLI is intentionally unavailable.
 - Cursor guidance is installed/available, or consciously skipped with reason and next action.

@@ -7,7 +7,7 @@ description: Use when performing the complete first setup for a WESEO WordPress/
 
 Use this Skill for first-run setup or re-orientation in a WESEO WordPress/WST project opened through Cursor Remote-SSH. The expected outcome is a usable SSH development workspace, not just a list of open questions.
 
-This is a guided setup wizard. Do not run discovery, create a partial `PROJECT-CONTEXT.md`, and then stop with blockers unless the user explicitly chooses to stop. When a required setup item is missing, explain the next SmartFlow setup step, ask the user which path to take, perform the chosen action, verify it, update Project Context, and continue to the next step.
+This is a guided setup wizard. Do not run discovery, create a partial `PROJECT-CONTEXT.md`, and then stop with blockers unless the user explicitly chooses to stop. When a required setup item is missing, explain the next SmartFlow setup step, follow the prescribed setup path, ask only for the exact required input, perform the action, verify it, update Project Context, and continue to the next step.
 
 Communicate with the user in German throughout the wizard. Keep commands, file names, placeholders, and external UI labels in their original language when that makes them easier to find, but explain what the user should do in German.
 
@@ -28,21 +28,20 @@ For every setup step:
 
 1. State what was detected.
 2. State why the next step matters.
-3. Offer concrete choices.
-4. Ask the user to choose before sensitive, destructive, credential, or live-site-affecting actions.
+3. Follow the prescribed path when the SmartFlow setup flow defines one.
+4. Ask the user only for the exact missing value or confirmation needed before sensitive, destructive, credential, or live-site-affecting actions.
 5. Execute the chosen safe action.
 6. Verify the result.
 7. Update `PROJECT-CONTEXT.md` or local-only setup state.
 8. Continue to the next step.
 
-Use structured choices when possible. Ask one decision at a time. Good prompts are:
+Use structured choices only for genuinely optional or policy-dependent branches. Ask one decision at a time. Good prompts are:
 
-- "Ich habe kein Git-Repository im WordPress-Root gefunden. Soll ich hier ein neues Git-Repo initialisieren, diesen Root mit einem bestehenden Bitbucket-Repo verbinden, oder ist vermutlich der falsche Ordner geöffnet?"
 - "Ich finde keinen WP-CLI-Befehl. Soll ich ein lokales `wp-cli.phar` im WordPress-Root installieren, ein globales `wp` verwenden nachdem du es bereitgestellt hast, oder WP-CLI bewusst als nicht verfügbar dokumentieren?"
 - "Ich finde keine `.cursor/rules` oder `.cursor/skills`. Soll ich die freigegebene WESEO Plugin-Guidance in diesem SSH-Workspace installieren, nur die Marketplace-Guidance verwenden, oder lokale Cursor-Inhalte bewusst überspringen?"
 - "MCP ist optional. Soll ich jetzt ein lokales `.cursor/mcp.json` Grundgerüst erstellen, MCP überspringen, oder warten bis Application Passwords/Tokens bereit sind?"
 
-Do not treat these as terminal blockers by default. They are wizard branches.
+Do not treat these as terminal blockers by default. They are wizard branches. Missing Git in a verified WordPress root is not an open multiple-choice branch; it starts the prescribed Bitbucket setup flow in Step 4.
 
 ## WESEO SSH Defaults
 
@@ -134,26 +133,67 @@ If required non-secret values are missing, guide the user through the Project Co
 
 ## Step 4: Confirm Or Configure Local Git
 
-Work from the WordPress root. If the Git repository already exists, use it. If no repository exists, do not `git init` unless the maintainer confirms the repository should be created in this WordPress root.
+Work from the verified WordPress root. If the Git repository already exists, use it.
 
-If no repository exists, start the Git setup branch instead of finishing with a blocker. Ask which path applies:
+If no repository exists in the WordPress root, do not present multiple setup choices. Start the prescribed SmartFlow Git setup automatically:
 
-- Initialize a new Git repository in this WordPress root.
-- Connect this WordPress root to an existing Bitbucket repository.
-- Open or clone a different folder because this is not the repo root.
-- Skip Git only for a consciously non-versioned emergency workspace.
+1. State that no Git repository was detected in the verified WordPress root.
+2. State that SmartFlow projects use the project Bitbucket repository as the required Git source.
+3. Ask the user for the Bitbucket repository name or URL if it was not detected from Project Context.
+4. Guide the user step by step through creating a repository Access Token in Bitbucket, then ask them to enter that token only in the local terminal prompt. Do not ask the user to paste the token into chat.
+5. Run `git init` in the WordPress root only as part of this prescribed Bitbucket setup after explaining that the repository will be initialized locally and connected to Bitbucket.
+6. Add or update `origin` with the token-bearing HTTPS URL only in local Git config.
+7. Verify access with `git fetch origin`.
+8. Update Project Context only with the redacted repository host/name, branch, and non-secret access method.
 
-After the user chooses, complete the chosen setup. For an existing Bitbucket repository, guide the user through creating or retrieving the approved Access Token in Bitbucket, storing it in the approved local credential storage, and configuring the local remote URL with the real token only in local Git config. Show tracked docs only the placeholder form:
+Guide the user through creating or retrieving the approved Access Token in Bitbucket, storing it in the approved local credential storage, and configuring the local remote URL with the real token only in local Git config. Show tracked docs only the placeholder form:
 
 When Bitbucket must be set up, guide the user step by step like the old SmartFlow setup guide:
 
 1. Open Bitbucket in the browser.
-2. Open the target repository.
-3. Go to `Repository settings` -> `Access tokens` -> `Create`.
-4. Create a repository access token with `Read` and `Write`.
-5. Copy the token once and store it in the approved password manager or OS keychain.
-6. Do not paste the token into chat, tracked docs, screenshots, commit messages, or `PROJECT-CONTEXT.md`.
-7. Tell the user the exact local command shape and instruct them to insert the real token only in their local terminal command.
+2. Open the project workspace or the target repository.
+3. If the user starts from the workspace overview, choose the exact project repository first.
+4. Go to `Repository settings` -> `Access tokens` -> `Create`.
+5. Name the token clearly, for example `cursor-remote-ssh-<project>`.
+6. Grant repository permissions `Read` and `Write`.
+7. Create the token.
+8. Copy the token once and store it in the approved password manager or OS keychain.
+9. Do not paste the token into chat, tracked docs, screenshots, commit messages, or `PROJECT-CONTEXT.md`.
+10. Ask the user to enter the real token only into the local terminal prompt or to insert it only in their local terminal command, never into chat or tracked files.
+
+Use this German prompt shape:
+
+```md
+Öffne jetzt Bitbucket und erstelle den Repository Access Token:
+
+1. Öffne das Ziel-Repository in Bitbucket.
+2. Öffne `Repository settings`.
+3. Öffne `Access tokens`.
+4. Klicke `Create`.
+5. Name: `cursor-remote-ssh-<project>`.
+6. Berechtigungen: `Read` und `Write`.
+7. Erstelle den Token, kopiere ihn einmalig und speichere ihn im Passwortmanager.
+
+Wichtig: Bitte poste den Token nicht hier in den Chat. Gib ihn im nächsten Schritt nur im lokalen Terminal ein, wenn die verdeckte Token-Abfrage erscheint.
+```
+
+Preferred local prompt flow:
+
+```sh
+read -s BITBUCKET_TOKEN
+git remote add origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
+unset BITBUCKET_TOKEN
+```
+
+When running the `git remote` command locally, replace `<token>` with the token entered in the terminal prompt. If `origin` already exists, use:
+
+```sh
+read -s BITBUCKET_TOKEN
+git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
+unset BITBUCKET_TOKEN
+```
+
+Fallback placeholder shape, when the user inserts the token manually in their own local terminal:
 
 ```sh
 git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
