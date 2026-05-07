@@ -1,6 +1,6 @@
 {
   "name": "wst-builder",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "WESEO WST Builder workflows for WordPress, ACF, and WST Section and Custom Post Type foundation work before local frontend implementation.",
   "author": {
     "name": "WESEO"

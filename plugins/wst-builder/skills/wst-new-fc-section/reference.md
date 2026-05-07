@@ -134,7 +134,7 @@ Final spacing, typography, responsive behavior, Chrome Local Overrides spikes, a
 
 ## Section Handoff Draft
 
-Create the prefilled Section handoff draft during `grill-me` preflight at the project-configured storage location from Project Context.
+Create the prefilled Section handoff draft during the bundled `grill-me` preflight at the project-configured storage location from Project Context.
 
 The draft should capture:
 

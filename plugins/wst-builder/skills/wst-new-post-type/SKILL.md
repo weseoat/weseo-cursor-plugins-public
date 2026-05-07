@@ -7,7 +7,7 @@ description: Create a WESEO Smart Template Builder Custom Post Type foundation. 
 
 ## Quick Start
 
-Use this Skill for the server-side WST foundation of a new Custom Post Type. Start with a `grill-me` preflight before creating or modifying CPT registration, taxonomy setup, ACF field groups, WP Grid Builder card/grid foundations, card templates, archive/grid integration, optional single templates, CSS hooks, or handoff content.
+Use this Skill for the server-side WST foundation of a new Custom Post Type. Start with the bundled `grill-me` preflight before creating or modifying CPT registration, taxonomy setup, ACF field groups, WP Grid Builder card/grid foundations, card templates, archive/grid integration, optional single templates, CSS hooks, or handoff content.
 
 Before asking the maintainer for technical values, search the project-local context for:
 
@@ -22,7 +22,7 @@ If any blocking value is missing, stop and ask the maintainer or record an expli
 
 ## Mandatory Preflight
 
-Run a `grill-me` preflight before implementation starts. The preflight output is a dedicated CPT handoff draft, not only a chat summary and not the Section handoff template.
+Run the bundled `grill-me` preflight before implementation starts. The preflight output is a dedicated CPT handoff draft, not only a chat summary and not the Section handoff template.
 
 The draft must record:
 
@@ -58,7 +58,7 @@ Track progress with this checklist:
 
 ```text
 New WST CPT Foundation:
-- [ ] Run grill-me preflight and create dedicated CPT handoff draft
+- [ ] Run bundled grill-me preflight and create dedicated CPT handoff draft
 - [ ] Register CPT
 - [ ] Register taxonomy if needed
 - [ ] Create ACF field group for CPT fields

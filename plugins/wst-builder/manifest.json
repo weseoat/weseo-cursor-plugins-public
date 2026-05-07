@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "wst-builder",
   "displayName": "WST Builder Plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "responsibility": "Package reusable WESEO Smart Template Builder workflows for creating WordPress, ACF, CPT, and WST foundations before local frontend implementation.",
   "assumptions": [
     "The plugin is used in a Cursor workspace that has access to a WordPress and WST project checkout.",
@@ -15,9 +15,21 @@
       "path": "rules/acf-wst-patterns.mdc",
       "source": "weseo-smartflow-frontend-guide/.cursor/rules/acf-wst-patterns.mdc",
       "description": "Preserve reusable ACF Flexible Content, clone field, shortcode, and WST template invariants for WST Builder work."
+    },
+    {
+      "name": "plugin-package-boundary",
+      "path": "rules/plugin-package-boundary.mdc",
+      "source": "plugins/wst-builder/rules/plugin-package-boundary.mdc",
+      "description": "Keep required WST Builder workflows self-contained inside the plugin package and prevent development-only path dependencies."
     }
   ],
   "skills": [
+    {
+      "name": "grill-me",
+      "path": "skills/grill-me/SKILL.md",
+      "source": ".agents/skills/grill-me/SKILL.md",
+      "description": "Run the bundled WST Builder preflight interview before Section or CPT foundation work and produce the required handoff draft."
+    },
     {
       "name": "wst-new-fc-section",
       "path": "skills/wst-new-fc-section/SKILL.md",
@@ -31,5 +43,5 @@
       "description": "Create a WST Custom Post Type foundation, including required preflight, dedicated CPT handoff draft, optional taxonomy, ACF CPT fields, WP Grid Builder grid/card foundation, card template, and optional single template."
     }
   ],
-  "releaseNotes": "release-notes/0.1.0.md"
+  "releaseNotes": "release-notes/0.1.1.md"
 }

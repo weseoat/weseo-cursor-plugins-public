@@ -7,7 +7,7 @@ description: Create a new WESEO Smart Template Builder Flexible Content Section 
 
 ## Quick Start
 
-Use this Skill for the server-side WST foundation of a new Flexible Content Section. Start with a `grill-me` preflight before creating or modifying Section templates, ACF structures, Flexible Content wiring, CSS hooks, or handoff content.
+Use this Skill for the server-side WST foundation of a new Flexible Content Section. Start with the bundled `grill-me` preflight before creating or modifying Section templates, ACF structures, Flexible Content wiring, CSS hooks, or handoff content.
 
 Before asking the maintainer for technical values, search the project-local context for:
 
@@ -22,7 +22,7 @@ If any blocking value is missing, stop and ask the maintainer or record an expli
 
 ## Mandatory Preflight
 
-Run a `grill-me` preflight before implementation starts. The preflight output is a prefilled Section handoff draft, not only a chat summary.
+Run the bundled `grill-me` preflight before implementation starts. The preflight output is a prefilled Section handoff draft, not only a chat summary.
 
 The draft must record:
 
@@ -55,7 +55,7 @@ Track progress with this checklist:
 
 ```text
 New WST FC Section:
-- [ ] Run grill-me preflight and create prefilled Section handoff draft
+- [ ] Run bundled grill-me preflight and create prefilled Section handoff draft
 - [ ] Create Section template
 - [ ] Create ACF section field group
 - [ ] Add Flexible Content layout entry
@@ -159,7 +159,7 @@ Run the project-local cache flush command. Then verify:
 
 ### 8. Emit Or Update Section Handoff
 
-Use `section-handoffs/section-handoff.template.md` as the reusable contract source, then create or update the concrete handoff at the project-configured storage location from Project Context. Keep the concrete handoff on the same branch or PR as the Section work.
+Use the bundled `handoffs/section-handoff.template.md` as the reusable contract source, then create or update the concrete handoff at the project-configured storage location from Project Context. Keep the concrete handoff on the same branch or PR as the Section work.
 
 Fill these handoff areas before local CSS work starts:
 
@@ -170,7 +170,7 @@ Fill these handoff areas before local CSS work starts:
 - Expected desktop, tablet, mobile, content variation, and interaction behavior.
 - Server responsibilities completed, cache state, known risks, and open questions.
 
-Run `python scripts/validate-section-handoffs.py` when the handoff lives in this repository.
+If the consuming project provides a handoff validator, run that project-local command. Do not depend on repository-local scripts that are not bundled with this plugin.
 
 Completed Section handoffs route to the Frontend Design QA `frontend-section-qa` Skill. Treat the filled Section handoff as the shared workflow contract between WST Builder server-side ownership and Frontend Design QA local implementation ownership.
 

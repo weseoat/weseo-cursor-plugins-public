@@ -6,7 +6,7 @@ This reference is intentionally generic. Project-specific CPT names, rewrite slu
 
 ## Safe Defaults
 
-Use these defaults only as starting points for discussion during the `grill-me` preflight:
+Use these defaults only as starting points for discussion during the bundled `grill-me` preflight:
 
 - Prefer a non-detail CPT unless the brief explicitly needs public single pages.
 - Prefer core post title, featured image, editor, excerpt, and taxonomy terms before duplicating data in ACF fields.
@@ -173,7 +173,7 @@ Common card data:
 
 ## CPT Handoff Draft
 
-The CPT handoff draft is separate from the Section handoff template. Create it during the `grill-me` preflight at the project-configured storage location from Project Context, then keep updating it as server-side CPT foundation work proceeds.
+The CPT handoff draft is separate from the Section handoff template. Create it during the bundled `grill-me` preflight at the project-configured storage location from Project Context, then keep updating it as server-side CPT foundation work proceeds.
 
 The draft should capture:
 
