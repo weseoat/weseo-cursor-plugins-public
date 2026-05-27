@@ -1,35 +1,64 @@
 ---
 name: setup-orientation
-description: Guided wizard for the complete first setup of a WESEO WordPress/WST project over Cursor Remote-SSH. Use when starting a new project, re-orienting an existing SSH workspace, opening the WordPress root, creating or updating PROJECT-CONTEXT.md, configuring local Bitbucket Git access via hidden terminal prompt, verifying WP-CLI and cache flush, preparing the .cursor skeleton, and configuring local-only MCP for WordPress and Figma.
+description: Guided wizard for the complete first setup of a WESEO WordPress/WST project over Cursor Remote-SSH. Use when starting a new project, re-orienting an existing SSH workspace, opening the WordPress root, creating or updating PROJECT-CONTEXT.md, configuring this project's Bitbucket Git access via hidden terminal prompt, verifying WP-CLI and cache flush, preparing the .cursor skeleton, and configuring untracked .cursor/mcp.json access for WordPress and Figma.
 ---
 
 # Setup Orientation
 
-Run this Skill as a guided wizard for the first run of a WESEO WordPress/WST project opened through Cursor Remote-SSH. The expected outcome is a usable SSH development workspace with `PROJECT-CONTEXT.md` filled, working local Git, verified WP-CLI/cache, a tracked `.cursor` skeleton, and local-only MCP for WordPress and Figma.
+Run this Skill as a guided wizard for the first run of a WESEO WordPress/WST project opened through Cursor Remote-SSH. The expected outcome is a usable SSH development workspace with `PROJECT-CONTEXT.md` filled, working project Git, verified WP-CLI/cache, a tracked `.cursor` skeleton, and untracked `.cursor/mcp.json` access for WordPress and Figma.
 
 The wizard must work from any starting state. If Cursor is open without a Remote-SSH connection, lead the user through Remote-SSH first. If the WordPress root is already open and Git is already configured, skip those steps and continue.
 
-Communicate with the user in German throughout the wizard. Keep commands, file names, placeholders, and external UI labels in their original language.
+The target user is a non-backend-heavy frontend or design colleague. They can follow WordPress and Cursor instructions, but the wizard must not assume they understand backend setup vocabulary.
+
+Communicate with the user in German throughout the wizard. Keep commands, file names, placeholders, and external UI labels in their original language, but introduce them through plain-language purpose and action first.
 
 Never ask the user to paste real tokens, application passwords, SSH keys, token-bearing URLs, private server coordinates, or credentials into chat, tracked files, diagnostics, screenshots, or commit messages.
 
 ## Guided Wizard Contract
 
+For every user-facing setup step, lead with a short plain-language frame before technical details:
+
+- **Was passiert:** What the wizard is checking or changing, in everyday German.
+- **Warum:** Why this matters for the project or later handoff.
+- **Du musst:** The exact user action, or `Nichts tun` when the wizard can continue automatically.
+
+Use equivalent short wording when the three labels would feel too heavy, but keep the same order: purpose, reason, exact user responsibility.
+End each step with a one-line progress note: `Erledigt: <confirmed result>` or `Offen: <open setup point> - nächster Schritt: <action>`. Missing safe-to-continue values should be described as open setup points with a concrete next action, not as alarming failures.
+
 For every setup step:
 
-1. State what was detected and why the next step matters.
-2. Follow the prescribed safe path automatically when possible.
-3. Ask only for the exact missing input or a short confirmation before sensitive, destructive, credential, or live-site-affecting actions.
+1. State what was detected in plain German and why the next step matters.
+2. Follow the prescribed safe path automatically when the action is read-only, reversible, or a routine setup write covered by this Skill.
+3. Ask only for a concrete missing input, a choice between ambiguous options, secret entry in the correct non-chat location, or a short confirmation before sensitive, destructive, credential, or live-site-affecting actions.
 4. Execute the chosen safe action.
 5. Verify the result.
-6. Update `PROJECT-CONTEXT.md` or local-only setup state.
+6. Update `PROJECT-CONTEXT.md` or untracked setup state.
 7. Continue to the next step.
 
-Run safe, reversible, or verifying steps automatically (`pwd`, root checks, `mkdir -p`, `git fetch origin`, writing `PROJECT-CONTEXT.md`, writing `.gitignore` and `.cursor` skeleton, MCP skeleton). Ask for short confirmation before: changing or adding a Git remote, the initial commit and push, executing `cache flush` against the live site, writing real Application Passwords or Figma tokens into local `.cursor/mcp.json`.
+Run safe, reversible, or verifying steps automatically (`pwd`, root checks, `mkdir -p`, `git fetch origin`, writing `PROJECT-CONTEXT.md`, writing `.gitignore` and `.cursor` skeleton, MCP skeleton). Explain when the wizard is only reading information. Do not ask broad questions like "Is this okay?" for checks the user cannot reasonably evaluate. Ask for short confirmation before: changing or adding a Git remote, the initial commit and push, executing `cache flush` against the live site, or writing real Application Passwords or Figma tokens into the untracked `.cursor/mcp.json` file in the opened Cursor workspace.
+
+When secrets or access values are involved, name concrete storage and non-storage locations. Say whether a value belongs in `.cursor/mcp.json`, this project's Git configuration, the hidden terminal prompt, a browser UI, or a password manager. Also say when it must not go into chat, `PROJECT-CONTEXT.md`, Git, commits, tracked files, diagnostics, or screenshots. Avoid ambiguous "local" wording in Remote-SSH credential contexts because users may confuse their own computer with the opened server workspace.
 
 When the wizard is invoked after an interruption (long pause, terminal action, chat reset, or partial run), do not claim setup is complete based on a vague memory. Re-read `PROJECT-CONTEXT.md`, find the first step whose status is missing, `pending`, or unverified, resume from there, and finish with the mandatory frontend onboarding handoff (Step 11). Setup is only complete when every gate from Step 1 to Step 11 has a recorded outcome in `PROJECT-CONTEXT.md`.
 
 The detailed step-by-step walkthroughs, prompt templates, terminal flows, `.gitignore` baseline, MCP setup guides, completion gates, redaction rules, and the old-guide coverage mapping live in [reference.md](reference.md).
+
+## Jargon Watchlist
+
+Technical names may remain visible when they are command names, file names, or UI labels, but user-facing explanations should introduce them with these plain-language anchors:
+
+- `Remote-SSH`: Cursor is connected to the server.
+- `WordPress root`: the main folder of the WordPress installation.
+- `PROJECT-CONTEXT.md`: the project note file for non-secret facts.
+- `WP-CLI`: WordPress commands in the terminal.
+- `cache flush`: clear the cache / Zwischenspeicher leeren.
+- `Git remote/origin`: the connection to the Bitbucket repository.
+- `MCP`: Cursor connection to WordPress or Figma; keep real UI labels such as `Settings` -> `Tools & MCP`.
+- `Application Password`: an access key created in the WordPress user profile and entered only in the specific UI, hidden terminal prompt, or `.cursor/mcp.json` flow.
+- `Access Token`: an access key created in Bitbucket or Figma and entered only in the specific UI, hidden terminal prompt, or `.cursor/mcp.json` flow.
+- `tracked`: saved with Git and therefore able to end up in commits.
+- `untracked`: not saved with Git unless someone explicitly adds it.
 
 ## WESEO SSH Defaults
 
@@ -41,14 +70,18 @@ Use these defaults unless Project Context or the maintainer says otherwise:
 - The WST stack is Astra Child Theme, WST plugin (`weseo-smart-template-builder`), ACF PRO, ACF Extended, WP Grid Builder, CPT UI.
 - A local `wp-cli.phar` in the WordPress root is preferred when global `wp` is not available.
 - Default cache flush command: `php wp-cli.phar cache flush && php wp-cli.phar eval "if(function_exists('rocket_clean_domain')){rocket_clean_domain();}"`.
-- Bitbucket remotes use HTTPS with `x-token-auth`. The real token never leaves the local Git config.
-- `.cursor/mcp.json` is always local-only and never tracked. `.cursor/rules/.gitkeep` and `.cursor/skills/.gitkeep` are tracked.
+- Bitbucket remotes use HTTPS with `x-token-auth`. The real token never leaves this project's Git configuration.
+- `.cursor/mcp.json` exists only as an untracked file in the opened Cursor workspace. `.cursor/rules/.gitkeep` and `.cursor/skills/.gitkeep` are tracked.
 
-## Step 1: Connect And Open The WordPress Root
+## Step 1: Cursor mit dem Server verbinden und den WordPress-Hauptordner öffnen
+
+**Was passiert:** Der Wizard prüft, ob Cursor über `Remote-SSH` mit dem richtigen Server verbunden ist und ob der geöffnete Ordner der Hauptordner der WordPress-Installation ist.
+**Warum:** Nur im richtigen Ordner können spätere Checks, Git, WP-CLI und Projektdateien sicher arbeiten.
+**Du musst:** Wenn Cursor noch nicht verbunden ist oder der falsche Ordner offen ist, folgst du der angezeigten `Remote-SSH: Connect to Host`- und `Open Folder`-Anleitung. Wenn alles passt, musst du nichts tun.
 
 If Cursor has no Remote-SSH connection or the open folder is not a WordPress root, guide the user through `Remote-SSH: Connect to Host` and `Open Folder` using the Remote-SSH walkthrough in [reference.md](reference.md).
 
-Verify the workspace:
+Background verification commands:
 
 ```sh
 pwd
@@ -58,9 +91,13 @@ test -d wp-content && test -d wp-admin && test -d wp-includes
 
 If the opened folder is not a WordPress root, look for `wordpress-*` candidates in the current folder and one parent level. Ask before switching if more than one candidate exists. Do not scan unrelated account data.
 
-## Step 2: Discover Project Facts
+## Step 2: Projektinformationen ohne Geheimnisse sammeln
 
-Collect non-secret facts before asking questions:
+**Was passiert:** Der Wizard liest harmlose technische Eckdaten wie Ordner, Hostname, PHP-Version, vorhandene Projektdateien und Git-Status.
+**Warum:** Diese Infos füllen die Projektnotiz und verhindern spätere Rückfragen. Der Wizard ändert dabei nichts an der Website.
+**Du musst:** Nichts tun. Der Wizard fragt erst nach, wenn eine nicht geheime Information fehlt, die er nicht selbst sicher erkennen kann.
+
+Collect non-secret facts before asking questions. These are read-only checks and must be introduced as background verification, not as the first user-facing content:
 
 ```sh
 pwd
@@ -89,7 +126,11 @@ If WP-CLI is not yet available, fall back to filesystem checks for `astra-child`
 
 Do not print `git remote -v` directly in chat or notes. To inspect the remote, use `git remote get-url origin` locally and report only a redacted shape.
 
-## Step 3: Project Context As Required Contract
+## Step 3: Projektnotiz für spätere Arbeit vorbereiten
+
+**Was passiert:** Der Wizard erstellt oder ergänzt `PROJECT-CONTEXT.md`, die Projektnotiz für nicht geheime Fakten.
+**Warum:** Spätere WordPress-, WST- und Frontend-Aufgaben lesen diese Datei zuerst, damit alle mit denselben sicheren Projektinfos arbeiten.
+**Du musst:** Nichts tun, solange die Werte erkannt werden können. Wenn etwas fehlt, gib nur die konkrete nicht geheime Information an oder entscheide, ob sie als offener Punkt mit nächstem Schritt notiert wird.
 
 `PROJECT-CONTEXT.md` is the project's non-secret context contract. Later WordPress, WST, and Frontend Skills must read it first to understand the project and update it when new non-secret facts are confirmed.
 
@@ -113,13 +154,17 @@ Never store real tokens, application passwords, SSH private keys, token-bearing 
 
 If required non-secret values are missing, follow the Project Context fill walkthrough in [reference.md](reference.md). The old SmartFlow placeholder categories (CPTs, Key Page IDs, WP Grid Builder Grids, FC Field Keys, Clone Group Keys, button variants, container widths, clamp values, ACF IDs) are collected here, not by editing plugin Rules.
 
-## Step 4: Git Through Bitbucket
+## Step 4: Das Projekt mit Bitbucket verbinden
+
+**Was passiert:** Der Wizard prüft, ob dieses Projekt schon mit dem Bitbucket-Repository verbunden ist. Falls nicht, führt er dich durch einen Zugangsschlüssel, den du in Bitbucket für genau dieses Repository erstellst (`Repository Access Token`).
+**Warum:** Git sorgt dafür, dass Projektänderungen nachvollziehbar gespeichert und mit dem Team geteilt werden können.
+**Du musst:** Den Repository-Namen auswählen oder bestätigen. Danach erstellst du den Zugangsschlüssel in Bitbucket, speicherst ihn im Passwortmanager oder OS-Keychain und gibst ihn nur in den verdeckten Terminal-Prompt ein. Der echte Wert darf nicht in Chat, `PROJECT-CONTEXT.md`, Git, Commits, tracked files, Diagnosen oder Screenshots landen.
 
 If the WordPress root already has a working Git repository with `git fetch origin` succeeding, only verify identity and continue.
 
 If no Git repository is present, follow this prescribed Bitbucket flow in order. Steps 1 and 2 are mandatory and must not be skipped or shortened. The wizard must never open a token terminal prompt before Step 2 has been displayed in chat and the user has confirmed they have a token.
 
-1. Confirm the Bitbucket repository name or URL with the user. If `PROJECT-CONTEXT.md` already names the repo, only ask the user to confirm.
+1. Confirm the Bitbucket repository name or URL with the user. If `PROJECT-CONTEXT.md` already names the repo, only ask the user to confirm that concrete repo.
 2. **Display the full Bitbucket Access Token creation guide in chat** (German, see template below) so the user knows exactly where the token comes from. Wait for explicit confirmation that the user has the token in their password manager or OS keychain before continuing.
 3. Open a terminal in Cursor and explain how to use it (`Ctrl+Ö` or `Ctrl+Backtick`, integrated terminal already runs in the WordPress root via Remote-SSH). Then run the hidden token prompt to set up `origin` with `x-token-auth`. The user pastes the token only into that terminal.
 4. Verify access with `git fetch origin`. Do not run `git pull origin master` blindly.
@@ -128,7 +173,7 @@ If no Git repository is present, follow this prescribed Bitbucket flow in order.
 Token creation guide that the wizard displays in chat before any terminal action:
 
 ```md
-Bevor wir Git mit Bitbucket verbinden, brauchst du einen Repository Access Token. So bekommst du ihn:
+Bevor wir Git mit Bitbucket verbinden, brauchst du einen Zugangsschlüssel für genau dieses Bitbucket-Repository. Bitbucket nennt diesen Schlüssel `Repository Access Token`. So bekommst du ihn:
 
 1. Öffne `https://bitbucket.org/` im Browser und logge dich ein.
 2. Wähle den WESEO-/Projekt-Workspace, falls Bitbucket dich danach fragt.
@@ -142,11 +187,11 @@ Bevor wir Git mit Bitbucket verbinden, brauchst du einen Repository Access Token
 10. Klicke `Create` und kopiere den Token sofort - Bitbucket zeigt ihn nur ein einziges Mal.
 11. Speichere den Token im Passwortmanager oder OS-Keychain.
 
-Hinweis: Wir verwenden HTTPS mit `x-token-auth`, weil SSH Keys in Bitbucket im SmartFlow Setup nur Read-only sind.
+Hinweis: Der Wizard trägt den Schlüssel nachher über eine verdeckte Terminal-Eingabe in die Git-Verbindung dieses Projekts ein. Technisch verwendet Git dabei HTTPS mit `x-token-auth` und speichert den Wert nur in der Git-Konfiguration dieses Projekts.
 
-Wichtig: Bitte poste den Token nicht in den Chat. Sobald du ihn hast, öffne ich gleich ein Terminal in Cursor; dort gibst du ihn bei einer verdeckten Eingabe ein.
+Wichtig: Bitte poste den Token nicht in den Chat und schreibe ihn nicht in `PROJECT-CONTEXT.md`, Git, Commits, tracked files, Diagnosen oder Screenshots. Sobald du ihn hast, öffne ich gleich ein Terminal in Cursor; dort gibst du ihn bei einer verdeckten Eingabe ein.
 
-Sag mir Bescheid, sobald du den Token hast.
+Sag mir Bescheid, sobald du den Token im Passwortmanager oder OS-Keychain gespeichert hast.
 ```
 
 Never request the real token in chat. Tracked docs only show the placeholder shape:
@@ -157,7 +202,11 @@ git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.g
 
 The wizard must clearly explain how to open Cursor's integrated terminal (`Ctrl+Ö` or `Ctrl+Backtick`) and what to type when the hidden prompt appears, and provide a copy-paste fallback if the integrated terminal is unavailable. Detailed terminal guidance and the full Bitbucket walkthrough live in [reference.md](reference.md).
 
-## Step 5: Restrictive `.gitignore` And `.cursor` Skeleton
+## Step 5: Git vor falschen Dateien schützen und Cursor-Projektordner anlegen
+
+**Was passiert:** Der Wizard richtet eine vorsichtige `.gitignore` ein und legt die leeren `.cursor/rules`- und `.cursor/skills`-Ordner für spätere Projekthinweise an.
+**Warum:** WordPress-Core, Uploads, Caches, Dumps, Zugangsdaten und `.cursor/mcp.json` dürfen nicht versehentlich in Git oder Commits landen.
+**Du musst:** Nichts tun, bis der Wizard vor dem ersten Commit den sicheren Umfang zeigt. Bestätige den initialen Commit oder Push erst nach dieser Prüfung.
 
 Before any initial `git add`, commit, or push, install or update a deny-all WordPress-root `.gitignore`. The full baseline is in [reference.md](reference.md).
 
@@ -186,7 +235,11 @@ git status --short
 
 Stop and fix `.gitignore` if WordPress core, uploads, caches, vendor plugins, dumps, media, token-bearing config, or `.cursor/mcp.json` appear. Continue with the initial commit and push only after confirming the staging scope and a short user confirmation.
 
-## Step 6: WP-CLI And Cache Flush
+## Step 6: WordPress-Terminalbefehle prüfen und Cache leeren
+
+**Was passiert:** Der Wizard prüft, ob WordPress-Befehle im Terminal über `WP-CLI` funktionieren, und leert danach mit deiner kurzen Bestätigung den Cache.
+**Warum:** Viele spätere Wartungs- und Prüfschritte brauchen zuverlässige WordPress-Terminalbefehle. Das Cache-Leeren stellt sicher, dass die Seite nicht mit alten Zwischenspeicher-Daten weiterläuft.
+**Du musst:** Bei reinen Prüfungen nichts tun. Vor dem Cache-Leeren bestätigst du kurz, weil das die Live-Seite beeinflussen kann.
 
 Confirm or install WP-CLI:
 
@@ -194,7 +247,7 @@ Confirm or install WP-CLI:
 - Otherwise use `wp <command>` if `command -v wp` succeeds.
 - If neither is available, ask whether to install local `wp-cli.phar`, use a maintainer-provided global `wp`, or consciously skip with reason.
 
-Verify without changing site state:
+Background verification without changing site state:
 
 ```sh
 php wp-cli.phar --info && php wp-cli.phar core version
@@ -208,13 +261,17 @@ php wp-cli.phar cache flush && php wp-cli.phar eval "if(function_exists('rocket_
 
 Record the chosen command shape and the cache flush command in `PROJECT-CONTEXT.md`.
 
-## Step 7: Cursor Guidance
+## Step 7: Cursor-Hinweise für dieses Projekt prüfen
+
+**Was passiert:** Der Wizard prüft, ob die WESEO-Cursor-Plugins verfügbar sind und ob dieses Projekt eigene `.cursor`-Hinweise enthält.
+**Warum:** So wissen spätere Agents, welche Regeln und Skills sie für WordPress-, WST- und Frontend-Arbeit verwenden sollen.
+**Du musst:** Nichts tun. Der Wizard liest nur die vorhandene `.cursor`-Struktur und dokumentiert offene Punkte, falls Plugin-Hinweise im Remote-SSH-Kontext fehlen.
 
 The user runs Cursor with the WESEO plugins (`wordpress-server-ops`, `wst-builder`, `frontend-design-qa`) installed in their personal Cursor account. The wizard does not copy plugin Rules or Skills into the project.
 
 The project repository keeps a `.cursor` skeleton (Step 5) so the team can add project-specific Rules and Skills later.
 
-Verify and document:
+Background verification commands:
 
 ```sh
 ls .cursor
@@ -224,16 +281,20 @@ ls .cursor/skills
 
 Record in `PROJECT-CONTEXT.md` whether the personal plugin guidance is active for this Remote-SSH workspace and whether project-specific Rules or Skills exist. If plugin guidance is not available in the SSH context, follow the Cursor Guidance fallback walkthrough in [reference.md](reference.md).
 
-## Step 8: Local-Only MCP For WordPress And Figma
+## Step 8: Cursor mit WordPress und Figma verbinden
 
-WordPress MCP and Figma MCP are required setup gates because the team uses both. Real values stay only in local `.cursor/mcp.json`. Tracked docs only show placeholder shapes.
+**Was passiert:** Der Wizard richtet die Cursor-Verbindungen zu WordPress und Figma ein und prüft sie danach unter `Settings` -> `Tools & MCP`.
+**Warum:** Das Team nutzt diese Verbindungen, damit Agents später WordPress- und Figma-Kontext sicher abrufen können.
+**Du musst:** In WordPress ein `Application Password` und in Figma einen `Personal Access Token` erstellen. Die echten Werte trägst du nur im vorgesehenen verdeckten Terminal-Prompt oder in `.cursor/mcp.json` im gerade geöffneten Cursor-Workspace ein; diese Datei bleibt untracked. Nicht in Chat, `PROJECT-CONTEXT.md`, Git, Commits, tracked files, Diagnosen oder Screenshots einfügen.
+
+WordPress MCP and Figma MCP are required setup gates because the team uses both. Real values stay only in the untracked `.cursor/mcp.json` file in the opened Cursor workspace. Tracked docs only show placeholder shapes.
 
 The wizard must:
 
-1. Walk the user through creating a WordPress Application Password under `Benutzer` → `Profil` → `Application Passwords`.
-2. Walk the user through creating a Figma Personal Access Token under `Profile` → `Settings` → `Personal access tokens`.
-3. Open a hidden-input terminal flow (or local-only file edit) so the real values land only in `.cursor/mcp.json`. Detailed steps live in [reference.md](reference.md).
-4. Restart Cursor and verify both servers under `Settings` → `Tools & MCP`.
+1. Walk the user through creating a WordPress `Application Password` under `Benutzer` -> `Profil` -> `Application Passwords`. Explain that this value is for Cursor's WordPress connection only and must not be pasted into chat or `PROJECT-CONTEXT.md`.
+2. Walk the user through creating a Figma `Personal Access Token` under `Profile` -> `Settings` -> `Personal access tokens`. Explain that this value is for Cursor's Figma connection only and must not be pasted into chat or `PROJECT-CONTEXT.md`.
+3. Open a hidden-input terminal flow (or edit the untracked `.cursor/mcp.json` file in the opened Cursor workspace) so the real values land only there. Name this storage location explicitly before asking the user to continue. Detailed steps live in [reference.md](reference.md).
+4. Restart Cursor and verify both servers under `Settings` -> `Tools & MCP`.
 
 If the user cannot create one of the credentials right now, record the gate as `pending: <reason>` with the next concrete action in `PROJECT-CONTEXT.md`. Do not call setup complete while either MCP gate is unresolved.
 
@@ -263,7 +324,11 @@ The placeholder shape used in tracked examples:
 }
 ```
 
-## Step 9: Safe Temp And Scratch Policy
+## Step 9: Sicheren Ablageort für temporäre Dateien festlegen
+
+**Was passiert:** Der Wizard legt einen temporären Arbeitsordner außerhalb des öffentlich erreichbaren WordPress-Bereichs fest.
+**Warum:** Exporte, Dumps, Testskripte und andere Arbeitsdateien dürfen nicht im Webroot liegen und nicht aus Versehen veröffentlicht werden.
+**Du musst:** Nichts tun, wenn ein sicherer Pfad eindeutig ist. Wenn mehrere Pfade möglich sind oder der Pfad öffentlich erreichbar sein könnte, fragt der Wizard gezielt nach.
 
 Choose an approved temp path outside the public webroot. For WordPress roots inside a `public_html` tree, prefer `$HOME/.weseo-tmp`:
 
@@ -273,7 +338,11 @@ mkdir -p "$HOME/.weseo-tmp"
 
 Database dumps, exports, temporary PHP scripts, and setup scratch files must live under that path, stay untracked, and be removed after use. Record the final path in `PROJECT-CONTEXT.md`.
 
-## Step 10: Final Verification
+## Step 10: Setup-Ergebnis gemeinsam prüfen
+
+**Was passiert:** Der Wizard geht alle Setup-Punkte noch einmal durch und prüft, ob jeder Pflichtpunkt erledigt oder mit nächstem Schritt als offen dokumentiert ist.
+**Warum:** Das Setup darf erst als fertig gelten, wenn die sichere Arbeitsbasis wirklich nachvollziehbar ist.
+**Du musst:** Nur bei offenen Pflichtpunkten entscheiden, ob der Wizard sie jetzt beheben, bewusst mit Grund und nächstem Schritt notieren oder stoppen soll.
 
 Use the final verification walkthrough in [reference.md](reference.md). Confirm at minimum:
 
@@ -282,7 +351,7 @@ Use the final verification walkthrough in [reference.md](reference.md). Confirm 
 - Git is working through the Bitbucket remote with `git fetch origin` succeeding, identity is set, and the deny-all `.gitignore` produced a clean staging scope before the initial push.
 - WST stack status is recorded.
 - WP-CLI is verified and the cache flush command was executed during setup.
-- The `.cursor` skeleton with `.gitkeep` files is in place; `.cursor/mcp.json` is local-only.
+- The `.cursor` skeleton with `.gitkeep` files is in place; `.cursor/mcp.json` is untracked.
 - WordPress MCP and Figma MCP are active or recorded as `pending: <reason>` with next action.
 - Safe temp path exists outside the public webroot.
 - No real tokens, application passwords, SSH keys, or token-bearing URLs were written to chat, tracked docs, or commits.
@@ -290,7 +359,11 @@ Use the final verification walkthrough in [reference.md](reference.md). Confirm 
 
 If any required gate is not satisfied, ask the user whether to fix it now, consciously skip with reason and next action, or stop. Do not claim setup complete while required gates are unresolved.
 
-## Step 11: Frontend Onboarding Handoff (Mandatory Final Step)
+## Step 11: Frontend-Onboarding anzeigen oder bewusst zurückstellen
+
+**Was passiert:** Der Wizard fragt zum Schluss, ob du das kurze Frontend-Onboarding jetzt lesen willst, es schon kennst oder später lesen möchtest.
+**Warum:** Danach ist klar dokumentiert, ob die nächste Person den Remote-Server-vs.-Frontend-Workflow kennt.
+**Du musst:** Eine der drei Antworten geben. Erst danach darf der Wizard das Setup als abgeschlossen melden.
 
 This step is mandatory and must always run as the very last action of the wizard, even after long pauses, terminal interruptions, or chat resets. The wizard is not finished until `PROJECT-CONTEXT.md` records a `frontend_onboarding` decision.
 
@@ -328,12 +401,16 @@ When the wizard finishes, leave behind:
 
 - A usable Remote-SSH Cursor workspace at the WordPress root.
 - `PROJECT-CONTEXT.md` filled with non-secret facts, recorded gates, and any `pending`/`skipped` notes with reason and next action.
-- Working local Git through the approved Bitbucket access method.
+- Working project Git through the approved Bitbucket access method.
 - Verified WP-CLI and a documented, executed cache flush command.
 - Tracked `.cursor` skeleton (`.gitkeep` files) and untracked `.cursor/mcp.json`.
-- Local-only MCP config for WordPress and Figma, or recorded `pending: <reason>` for either.
+- Untracked `.cursor/mcp.json` config for WordPress and Figma, or recorded `pending: <reason>` for either.
 - Safe temp/scratch path outside the public webroot.
 - A recorded `frontend_onboarding` decision in `PROJECT-CONTEXT.md` (`read`, `skipped (<reason>)`, or `pending`).
+
+## Final Setup Summary
+
+After the frontend onboarding decision is recorded, end with a short non-technical German overview first: what the project is now ready for, what the user can safely do next, and which setup points remain open if any. Put technical completion details after that overview, such as verified Git access, WP-CLI/cache status, MCP status, safe temp path, and recorded `PROJECT-CONTEXT.md` gates.
 
 ## Stop Conditions
 

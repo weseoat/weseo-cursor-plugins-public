@@ -1,54 +1,57 @@
 # Frontend Onboarding (WESEO SmartFlow)
 
-Optionale Orientierung für Entwickler, die ein WST-Projekt frisch eingerichtet haben (siehe [SKILL.md](SKILL.md)) und mit dem aktuellen Drei-Plugin-Workflow auf Remote-Server und lokal arbeiten möchten. Erfahrene SmartFlow-Entwickler können dieses Dokument überspringen.
+Kurze Orientierung nach dem `setup-orientation` Wizard. Sie erklärt in normalem Deutsch, wie du nach dem ersten Setup sicher weiterarbeitest: was auf dem Server passiert, was später lokal im Frontend passiert, welche drei WESEO-Plugins helfen, und wo Projektinfos ohne Zugangswerte stehen.
 
-Diese Anleitung ersetzt den alten `smartflow-frontend-guide.md`. Sie modernisiert ihn für das aktuelle Setup mit drei Cursor-Plugins, getrennter Remote/lokal-Arbeitsweise, und `PROJECT-CONTEXT.md` als zentraler nicht-geheimer Projektquelle.
+Erfahrene SmartFlow-Entwickler können dieses Dokument überspringen. Für neue oder nicht-backend-heavy Kolleginnen und Kollegen ist es die Übergabe nach dem Setup.
 
-## Voraussetzungen
+Diese Anleitung ersetzt den alten `smartflow-frontend-guide.md`. Sie beschreibt das aktuelle Setup mit drei Cursor-Plugins, der klaren Aufteilung zwischen Server-Arbeit und lokaler Frontend-Arbeit, und `PROJECT-CONTEXT.md` als Projekt-Notizdatei für nicht geheime Fakten.
+
+## Bevor du startest
 
 - `setup-orientation` ist abgeschlossen oder offene Punkte sind als `pending: <reason>` mit nächstem Schritt dokumentiert.
-- Cursor läuft mit den drei WESEO-Plugins im persönlichen Account: `wordpress-server-ops`, `wst-builder`, `frontend-design-qa`.
-- Cursor ist per Remote-SSH mit dem Server verbunden und der WordPress-Root ist geöffnet.
-- `PROJECT-CONTEXT.md` existiert im WordPress-Root und enthält die nicht-geheimen Projektfakten.
-- Lokale Entwicklungsumgebung (Browser, Figma-Zugang, optional Playwright) ist eingerichtet, falls Frontend-QA lokal stattfindet.
+- Cursor hat Zugriff auf die drei WESEO-Plugins im persönlichen Account: `wordpress-server-ops`, `wst-builder`, `frontend-design-qa`.
+- Cursor ist per `Remote-SSH` mit dem Server verbunden. Das bedeutet: Cursor arbeitet im Server-Workspace, nicht in einem lokalen Projektordner auf deinem Rechner.
+- Der `WordPress root` ist geöffnet. Das ist der Hauptordner der WordPress-Installation mit `wp-content/`, `wp-admin/` und `wp-includes/`.
+- `PROJECT-CONTEXT.md` existiert im WordPress-Root und enthält nicht geheime Projektfakten.
+- Browser, Figma-Zugang und optional Playwright sind bereit, falls du die finale Frontend-QA lokal machst.
 
-## Drei Plugins, drei Verantwortungen
+## Drei Plugins, drei einfache Verantwortungen
 
-Der Workflow ist auf drei Plugins aufgeteilt. Jedes Plugin ist für eine Phase zuständig und enthält die zugehörigen Rules und Skills.
+Der Workflow ist auf drei Plugins aufgeteilt. Die Plugin-Namen bleiben wichtig, weil Cursor sie genau so anzeigt. Praktisch bedeutet es:
 
 | Plugin | Phase | Was es kann |
 |---|---|---|
-| `wordpress-server-ops` | Server / Setup | Setup-Wizard, WP-CLI/Cache, File Boundaries, Webroot Safety, WordPress Content Editing, Media Import. |
-| `wst-builder` | Server / WST-Foundation | Neue Flexible Content Sections, neue Custom Post Types, ACF-Feldgruppen, WP Grid Builder Cards/Grids, CSS-Hooks, Section/CPT Handoffs. |
-| `frontend-design-qa` | Lokal / Frontend | Finale CSS/SCSS-Umsetzung, Figma-zu-Code-Übersetzung, Chrome Local Overrides als Spike, Responsive- und Playwright-Checks. |
+| `wordpress-server-ops` | Server / Setup | Hilft beim sicheren Einrichten und Prüfen des WordPress-Server-Workspaces: Setup-Wizard, WordPress-Terminalbefehle (`WP-CLI`), Cache leeren, Bearbeitungsgrenzen, Webroot-Sicherheit, WordPress-Inhalte und Medien-Import. |
+| `wst-builder` | Server / WST-Foundation | Baut die technische Grundlage für neue Inhalte: Flexible Content Sections, Custom Post Types, ACF-Feldgruppen, WP Grid Builder Cards/Grids, CSS-Hooks und Übergaben für die Frontend-Arbeit. |
+| `frontend-design-qa` | Lokal / Frontend | Macht die sichtbare Frontend-Arbeit fertig: CSS/SCSS, Figma-zu-Code-Übersetzung, kurze Chrome Local Overrides Tests, responsive Prüfung und Playwright-orientierte Checks. |
 
-Cursor lädt Rules und Skills aus diesen Plugins automatisch, sobald sie im persönlichen Account aktiv sind. Der Projekt-Repository-Ordner enthält nur eine `.cursor/`-Skeleton-Struktur (`.cursor/rules/.gitkeep`, `.cursor/skills/.gitkeep`); projektspezifische Rules und Skills können dort später ergänzt werden, ohne mit den Plugin-Inhalten zu kollidieren.
+Cursor lädt Rules und Skills aus diesen Plugins automatisch, sobald sie im persönlichen Account aktiv sind. Der Projekt-Repository-Ordner enthält nur eine `.cursor/`-Skeleton-Struktur (`.cursor/rules/.gitkeep`, `.cursor/skills/.gitkeep`). Dort können später projektspezifische Hinweise ergänzt werden, ohne die Plugin-Inhalte zu kopieren.
 
-## Remote vs. lokal arbeiten
+## Server-Arbeit vs. lokale Frontend-Arbeit
 
-Die Arbeit verteilt sich klar auf Remote und lokal. Beide Phasen verwenden Cursor, aber mit unterschiedlichen Tools.
+Die Arbeit ist bewusst getrennt. Auf dem Server entstehen Setup, WordPress-Struktur und WST-Grundlagen. Lokal wird die sichtbare Frontend-Qualität finalisiert.
 
-### Remote (Cursor + Remote-SSH zum Server)
+### Server-Workspace (Cursor + `Remote-SSH`)
 
-- WordPress-Root öffnen, Setup orientieren (`setup-orientation`).
+- WordPress-Root öffnen und Setup mit `setup-orientation` führen.
 - Git-Workflow: `git fetch`, Branch-Wechsel, Commits und Push gehen auf dem Server, weil WP Pusher dort Push-to-Deploy auslöst.
 - WST-Foundation: neue Flexible Content Sections, Custom Post Types, ACF-Felder, WST-Templates, CSS-Hooks (`wst-builder`).
 - Server-PHP, ACF-Konfiguration, WST-Templates, REST/ACF Flexible Content Updates (`wordpress-server-ops`).
-- WP-CLI-Befehle und Cache Flush.
+- WordPress-Terminalbefehle (`WP-CLI`) und Cache leeren (`cache flush`).
 - Media-Import in die WordPress Media Library (`wp-media-import`).
-- Figma-Analyse für Sections und Post Types: Vor dem Erstellen einer Section oder eines CPTs muss der Agent die zugehörigen Figma-Designs sehen, damit HTML-Struktur, ACF-Felder und WST-Layouts auf das Design vorbereitet werden. Gut vorbereitetes HTML ist die Grundlage für gutes Styling. Figma MCP ist deshalb auch im Remote-Workspace aktiv (siehe `setup-orientation` Step 8).
+- Figma-Analyse für Sections und Post Types: Vor dem Erstellen einer Section oder eines CPTs muss der Agent die zugehörigen Figma-Designs sehen. So passen HTML-Struktur, ACF-Felder und WST-Layouts später besser zum Design. Die Cursor-Verbindung zu Figma (`Figma MCP`) ist deshalb auch im Server-Workspace aktiv (siehe `setup-orientation` Step 8).
 
-### Lokal (Cursor lokal, optional Browser + Playwright)
+### Lokaler Frontend-Workspace (Cursor lokal, optional Browser + Playwright)
 
 - Finale CSS/SCSS-Umsetzung gegen die Section-/CPT-Handoffs aus `wst-builder` (`frontend-design-qa`).
-- Figma-zu-Code-Übersetzung: Tokens, Spacing, Typografie, Media-Verhalten in projekt-eigene CSS/SCSS-Dateien.
-- Chrome Local Overrides als kurzlebige Spikes gegen eine reale Dev-/Staging-Seite.
+- Figma-zu-Code-Übersetzung: Farben/Tokens, Abstände, Typografie und Media-Verhalten in projekt-eigene CSS/SCSS-Dateien übertragen.
+- Chrome Local Overrides als kurzlebige Tests gegen eine reale Dev-/Staging-Seite.
 - Responsive-Checks und Playwright-Acceptance gegen die Dev-/Staging-URL.
 - QA-Notizen ins jeweilige Section- oder CPT-Handoff zurückschreiben.
 
 ## `PROJECT-CONTEXT.md` als Projektquelle
 
-`PROJECT-CONTEXT.md` ist die zentrale, nicht-geheime Projektquelle für Skills und Rules. Skills lesen sie zuerst und aktualisieren sie bei neuen nicht-geheimen Erkenntnissen. Sie ersetzt den alten Ansatz, Platzhalter direkt in Rule-Dateien einzutragen.
+`PROJECT-CONTEXT.md` ist die zentrale Projekt-Notizdatei für nicht geheime Fakten. Skills lesen sie zuerst und aktualisieren sie bei neuen sicheren Erkenntnissen. Sie ersetzt den alten Ansatz, Platzhalter direkt in Rule-Dateien einzutragen.
 
 Typischer Inhalt:
 
@@ -60,9 +63,9 @@ Typischer Inhalt:
 - Projekt-Spezifika: CPTs, Key Page IDs, WP Grid Builder Grids, FC Field Keys, Clone Group Keys, Button-Varianten, Container-Widths, Clamp-Werte, ACF IDs.
 - Setup-Status pro Schritt: `done`, `pending: <reason>`, `skipped: <reason>` mit nächstem Schritt.
 
-Nicht in `PROJECT-CONTEXT.md`: Tokens, Application Passwords, SSH Private Keys, tokenhaltige URLs, REST-Credentials, Datenbank-Dumps, Medien-Inventare.
+Nicht in `PROJECT-CONTEXT.md`, Chat, Git, Commits, tracked files, Diagnosen, Screenshots oder öffentliche Webroot-Artefakte gehören: Tokens, Application Passwords, SSH Private Keys, tokenhaltige URLs, REST-Credentials, Datenbank-Dumps und Medien-Inventare.
 
-## Bearbeitungsgrenze
+## Bearbeitungsgrenze: was du ändern darfst
 
 Standardmäßig sind nur Dateien unter `wp-content/themes/astra-child/` (oder dem in `PROJECT-CONTEXT.md` genannten Child Theme) bearbeitbar.
 
@@ -86,11 +89,11 @@ Lies die Aufgabe und überlege, welche Phase und welches Plugin zuständig sind:
 
 ### 2. Figma vor dem Bauen anschauen
 
-Auch im Remote-Schritt: Bevor eine Section oder ein CPT erzeugt wird, soll der Agent die Figma-Designs öffnen und verstehen. So passen HTML-Struktur, ACF-Felder, WST-Layouts und stabile CSS-Hooks zum späteren Design. Figma MCP ist dafür auch im Remote-Workspace aktiv.
+Auch im Server-Schritt: Bevor eine Section oder ein CPT erzeugt wird, soll der Agent die Figma-Designs öffnen und verstehen. So passen HTML-Struktur, ACF-Felder, WST-Layouts und stabile CSS-Hooks zum späteren Design. Die Cursor-Verbindung zu Figma (`Figma MCP`) ist dafür auch im Server-Workspace aktiv.
 
 ### 3. Handoffs als Übergabe
 
-Server-Phase und Lokal-Phase sind über Handoffs gekoppelt:
+Server-Phase und lokale Frontend-Phase sind über Handoffs gekoppelt. Ein Handoff ist die schriftliche Übergabe zwischen technischer Grundlage und finaler Frontend-Umsetzung:
 
 - `wst-builder` produziert Section- und CPT-Handoffs auf demselben Branch oder PR. Das Handoff nennt URL, Template-Datei, ACF-Referenzen, CSS-Hooks, erwartetes Verhalten, QA-Hinweise, offene Punkte.
 - `frontend-design-qa` liest das Handoff vor der Umsetzung, ergänzt nach der Umsetzung Status, Responsive-/Playwright-Ergebnis und verbleibende Risiken.
@@ -177,5 +180,5 @@ Wenn ein Learning dauerhaft und allgemein gültig ist, sollte es in eine Plugin-
 - WP Pusher = Push-to-Deploy → immer committen und pushen.
 - Code und Commits auf Englisch, Commit-Keywords `FEATURE`, `FIX`, `DEV`.
 - Keine temp/backup/sensiblen Dateien im öffentlichen Webroot - Safe-Temp-Path aus `PROJECT-CONTEXT.md` verwenden.
-- Echte Tokens, Application Passwords, SSH Keys nie in Chat, getrackte Dateien oder Commits.
+- Echte Tokens, Application Passwords, SSH Keys und tokenhaltige URLs nie in Chat, `PROJECT-CONTEXT.md`, Git, Commits, tracked files, Diagnosen, Screenshots oder öffentliche Webroot-Artefakte schreiben.
 - Learnings in `LEARNINGS.md`, projektspezifische Fakten in `PROJECT-CONTEXT.md`, allgemeingültige Standards in Plugin-Rules.

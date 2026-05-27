@@ -19,7 +19,7 @@ Communicate with the user in German throughout setup. Keep command names, file p
 | WP-CLI | Verify `--info`. | Install local `wp-cli.phar`, use global `wp`, or skip with reason. |
 | Cache flush | Document and execute once after WP-CLI is verified. | Block until WP-CLI is decided. |
 | Cursor guidance | Verify personal plugin guidance is loaded; document. | Walk through plugin verification, fall back to manual projection if SSH plugin guidance is unavailable. |
-| MCP (WordPress + Figma) | Verify both servers under `Settings → Tools & MCP`. | Walk through credential creation, write `.cursor/mcp.json` locally, or record `pending: <reason>`. |
+| MCP (WordPress + Figma) | Verify both servers under `Settings → Tools & MCP`. | Walk through credential creation, write `.cursor/mcp.json` only in the opened Cursor workspace as an untracked file, or record `pending: <reason>`. |
 | Safe temp path | Verify path exists outside public webroot. | Create `$HOME/.weseo-tmp` after confirmation. |
 | Frontend onboarding handoff | `frontend_onboarding: read`, `skipped (<reason>)`, or `pending` is recorded in `PROJECT-CONTEXT.md`. | Mandatory final step. Display the German handoff prompt, wait for an explicit answer, and record it before claiming setup complete. |
 
@@ -44,12 +44,14 @@ Sind die WESEO Cursor Plugins (`wordpress-server-ops`, `wst-builder`, `frontend-
 ```
 
 ```md
-Wir richten jetzt MCP für WordPress und Figma ein.
-Welche Credentials kannst du heute bereitstellen?
-- Beide: WordPress Application Password und Figma Personal Access Token.
-- Nur WordPress; Figma als `pending` dokumentieren.
-- Nur Figma; WordPress als `pending` dokumentieren.
-- Heute keine; beide als `pending` mit Grund und nächstem Schritt dokumentieren.
+Wir richten jetzt die Cursor-Verbindungen zu WordPress und Figma ein.
+
+Du erstellst die Zugangswerte in den jeweiligen Browser-Oberflächen. Die echten Werte kommen danach nur in den verdeckten Terminal-Prompt oder in `.cursor/mcp.json` im geöffneten Cursor-Workspace. Diese Datei bleibt untracked. Bitte nicht in Chat, `PROJECT-CONTEXT.md`, Git, Commits, tracked files, Diagnosen oder Screenshots schreiben.
+
+Womit sollen wir beginnen?
+- WordPress Application Password jetzt in WordPress erstellen.
+- Figma Personal Access Token jetzt in Figma erstellen.
+- Einen der beiden Werte noch nicht möglich: als `pending: <reason>` mit nächstem Schritt in `PROJECT-CONTEXT.md` dokumentieren.
 ```
 
 ## Discovery Commands
@@ -157,34 +159,35 @@ Never store: tokens, application passwords, SSH private keys, token-bearing URLs
 
 When Git must be connected to Bitbucket, the wizard runs in this strict order:
 
-1. Confirm the repository name with the user.
-2. **Display the German token creation guide in chat and wait until the user confirms they have the token.** This step is non-skippable. Do not open a terminal or ask for the token before the user explicitly confirms the token is created and stored.
+1. Confirm the repository name with the user. Ask for the concrete repo if it is missing; if `PROJECT-CONTEXT.md` already names one, ask the user to confirm that exact repo.
+2. **Display the German token creation guide in chat and wait until the user confirms they created and stored the token in a password manager or OS keychain.** This step is non-skippable. Do not open a terminal or ask for the token before the user explicitly confirms the token is created and stored.
 3. Open and explain the integrated terminal (`Ctrl+Ö` / `Ctrl+Backtick`) and run the hidden token prompt.
 4. Verify with `git fetch origin`.
 
-Never collapse steps 1-2 into "paste your token". A user who does not yet have a token must always see the creation steps before any token prompt.
+Never collapse steps 1-2 into "paste your token" or "confirm credentials". A user who does not yet have a token must always see the creation steps before any token prompt.
 
 Guide the user in German through token creation:
 
-1. Öffne `https://bitbucket.org/` im Browser.
-2. Wähle den WESEO-/Projekt-Workspace, falls Bitbucket dich danach fragt.
-3. Öffne `Repositories` und wähle das Ziel-Repository. Prüfe den Repo-Namen gegen `PROJECT-CONTEXT.md`.
-4. Öffne links im Repository `Repository settings`.
-5. Öffne `Access tokens`.
-6. Klicke `Create` bzw. `Create repository access token`.
-7. Verwende einen klaren Namen, z. B. `cursor-remote-ssh-<project>`.
-8. Scrolle im Token-Dialog zu `Permissions` bzw. `Repository permissions`.
-9. Hake `Read` und `Write` an. Vergib keine Admin-Rechte, außer der Maintainer verlangt sie explizit.
-10. Erstelle den Token.
-11. Kopiere den Token sofort, weil Bitbucket ihn nur einmal anzeigt.
-12. Speichere ihn im Passwortmanager oder OS-Keychain.
-13. Hinweis: Wir verwenden HTTPS mit `x-token-auth`, weil Bitbucket SSH Keys im alten SmartFlow Setup nur Read-only sind.
-14. Füge den echten Token nicht in Chat, Doku, Screenshots, Commits oder `PROJECT-CONTEXT.md` ein.
+1. Erkläre zuerst: Für Git brauchen wir einen Zugangsschlüssel für genau dieses Bitbucket-Repository. Bitbucket nennt ihn `Repository Access Token`.
+2. Öffne `https://bitbucket.org/` im Browser.
+3. Wähle den WESEO-/Projekt-Workspace, falls Bitbucket dich danach fragt.
+4. Öffne `Repositories` und wähle das Ziel-Repository. Prüfe den Repo-Namen gegen `PROJECT-CONTEXT.md`.
+5. Öffne links im Repository `Repository settings`.
+6. Öffne `Access tokens`.
+7. Klicke `Create` bzw. `Create repository access token`.
+8. Verwende einen klaren Namen, z. B. `cursor-remote-ssh-<project>`.
+9. Scrolle im Token-Dialog zu `Permissions` bzw. `Repository permissions`.
+10. Hake `Read` und `Write` an. Vergib keine Admin-Rechte, außer der Maintainer verlangt sie explizit.
+11. Erstelle den Token.
+12. Kopiere den Token sofort, weil Bitbucket ihn nur einmal anzeigt.
+13. Speichere ihn im Passwortmanager oder OS-Keychain.
+14. Hinweis: Der Wizard trägt den Schlüssel nachher über eine verdeckte Terminal-Eingabe in die Git-Verbindung dieses Projekts ein. Technisch verwendet Git dabei HTTPS mit `x-token-auth` und speichert den Wert nur in der Git-Konfiguration dieses Projekts.
+15. Füge den echten Token nicht in Chat, Doku, Screenshots, Git, Commits, tracked files oder `PROJECT-CONTEXT.md` ein.
 
 Use this German prompt before token entry:
 
 ```md
-Öffne jetzt Bitbucket und erstelle den Repository Access Token:
+Öffne jetzt Bitbucket und erstelle den Zugangsschlüssel für genau dieses Repository. Bitbucket nennt ihn `Repository Access Token`:
 
 1. Öffne `https://bitbucket.org/`.
 2. Wähle den WESEO-/Projekt-Workspace, falls Bitbucket dich danach fragt.
@@ -200,9 +203,9 @@ Use this German prompt before token entry:
 12. Kopiere den Token sofort, weil Bitbucket ihn nur einmal anzeigt.
 13. Speichere den Token im Passwortmanager oder OS-Keychain.
 
-Hinweis: Wir verwenden HTTPS mit `x-token-auth`, weil SSH Keys im alten SmartFlow Setup nur Read-only sind.
+Hinweis: Der Wizard trägt den Schlüssel nachher über eine verdeckte Terminal-Eingabe in die Git-Verbindung dieses Projekts ein. Technisch verwendet Git dabei HTTPS mit `x-token-auth` und speichert den Wert nur in der Git-Konfiguration dieses Projekts.
 
-Wichtig: Bitte poste den Token nicht in den Chat. Ich öffne dir gleich ein Terminal in Cursor. Gib den Token dort ein, wenn die verdeckte Token-Abfrage erscheint.
+Wichtig: Bitte poste den Token nicht in den Chat und schreibe ihn nicht in `PROJECT-CONTEXT.md`, Git, Commits, tracked files, Diagnosen oder Screenshots. Ich öffne dir gleich ein Terminal in Cursor. Gib den Token dort ein, wenn die verdeckte Token-Abfrage erscheint.
 ```
 
 ## Terminal Handling For Token Entry
@@ -213,7 +216,7 @@ Not every team member is comfortable with the terminal. The wizard must explain 
 2. Öffne das Terminal mit `Ctrl+Ö` oder `Ctrl+Backtick`. Alternativ über das Menü `Terminal → New Terminal`.
 3. Prüfe in der ersten Zeile, dass das Terminal im richtigen Ordner steht (`pwd` zeigt den WordPress-Root).
 4. Erkläre: Beim Token-Prompt wird der Cursor scheinbar nicht reagieren, während du tippst. Das ist Absicht - die verdeckte Eingabe versteckt den Token.
-5. Erkläre: Nach `Enter` wird der Token nicht angezeigt und nur in der lokalen Git-Konfiguration gespeichert.
+5. Erkläre: Nach `Enter` wird der Token nicht angezeigt und nur in der Git-Konfiguration dieses Projekts gespeichert.
 
 When no Git repository exists in the verified WordPress root, initialize Git first:
 
@@ -253,7 +256,7 @@ unset BITBUCKET_TOKEN
 unset REMOTE_URL
 ```
 
-If interactive terminal input is unavailable, give the user this fallback shape and tell them to run it only in their local terminal:
+If interactive terminal input is unavailable, give the user this fallback shape and tell them to run it only in the integrated terminal for the opened Remote-SSH workspace. Remind them that the real token must still not appear in chat, `PROJECT-CONTEXT.md`, tracked files, commits, diagnostics, or screenshots:
 
 ```sh
 git remote set-url origin https://x-token-auth:<token>@<repo-host>/<repo-name>.git
@@ -387,7 +390,7 @@ ls .cursor/skills
 
 Tracked content in `.cursor/rules/` and `.cursor/skills/` is reserved for project-specific Rules and Skills the team adds later. The shared WESEO guidance lives in the personal Cursor plugins (`wordpress-server-ops`, `wst-builder`, `frontend-design-qa`) and is not copied into the project.
 
-`.cursor/mcp.json` always stays ignored. The wizard creates and updates it locally only.
+`.cursor/mcp.json` always stays ignored. The wizard creates and updates it only in the opened Cursor workspace as an untracked file.
 
 ## Cursor Guidance Walkthrough
 
@@ -403,14 +406,16 @@ Verify whether the personal plugin guidance is loaded for this Remote-SSH worksp
 
 When configuring WordPress MCP:
 
-1. Öffne WordPress im Browser unter der bekannten Live- oder Staging-URL.
-2. Gehe zu `Benutzer` → `Profil` → `Application Passwords` (auf Deutsch ggf. `Anwendungs-Passwörter`).
-3. Vergib einen klaren Namen, z. B. `cursor-mcp-<project>`.
-4. Erstelle das Application Password und kopiere es sofort. WordPress zeigt es nur einmal an.
-5. Speichere es im Passwortmanager oder OS-Keychain.
-6. Hinweis: Die Site muss über HTTPS erreichbar sein.
-7. Erstelle oder aktualisiere `.cursor/mcp.json` lokal und untracked. Trage echte Werte nur dort ein.
-8. Tracked docs zeigen nur die Platzhalterform:
+1. Erkläre zuerst: Cursor braucht für die WordPress-Verbindung einen eigenen Zugangsschlüssel aus deinem WordPress-Profil. WordPress nennt ihn `Application Password`.
+2. Öffne WordPress im Browser unter der bekannten Live- oder Staging-URL.
+3. Gehe zu `Benutzer` → `Profil` → `Application Passwords` (auf Deutsch ggf. `Anwendungs-Passwörter`).
+4. Vergib einen klaren Namen, z. B. `cursor-mcp-<project>`.
+5. Erstelle das Application Password und kopiere es sofort. WordPress zeigt es nur einmal an.
+6. Speichere es im Passwortmanager oder OS-Keychain.
+7. Hinweis: Die Site muss über HTTPS erreichbar sein.
+8. Trage den echten Wert nur über den verdeckten Terminal-Prompt oder in `.cursor/mcp.json` im geöffneten Cursor-Workspace ein. Diese Datei bleibt untracked und darf nicht in Git oder Commits landen.
+9. Schreibe den echten Wert nicht in Chat, `PROJECT-CONTEXT.md`, tracked files, Diagnosen oder Screenshots.
+10. Tracked docs zeigen nur die Platzhalterform:
 
 ```json
 {
@@ -429,19 +434,21 @@ When configuring WordPress MCP:
 }
 ```
 
-9. Starte Cursor neu und prüfe `Settings` → `Tools & MCP`, dass der `wordpress` Server grün/aktiv ist.
+11. Starte Cursor neu und prüfe `Settings` → `Tools & MCP`, dass der `wordpress` Server grün/aktiv ist.
 
-If the user cannot create an Application Password right now, record the gate as `pending: WordPress Application Password fehlt` with the next concrete action in `PROJECT-CONTEXT.md`.
+If the user cannot create an Application Password right now, record the gate as `pending: WordPress Application Password fehlt - next action: Benutzer -> Profil -> Application Passwords öffnen, neues Passwort erstellen, dann Step 8 erneut ausführen` in `PROJECT-CONTEXT.md`.
 
 ## Figma MCP Walkthrough
 
 When configuring Figma MCP:
 
-1. Öffne Figma im Browser.
-2. Gehe zu `Profile` → `Settings` → `Personal access tokens`.
-3. Erstelle einen neuen Token mit klarem Namen, z. B. `cursor-mcp-<project>`.
-4. Kopiere den Token sofort und speichere ihn im Passwortmanager oder OS-Keychain.
-5. Ergänze `.cursor/mcp.json` lokal:
+1. Erkläre zuerst: Cursor braucht für die Figma-Verbindung einen eigenen Zugangsschlüssel aus deinem Figma-Profil. Figma nennt ihn `Personal Access Token`.
+2. Öffne Figma im Browser.
+3. Gehe zu `Profile` → `Settings` → `Personal access tokens`.
+4. Erstelle einen neuen Token mit klarem Namen, z. B. `cursor-mcp-<project>`.
+5. Kopiere den Token sofort und speichere ihn im Passwortmanager oder OS-Keychain.
+6. Trage den echten Wert nur über den verdeckten Terminal-Prompt oder in `.cursor/mcp.json` im geöffneten Cursor-Workspace ein. Diese Datei bleibt untracked und darf nicht in Git oder Commits landen. Nicht in Chat, `PROJECT-CONTEXT.md`, tracked files, Diagnosen oder Screenshots schreiben.
+7. Tracked docs zeigen nur die Platzhalterform:
 
 ```json
 {
@@ -457,9 +464,9 @@ When configuring Figma MCP:
 }
 ```
 
-6. Starte Cursor neu und prüfe `Settings` → `Tools & MCP`.
+8. Starte Cursor neu und prüfe `Settings` → `Tools & MCP`.
 
-If the user cannot create a token right now, record the gate as `pending: Figma Personal Access Token fehlt` with the next concrete action in `PROJECT-CONTEXT.md`.
+If the user cannot create a token right now, record the gate as `pending: Figma Personal Access Token fehlt - next action: Profile -> Settings -> Personal access tokens öffnen, neuen Token erstellen, dann Step 8 erneut ausführen` in `PROJECT-CONTEXT.md`.
 
 ## Frontend Onboarding Handoff Walkthrough
 
@@ -507,12 +514,17 @@ Lead the user through the final checklist in German before saying setup is compl
 8. Erstcommit und Erst-Push sind erfolgt oder bewusst pausiert.
 9. WP-CLI ist verfügbar oder bewusst geskippt mit Grund/nächstem Schritt.
 10. Cache Flush wurde ausgeführt oder bewusst pausiert.
-11. `.cursor` Skeleton mit `.gitkeep` ist vorhanden; `.cursor/mcp.json` ist lokal-only.
+11. `.cursor` Skeleton mit `.gitkeep` ist vorhanden; `.cursor/mcp.json` existiert nur im geöffneten Cursor-Workspace und ist untracked.
 12. WordPress MCP ist aktiv oder als `pending: <reason>` dokumentiert.
 13. Figma MCP ist aktiv oder als `pending: <reason>` dokumentiert.
 14. Safe Temp Path liegt außerhalb des Public Webroot.
-15. Keine echten Tokens, Application Passwords, SSH Keys oder tokenhaltigen URLs wurden in Chat, Docs oder Commits geschrieben.
+15. Keine echten Tokens, Application Passwords, SSH Keys oder tokenhaltigen URLs wurden in Chat, `PROJECT-CONTEXT.md`, Git, Commits, tracked files, Diagnosen oder Screenshots geschrieben.
 16. Der Frontend-Onboarding-Handoff (Schritt 11) wurde durchgeführt und das Ergebnis ist in `PROJECT-CONTEXT.md` als `frontend_onboarding: read`, `skipped (<reason>)` oder `pending` dokumentiert.
+
+After this checklist and the Step 11 answer are recorded, present the final setup result in this order:
+
+1. Non-technical overview in German: what is ready now, what the user can do next, and which setup points remain open.
+2. Technical completion details: verified Git access, WP-CLI/cache status, MCP status, safe temp path, and `PROJECT-CONTEXT.md` gate records.
 
 ## Completion Gates
 
@@ -584,7 +596,7 @@ Tracked examples may show required fields with placeholders:
 }
 ```
 
-The real `.cursor/mcp.json` is local-only. Do not commit it.
+The real `.cursor/mcp.json` exists only in the opened Cursor workspace and stays untracked. Do not commit it.
 
 ## Coverage Mapping: Old SmartFlow Setup Guide
 
