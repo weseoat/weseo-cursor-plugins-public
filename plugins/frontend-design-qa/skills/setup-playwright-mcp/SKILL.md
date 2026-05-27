@@ -25,6 +25,7 @@ LLM-driven CSS and SCSS work needs a real browser the agent can drive. Pure proj
 Read these from `PROJECT-CONTEXT.md`, the active Section or CPT handoff, or the user:
 
 - Local frontend workspace path.
+- Local Node.js runtime status (`node`, `npm`, and `npx` available in the local Cursor environment).
 - Target dev or staging URL for the active Section or CPT QA.
 - Default viewports for desktop, tablet, and mobile.
 - Any blockers for browser access (HTTP basic auth, cookie banner, login wall, geo-restriction, IP allowlist, self-signed cert).
@@ -40,6 +41,7 @@ Track progress with this checklist:
 ```text
 Setup Playwright MCP:
 - [ ] Confirm the current Cursor workspace is local (not Remote-SSH)
+- [ ] Verify local Node.js, npm, and npx are installed and visible to Cursor
 - [ ] Read PROJECT-CONTEXT.md and the active handoff for target URL and viewports
 - [ ] Add Playwright MCP to the local untracked .cursor/mcp.json
 - [ ] Restart Cursor and verify the Playwright MCP server is active in Settings -> Tools & MCP
@@ -55,7 +57,45 @@ Before any MCP write, verify the workspace is local and not Remote-SSH.
 - If unsure, check whether the active workspace path looks like a local Git checkout or like a Remote-SSH WordPress root (for example `/usr/home/.../public_html/`). A Remote-SSH WordPress root is the wrong workspace for this Skill.
 - If the workspace is Remote-SSH, stop and ask the user to open the local Frontend Design QA workspace. Record the gate as `playwright_mcp: pending - wrong workspace (Remote-SSH detected), next action: open local frontend workspace and re-run setup-playwright-mcp` in `PROJECT-CONTEXT.md`.
 
-## 2. Read Project Context And The Active Handoff
+## 2. Verify Local Node Runtime
+
+Playwright MCP is launched from the local Cursor workspace through `npx`. That means the developer's local machine must have Node.js with `npm` and `npx` installed, and Cursor must see those commands in its local PATH. Do this check before writing `.cursor/mcp.json`.
+
+On Windows PowerShell:
+
+```powershell
+node --version
+npm --version
+npx --version
+where.exe node
+where.exe npm
+where.exe npx
+```
+
+On macOS/Linux shells:
+
+```sh
+node --version
+npm --version
+npx --version
+command -v node
+command -v npm
+command -v npx
+```
+
+If all commands succeed, continue and record the detected versions as non-secret setup context.
+
+If `node`, `npm`, or `npx` is missing:
+
+- Stop before editing `.cursor/mcp.json`.
+- Tell the user that Playwright MCP cannot start until Node.js LTS is installed locally and visible to Cursor.
+- Ask the user to install Node.js LTS through their normal local setup path, then fully restart Cursor so the PATH is refreshed.
+- Record `playwright_mcp: pending: local Node.js/npm/npx missing - next action: install Node.js LTS locally and restart Cursor` in `PROJECT-CONTEXT.md` and, if an active handoff exists, in that handoff.
+- Do not install Node.js on a Remote-SSH WordPress server for this Skill.
+
+If Node.js is installed in a regular terminal but Cursor cannot see `node` or `npx`, treat it as a local PATH/Cursor restart issue. Ask the user to restart Cursor first; if still missing, route to the local machine setup owner instead of guessing a PATH mutation.
+
+## 3. Read Project Context And The Active Handoff
 
 Read the local `PROJECT-CONTEXT.md` for:
 
@@ -70,9 +110,11 @@ Read the active Section or CPT handoff for:
 
 If `playwright_mcp: ready` already exists and a quick verification loop still works against the target URL, the Skill can skip ahead to recording the verified status. If the status is missing, `pending`, or older than the current local frontend workspace, continue with the configuration steps.
 
-## 3. Add Playwright MCP To Local `.cursor/mcp.json`
+## 4. Add Playwright MCP To Local `.cursor/mcp.json`
 
 The Playwright MCP server lives in the untracked `.cursor/mcp.json` of the local Cursor workspace. Tracked docs only show the placeholder shape.
+
+Only write this entry after the local Node runtime preflight has confirmed that `npx` works in the local Cursor environment.
 
 Either edit the file directly (preferred for agents) or guide the user through `Settings -> Tools & MCP` -> add new MCP server. Use a single entry for `playwright`. Keep any existing `wordpress` or `figma` entries if they exist in this local workspace.
 
@@ -97,7 +139,7 @@ When writing the real file in the local workspace:
 
 After writing the file, ask the user to fully restart Cursor and re-open the local workspace so the MCP server registers.
 
-## 4. Verify The Playwright MCP Server Is Active
+## 5. Verify The Playwright MCP Server Is Active
 
 After restart:
 
@@ -107,7 +149,7 @@ After restart:
 
 If a corporate proxy, antivirus, or sandbox blocks the Playwright browser download or process spawn, record the symptom and route it to the local IT/setup owner. Do not invent a workaround that disables sandboxing or commits credentials.
 
-## 5. Run A Verification Browser Loop
+## 6. Run A Verification Browser Loop
 
 Run a small loop against the active handoff's target URL to confirm the browser actually works for QA. Use the active handoff for the URL and viewports.
 
@@ -128,7 +170,7 @@ If the verification loop fails for an environmental reason (login wall, geo bloc
 - Whether the same URL loads in a regular browser.
 - Suggested next action (user login flow, cookie consent dismiss, IT allowlist request, accept cert, switch URL).
 
-## 6. Record Status In PROJECT-CONTEXT.md And The Active Handoff
+## 7. Record Status In PROJECT-CONTEXT.md And The Active Handoff
 
 After verification, write a short, non-secret status entry in `PROJECT-CONTEXT.md`:
 
@@ -145,7 +187,7 @@ Add a matching line to the active Section or CPT handoff so the next QA Skill ca
 
 Do not write tokens, cookies, basic-auth credentials, session IDs, or token-bearing URLs into `PROJECT-CONTEXT.md`, handoffs, chat, tracked files, diagnostics, or screenshots.
 
-## 7. Handoff Back To Frontend QA Skills
+## 8. Handoff Back To Frontend QA Skills
 
 When `playwright_mcp: ready` is recorded, the active handoff is unblocked for browser-driven QA. Continue with:
 
@@ -159,12 +201,13 @@ If `playwright_mcp` is `pending`, those Skills must either document a focused ma
 A developer opens a local Frontend Design QA workspace, with an active Section handoff for `Feature Cards` at a staging URL:
 
 1. Confirms the workspace is local, not Remote-SSH.
-2. Reads `PROJECT-CONTEXT.md`: `playwright_mcp` is missing. Reads the handoff: target URL is `https://staging.example/<page>`, viewports are 1440, 1024, 390.
-3. Adds a `playwright` entry to the untracked local `.cursor/mcp.json` and restarts Cursor.
-4. Verifies the `playwright` server is active in `Settings -> Tools & MCP` and that browser tools are listed.
-5. Navigates to the staging URL, snapshots the page, screenshots at desktop, tablet, and mobile, and locates `.wso-section-feature-cards`.
-6. Records `playwright_mcp: ready` in `PROJECT-CONTEXT.md` and adds local Playwright MCP status and verified viewports to the Section handoff.
-7. Continues with `frontend-section-qa` for the actual CSS or SCSS work and QA writeback.
+2. Verifies `node --version`, `npm --version`, and `npx --version` in the local Cursor environment.
+3. Reads `PROJECT-CONTEXT.md`: `playwright_mcp` is missing. Reads the handoff: target URL is `https://staging.example/<page>`, viewports are 1440, 1024, 390.
+4. Adds a `playwright` entry to the untracked local `.cursor/mcp.json` and restarts Cursor.
+5. Verifies the `playwright` server is active in `Settings -> Tools & MCP` and that browser tools are listed.
+6. Navigates to the staging URL, snapshots the page, screenshots at desktop, tablet, and mobile, and locates `.wso-section-feature-cards`.
+7. Records `playwright_mcp: ready` in `PROJECT-CONTEXT.md` and adds local Playwright MCP status and verified viewports to the Section handoff.
+8. Continues with `frontend-section-qa` for the actual CSS or SCSS work and QA writeback.
 
 ## Not In Scope
 

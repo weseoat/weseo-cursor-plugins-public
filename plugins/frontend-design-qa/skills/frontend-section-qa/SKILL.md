@@ -48,14 +48,25 @@ The Skill updates these status fields in the active handoff or mini-handoff. The
 
 ## Playwright MCP Preflight
 
-Browser QA in this Skill runs through Playwright MCP in the local Cursor workspace. Before the first browser interaction:
+Browser QA in this Skill runs through Playwright MCP in the local Cursor workspace. Playwright MCP is the only accepted browser authority for DOM and computed-style inspection, CSS-injection proof, screenshots, viewport checks, and source-served verification. Before the first browser interaction:
 
 1. Read `PROJECT-CONTEXT.md` and the active handoff or mini-handoff for the `playwright_mcp` status.
-2. If the status is `ready` and a quick navigation to the target URL still works, continue.
-3. If the status is missing, `pending`, or unverified for this local workspace, run `setup-playwright-mcp` first.
-4. If a blocker prevents browser access (login wall, cookie banner, IP allowlist, self-signed cert, headless restriction), record the blocker in the handoff and treat browser access as a hard precondition for final CSS writes (see Browser Access Safety Stop).
+2. If the status is `ready` and a quick Playwright MCP navigation to the target URL still works, continue.
+3. If the status is missing, `pending`, or unverified for this local workspace, run `setup-playwright-mcp` first as the setup/repair target. Do not improvise a workaround in this Skill.
+4. If Playwright MCP fails to start, shows red in `Settings -> Tools & MCP`, exposes no browser tools, or cannot navigate to the target URL after a clean retry, hard stop. Set `browser access: blocked: playwright-mcp-unavailable` (or `playwright-mcp-navigation-failed: <short reason>` when navigation is the failure mode) and `final status: blocked`, record the symptom in the active handoff or mini-handoff, and route back to `setup-playwright-mcp` for repair.
+5. If a content-level blocker prevents browser access (login wall, cookie banner, IP allowlist, self-signed cert, headless restriction) even though Playwright MCP itself works, record the blocker in the handoff and treat browser access as a hard precondition for final CSS writes (see Browser Access Safety Stop).
 
 Never configure Playwright MCP inside a Remote-SSH workspace from this Skill. Route that back to `setup-playwright-mcp` in the local frontend workspace.
+
+## No Cursor Browser Fallback
+
+When Playwright MCP is unavailable, broken, or cannot navigate to the target URL, this Skill must not silently switch to a substitute browser. Substitutes include the Cursor Browser, manual browser inspection by the user, user-pasted screenshots, raw DevTools console output, and Chrome Local Overrides.
+
+- None of these substitutes may set `injection proof: pass` or `source-served verification: pass`. Final QA status passes only through Playwright MCP evidence.
+- The Cursor Browser may be used only as a read-only diagnostic check, for example to confirm whether the target URL loads at all in a different browser context. Any such check must be documented in the handoff with the explicit note that it was diagnostic only and did not contribute to the proof or final verification status.
+- Chrome Local Overrides remain an optional manual spike in the user's own Chrome, when the user explicitly chooses that path. They never replace Playwright MCP for proof or final verification.
+
+If Playwright MCP cannot be brought up, the next action is always `setup-playwright-mcp`, not a different browser. If the user wants to force a Cursor Browser run, document that as `cursor-browser: diagnostic-only - not used for proof/verification` and keep `final status: blocked` until Playwright MCP works again.
 
 ## Browser Access Safety Stop
 
@@ -97,11 +108,12 @@ Frontend Section QA:
 - [ ] Ask whether a handoff exists; create a mini-handoff for visual-only work without one
 - [ ] Read project context and the active handoff or mini-handoff
 - [ ] Confirm Playwright MCP is ready locally or run setup-playwright-mcp
+- [ ] If Playwright MCP cannot start or cannot navigate, hard stop; do not fall back to Cursor Browser; route to setup-playwright-mcp
 - [ ] Confirm browser access to the target URL, or stop and ask for login/access
 - [ ] Re-read the Figma or source design when a link is available
 - [ ] Inspect existing Section and theme CSS or SCSS patterns
 - [ ] Drive a Playwright MCP browser QA loop and capture real DOM, matched and computed styles
-- [ ] Run a CSS-injection proof of the planned rules against the real target URL
+- [ ] Run a CSS-injection proof of the planned rules against the real target URL through Playwright MCP only
 - [ ] Implement final CSS or SCSS in tracked local files when the injection proof passes
 - [ ] Detect the delivery path; default to git-pull-required when no auto-deploy exists
 - [ ] On delivery path `git-pull-required` or `unknown`, stop with implementation-pass-pending-deploy and wait for user confirmation
@@ -168,17 +180,17 @@ Do not try to analyse the entire theme cascade. Stay on the elements that the pl
 
 ## 5. CSS-Injection Proof
 
-When the planned CSS or SCSS lives in local files that will reach the server only through Git pull or deploy, prove the rules against the real page through injection before writing them to tracked source.
+When the planned CSS or SCSS lives in local files that will reach the server only through Git pull or deploy, prove the rules against the real page through injection before writing them to tracked source. The injection proof is only valid when executed through Playwright MCP; Cursor Browser, manual user checks, and screenshots do not satisfy it.
 
 - Compose the planned rules in the same form they will take in the tracked file.
-- Inject them temporarily into the rendered target page through Playwright or CDP, for example as a `<style>` element or a CSS rule insertion.
-- Re-read computed styles and the visual result for the affected elements.
+- Inject them temporarily into the rendered target page through Playwright MCP or its CDP channel, for example as a `<style>` element or a CSS rule insertion.
+- Re-read computed styles and the visual result for the affected elements through Playwright MCP.
 - Confirm the rules win the cascade. If they do not, document the cause: higher specificity, later source order, `!important` rule, inline style, plugin style.
 - Adjust the rules with minimally stronger or scoped selectors. Use `!important` only when the theme or plugin pattern leaves no better option.
 
-Set `injection proof` to `pass`, `fail`, or `not-needed` in the active handoff or mini-handoff.
+Set `injection proof` to `pass`, `fail`, or `not-needed` in the active handoff or mini-handoff. Do not set `pass` based on Cursor Browser, manual inspection, or user-supplied screenshots; if Playwright MCP cannot run the proof, set `injection proof: blocked: playwright-mcp-unavailable` (or the navigation reason) and stop, see No Cursor Browser Fallback.
 
-Chrome Local Overrides are not the default proof mechanism. Playwright MCP runs in its own browser context without your logged-in session and without your Chrome user profile. Treat Chrome Local Overrides as an optional manual spike in the user's real browser, when the user explicitly chooses that path and confirms session and override availability.
+Chrome Local Overrides are not the default proof mechanism. Playwright MCP runs in its own browser context without your logged-in session and without your Chrome user profile. Treat Chrome Local Overrides as an optional manual spike in the user's real browser, when the user explicitly chooses that path and confirms session and override availability. They never replace a Playwright MCP injection proof.
 
 ## 6. Implement Tracked CSS Or SCSS
 
@@ -215,12 +227,13 @@ Set `server pull/deploy = pending` and ask the user to pull or deploy on the ser
 
 ## 8. Source-Served Verification
 
-Only after the user confirms `server pull/deploy = user-confirmed`, run the source-served verification pass against the target URL.
+Only after the user confirms `server pull/deploy = user-confirmed`, run the source-served verification pass against the target URL. Source-served verification is only valid through Playwright MCP; Cursor Browser, manual inspection, and screenshots do not satisfy it.
 
-- Navigate to the target URL with a fresh load.
+- Navigate to the target URL with a fresh Playwright MCP load.
 - Confirm that the new CSS file or rules are actually present in the served stylesheets, for example by inspecting the loaded stylesheet content, a known new selector, or computed styles without injection.
 - If the new rules are not served, set `server pull/deploy = not-reflected`, document the symptom (deploy not reflected, cache stale, wrong file delivered, theme override late), and stop visual evaluation. Route cache flush, WP-CLI, deployment, or server repair back to WordPress Server Ops or the project's `PROJECT-CONTEXT.md` cache guidance.
-- If the new rules are served, continue with responsive and interaction checks and set `source-served verification = pass` when the visual behavior matches expectations.
+- If the new rules are served, continue with responsive and interaction checks through Playwright MCP and set `source-served verification = pass` when the visual behavior matches expectations.
+- If Playwright MCP cannot run this pass, set `source-served verification: blocked: playwright-mcp-unavailable` (or the navigation reason) and route back to `setup-playwright-mcp`. Do not mark `source-served verification = pass` based on Cursor Browser or screenshots.
 
 Final status follows the verification:
 
@@ -300,6 +313,15 @@ Write QA notes back to the same handoff or mini-handoff that started the local p
 - Optional project-local Playwright regression result or documented skip reason.
 - Implementation notes for changed CSS or SCSS files and generated CSS when applicable.
 - Remaining risks, open questions, route-back owner when action is needed, and confirmation that any Chrome Local Overrides spike was discarded or copied into tracked source.
+
+When Playwright MCP itself failed or could not navigate, record the blocker explicitly:
+
+- Playwright MCP status at the time of failure (`unavailable`, `no-tools`, `navigation-failed: <reason>`).
+- The step that failed (preflight navigation, injection proof, source-served verification, viewport pass).
+- Observed error message or symptom.
+- Whether the target URL was checked diagnostically through the Cursor Browser; if yes, note `cursor-browser: diagnostic-only - not used for proof/verification` and what was observed.
+- Next action: `run setup-playwright-mcp`, `install Node.js LTS locally and restart Cursor`, `provide session login`, `request IT allowlist`, or other concrete repair step.
+- Keep `final status: blocked` while the Playwright MCP blocker is unresolved.
 
 ## 14. Commit And Close The Local Phase
 
