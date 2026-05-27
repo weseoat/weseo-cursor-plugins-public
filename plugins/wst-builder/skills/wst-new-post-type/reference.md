@@ -189,7 +189,7 @@ The draft should capture:
 - Expected desktop, tablet, mobile, content variation, filtering, linking, and interaction behavior.
 - Server verification results and cache state.
 - Known risks, open questions, unresolved placeholders, and stop conditions.
-- Local frontend checklist for CSS/SCSS, responsive checks, Chrome Local Overrides spikes, and Playwright-oriented verification.
+- Local frontend checklist for CSS/SCSS, responsive checks, Chrome Local Overrides spikes, local Playwright MCP browser QA, and optional project-local Playwright regression verification.
 
 Stop instead of guessing when the draft lacks blocking values such as CPT names, rewrite slugs, taxonomy decisions, ACF field ownership, WPGB IDs, target URLs, stable selectors, template paths, storage location, or expected visible behavior.
 

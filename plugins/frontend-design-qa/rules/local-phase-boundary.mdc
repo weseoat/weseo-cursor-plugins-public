@@ -17,23 +17,28 @@ Frontend Design QA owns the local frontend phase only. It consumes a concrete pr
 
 - Read `PROJECT-CONTEXT.md` and the filled Section or CPT handoff for project-local facts.
 - Inspect existing local frontend source files, generated CSS expectations, style loader references, and nearby theme patterns.
+- Configure Playwright MCP for the local Cursor workspace through `setup-playwright-mcp` by editing the untracked local `.cursor/mcp.json` and verifying the browser server.
+- Drive a Playwright MCP browser loop against the handoff target URL for navigation, snapshots, screenshots, desktop/tablet/mobile viewports, selector visibility, and computed-style or bounding-box inspection when the MCP exposes it.
 - Implement final CSS or SCSS-derived changes in project-approved tracked frontend files.
 - Use Chrome Local Overrides only as temporary spike work, then copy successful declarations into tracked source files and discard the override.
 - Run or document responsive browser checks against the handoff's dev or staging URL.
-- Run the project's Playwright command when a real project-local harness exists, or document a focused acceptance path in the handoff when it does not.
-- Write local frontend status, responsive results, Playwright results or skip reasons, changed files, cache notes, risks, and open questions back to the same handoff.
+- Run the project's Playwright command as an optional persistent regression check when a real project-local harness exists, or document a focused Playwright MCP browser QA path in the handoff when it does not.
+- Write local frontend status, local Playwright MCP status, browser QA findings, responsive results, optional project-local Playwright regression results or skip reasons, changed files, cache notes, risks, and open questions back to the same handoff.
 
 ## Forbidden In This Phase
 
 - Do not create or edit server-side WST templates, CPT registration, taxonomy registration, ACF field groups, WP Grid Builder cards or grids, WordPress content, media imports, or deployment configuration.
 - Do not run WP-CLI, cache flushes, database commands, deployment commands, Remote-SSH setup steps, or server-side verification commands from this phase.
 - Do not edit PHP bootstrap or MU plugin files during local frontend QA. `functions.php` is forbidden for agent edits. `theme-functions.php` and MU plugin files require explicit prior user confirmation and belong in the appropriate server-side phase.
+- Do not configure Playwright MCP inside a Remote-SSH workspace, commit `.cursor/mcp.json`, or store browser cookies, basic-auth credentials, or session tokens in tracked files, chat, diagnostics, or screenshots.
 - Do not treat browser overrides, chat context, reusable examples, or legacy SmartFlow material as the final source of truth.
-- Do not invent missing URLs, selectors, ACF/WST references, WP Grid Builder IDs, file paths, build commands, Playwright commands, handoff storage locations, or expected behavior.
+- Do not invent missing URLs, selectors, ACF/WST references, WP Grid Builder IDs, file paths, build commands, Playwright MCP package names, project-local Playwright commands, handoff storage locations, or expected behavior.
 
 ## Handoff Gate
 
 Before final CSS or SCSS work begins, the filled handoff must identify the target URL, stable selectors, relevant WST/ACF/CPT/WPGB references or explicit non-use decisions, editable CSS or SCSS paths, visual requirements, local frontend responsibilities, storage location, cache state, known risks, and open questions.
+
+Before browser-driven QA begins, the local Cursor workspace must have a verified Playwright MCP server (`playwright_mcp: ready` in `PROJECT-CONTEXT.md` or the active handoff). If the status is missing, `pending`, or unverified, run `setup-playwright-mcp` first or, when a blocker prevents browser access, document the focused acceptance path and route-back owner in the handoff.
 
 If a required fact is missing, stop and ask for the missing value or update the handoff before continuing. Do not unblock local frontend work by performing server-side changes in this phase.
 

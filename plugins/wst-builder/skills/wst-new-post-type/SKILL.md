@@ -181,7 +181,7 @@ Allowed server-phase style work:
 - Register style files in the project's style loader if that is part of the WST foundation contract.
 - Add minimal selectors needed to keep template hooks stable.
 
-Leave final spacing, typography, responsive behavior, Chrome Local Overrides spikes, Playwright checks, and visual QA to the Frontend Design QA phase.
+Leave final spacing, typography, responsive behavior, Chrome Local Overrides spikes, local Playwright MCP browser QA, optional project-local Playwright regression checks, and visual QA to the Frontend Design QA phase.
 
 ### 9. Flush And Verify Server State
 
@@ -209,7 +209,7 @@ Fill these handoff areas before local frontend work starts:
 - Expected card, archive/grid, and optional single selectors.
 - Expected desktop, tablet, mobile, content variation, filtering, linking, and interaction behavior.
 - Server responsibilities completed, cache state, known risks, open questions, and unresolved placeholders.
-- Local frontend responsibilities for final CSS, responsive checks, Chrome Local Overrides spikes, and Playwright-oriented verification.
+- Local frontend responsibilities for final CSS, responsive checks, Chrome Local Overrides spikes, local Playwright MCP browser QA, and optional project-local Playwright regression verification.
 
 Completed CPT handoffs route to the Frontend Design QA `cpt-frontend-qa` Skill. Treat the filled CPT handoff as the shared workflow contract between WST Builder server-side ownership and Frontend Design QA local implementation ownership. If the CPT display becomes primarily a dedicated WST Section layout, record the split between `frontend-section-qa` for Section-level behavior and `cpt-frontend-qa` for CPT card, archive/grid, and optional single-template QA in the same CPT handoff.
 

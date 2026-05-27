@@ -31,11 +31,12 @@ WST Builder must not create or edit final Section CSS/SCSS over Remote-SSH. Miss
 ## Quick Start
 
 1. Classify the request into a `Work type`.
-2. Identify the `Environment`.
-3. Run the bundled `grill-me` preflight (or its inline equivalent) to produce a prefilled Section handoff draft at the project-configured storage location.
-4. For `new-section-foundation` and confirmed `existing-section-remodel`, perform only the explicitly approved server-side steps.
-5. For `visual-only`, route to `frontend-section-qa` without server-side writes.
-6. Emit or update the Section handoff and hand off to `frontend-section-qa`.
+2. Immediately ask for the Figma link or source design for the Section and whether the Section has multiple variants.
+3. Identify the `Environment`.
+4. Run the shortened Section preflight to produce a prefilled Section handoff draft at the project-configured storage location.
+5. For `new-section-foundation` and confirmed `existing-section-remodel`, perform only the explicitly approved server-side steps.
+6. For `visual-only`, route to `frontend-section-qa` without server-side writes.
+7. Emit or update the Section handoff and hand off to `frontend-section-qa`.
 
 Before asking the maintainer for technical values, search the project-local context for:
 
@@ -90,9 +91,18 @@ Cache flush on a live or unknown environment requires its own explicit confirmat
 
 ## 3. Mandatory Preflight As Write Gate
 
-Run the bundled `grill-me` preflight before any implementation. The preflight output must be a concrete Section handoff draft at the project-configured storage location, not only a chat summary.
+Run the shortened Section preflight before any implementation. The preflight output must be a concrete Section handoff draft at the project-configured storage location, not only a chat summary.
 
-If the agent cannot invoke the bundled `grill-me` Skill directly, follow the same intent inline: walk down the design tree, ask one question at a time, propose recommended answers, and record decisions in the handoff draft.
+The Section preflight is evidence-first and intentionally short. After `Work type` is classified, ask the maintainer only:
+
+1. `Please send the Figma link or source design for this Section.`
+2. `Does this Section have multiple variants/states that should be implemented? If yes, which ones?`
+
+Then inspect the Figma design, project-local context, existing Section patterns, rendered markup when available, and ACF/WST references before asking anything else. Do not ask the maintainer to specify HTML structure, wrapper classes, field names, selectors, spacing, responsive behavior, or interaction details that are visible in Figma or inferable from existing project patterns.
+
+If a detail is not visible in Figma and not discoverable in project-local context, choose the project-default pattern when there is one and record the assumption in the handoff. Ask a follow-up only when the missing answer blocks a safe server-side write, such as an unknown environment, handoff storage location, target page URL, ACF/Flexible Content reference, or explicit live/unknown write scope.
+
+If the agent cannot invoke Figma tooling, continue from the supplied source design or written brief and record the Figma access blocker in the handoff. Do not replace the short Section preflight with a broad design interview.
 
 The draft must record:
 
@@ -101,16 +111,18 @@ The draft must record:
 - `Frontend route`.
 - Project-configured handoff storage location.
 - Target URL or planned verification URL.
-- Section name, layout name, and source design or written brief.
+- Section name, layout name, source design or written brief, and variants/states.
 - WST template path and CSS path.
 - ACF section field group, Flexible Content field, layout key/name, clone child field, and Section-specific fields.
 - Primary section class, wrapper classes, custom properties, and selectors to preserve.
 - Expected desktop, tablet, mobile, content variation, and interaction behavior.
 - Server phase status, cache status, known risks, open questions, and unresolved placeholders.
-- `Preflight gate status` and `Protected existing artifacts` for remodels.
+- `Preflight gate status`, Figma/source status, and `Protected existing artifacts` for remodels.
 - `CSS status` from `existing`, `new-needed-for-frontend`, `unknown`, or `not-applicable`.
 
-Do not proceed past the preflight while the draft contains unresolved placeholders for `Work type`, `Environment`, `Server write scope`, `Frontend route`, target URL, ACF or WST references, CSS path, visual behavior, local frontend responsibilities, or storage location.
+Do not proceed past the preflight while the draft contains unresolved placeholders for `Work type`, `Environment`, `Server write scope`, `Frontend route`, target URL, ACF or WST references required for the approved write, CSS path, local frontend responsibilities, or storage location.
+
+Visual behavior, markup shape, selectors, and Section-specific fields may be recorded as design-derived assumptions when the Figma/source design and project patterns provide enough evidence. They do not require separate maintainer confirmation unless the assumption changes server-side data shape, removes an existing public selector, or creates a live/unknown write risk.
 
 If the storage location itself is unknown, stop and ask. Do not invent a path.
 

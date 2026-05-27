@@ -46,7 +46,7 @@ Edit `theme-functions.php` only after explicit prior user confirmation for the e
 
 ## Scope Boundary
 
-This Rule owns reusable WST Builder structure and review checks. Final visual CSS, new Section CSS files, style loader registration, responsive QA, Chrome Local Overrides spikes, and Playwright checks belong to Frontend Design QA. WordPress server access, cache policy, media import, and access setup belong to WordPress Server Ops or Project Context.
+This Rule owns reusable WST Builder structure and review checks. Final visual CSS, new Section CSS files, style loader registration, responsive QA, Chrome Local Overrides spikes, local Playwright MCP browser QA, and optional project-local Playwright regression checks belong to Frontend Design QA. WordPress server access, cache policy, media import, and access setup belong to WordPress Server Ops or Project Context.
 
 The `wst-section-workflow` Skill owns the Section workflow itself, including work-type classification, the preflight write-gate, existing-section remodel protections, and live or unknown environment write confirmations.
 

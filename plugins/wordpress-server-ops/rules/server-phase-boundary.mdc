@@ -28,7 +28,7 @@ Hand these tasks to the local frontend phase:
 - Final CSS/SCSS implementation.
 - Visual refinement after any Chrome Local Overrides spike.
 - Responsive browser checks.
-- Playwright acceptance checks against the dev or staging URL.
+- Browser QA via local Playwright MCP (set up through `frontend-design-qa` `setup-playwright-mcp`) and optional project-local Playwright regression acceptance against the dev or staging URL.
 - Final commits for frontend code and updated Section or CPT handoff notes.
 
 ## Handoff Rule

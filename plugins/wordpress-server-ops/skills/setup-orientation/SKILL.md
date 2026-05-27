@@ -444,4 +444,4 @@ Stop and ask before:
 
 ## Scope Boundaries
 
-This Skill does not migrate final visual CSS, Chrome Local Overrides spikes, responsive QA, Playwright checks, WST Builder section creation, or Frontend Design QA work. Those belong to the `wst-builder` and `frontend-design-qa` plugins after setup is complete.
+This Skill does not migrate final visual CSS, Chrome Local Overrides spikes, responsive QA, Playwright MCP setup, project-local Playwright regression tests, WST Builder section creation, or Frontend Design QA work. Those belong to the `wst-builder` and `frontend-design-qa` plugins after setup is complete. Playwright MCP in particular is set up only in the local Cursor workspace through `frontend-design-qa` `setup-playwright-mcp`, never inside the Remote-SSH server workspace covered by this Skill.

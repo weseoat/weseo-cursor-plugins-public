@@ -1,19 +1,30 @@
 ---
 name: cpt-frontend-qa
-description: Implement and verify local frontend presentation for a WST CPT handoff. Use when styling CPT cards, archive or grid views, WP Grid Builder frontend output, optional single templates, Chrome Local Overrides spikes, responsive checks, or Playwright-oriented CPT acceptance checks against a dev or staging WordPress URL.
+description: Implement and verify local frontend presentation for a WST CPT handoff. Use when styling CPT cards, archive or grid views, WP Grid Builder frontend output, optional single templates, driving a Playwright MCP browser QA loop, Chrome Local Overrides spikes, responsive checks, or optional project-local Playwright regression acceptance against a dev or staging WordPress URL.
 ---
 
 # CPT Frontend QA
 
 Use this Skill for the local frontend phase after the WST Builder `wst-new-post-type` Skill has created the server-side CPT foundation and filled a CPT foundation handoff. WST Builder owns the reusable CPT handoff template at `plugins/wst-builder/handoffs/cpt-handoff.template.md`; the filled handoff itself lives at the project-configured CPT handoff storage location from Project Context.
 
-This Skill owns final tracked CSS or SCSS work, responsive checks, Playwright-oriented verification, and CPT handoff QA writeback for CPT cards, archive/grid presentation, and optional single-template presentation. It does not own CPT registration, taxonomy setup, ACF field groups, WP Grid Builder card/grid foundation, WST templates, WordPress content, WP-CLI, cache execution, deployment, or Remote-SSH operations.
+This Skill owns final tracked CSS or SCSS work, a Playwright MCP browser QA loop, responsive checks, optional project-local Playwright regression acceptance, and CPT handoff QA writeback for CPT cards, archive/grid presentation, and optional single-template presentation. It does not own CPT registration, taxonomy setup, ACF field groups, WP Grid Builder card/grid foundation, WST templates, WordPress content, WP-CLI, cache execution, deployment, or Remote-SSH operations. Playwright MCP setup itself is owned by `setup-playwright-mcp` in this plugin.
 
 ## Required Starting Point
 
 Start from a concrete filled CPT foundation handoff produced by the WST Builder server phase. The handoff is the contract for CPT local frontend work and the place where QA results are written back.
 
-Do not begin final card, archive/grid, optional single-template CSS, Chrome Local Overrides spikes, responsive checks, or Playwright-oriented work from chat context alone. If the handoff path or project-configured storage location is unknown, stop and ask for it.
+Do not begin final card, archive/grid, optional single-template CSS, Chrome Local Overrides spikes, responsive checks, or browser QA from chat context alone. If the handoff path or project-configured storage location is unknown, stop and ask for it.
+
+## Playwright MCP Preflight
+
+Browser QA for CPT card, archive/grid, carousel/filter, and optional single-template work runs through Playwright MCP in the local Cursor workspace. Before the first browser interaction:
+
+1. Read `PROJECT-CONTEXT.md` and the active CPT handoff for the `playwright_mcp` status.
+2. If the status is `ready` and a quick navigation to the CPT display URL still works, continue.
+3. If the status is missing, `pending`, or unverified for this local workspace, run `setup-playwright-mcp` first.
+4. If a blocker prevents browser access (login wall, cookie banner, IP allowlist, self-signed cert, headless restriction), record the blocker in the handoff and continue with a focused manual acceptance path until the blocker is resolved.
+
+Never configure Playwright MCP inside a Remote-SSH workspace from this Skill. Route that back to `setup-playwright-mcp` in the local frontend workspace.
 
 ## Inputs
 
@@ -27,7 +38,8 @@ Read these before editing:
 - Expected card, archive/grid, and optional single selectors.
 - WP Grid Builder grid and card IDs as project-local values when they affect verification.
 - Expected desktop, tablet, mobile, content variation, empty-state, and interaction behavior.
-- Project Context for theme tokens, breakpoints, rem scale, style loader, build command, Playwright command, viewport conventions, repository policy, and design references.
+- Local Playwright MCP status from `PROJECT-CONTEXT.md` and the handoff, including any browser access blocker.
+- Project Context for theme tokens, breakpoints, rem scale, style loader, build command, optional project-local Playwright command, viewport conventions, repository policy, and design references.
 
 If the handoff is missing target URLs, stable selectors, ACF references, WP Grid Builder IDs or an explicit no-WPGB decision, visual requirements, local frontend responsibilities, storage facts, cache state, known risks, open questions, or detail-page/display decisions, stop and ask for the missing information before final CSS work. Do not invent URLs, selectors, ACF references, WP Grid Builder IDs, theme tokens, file paths, storage locations, cache behavior, detail-page behavior, taxonomy behavior, or expected behavior.
 
@@ -38,17 +50,19 @@ Track progress with this checklist:
 ```text
 CPT Frontend QA:
 - [ ] Read Project Context and CPT foundation handoff
+- [ ] Confirm Playwright MCP is ready locally or run setup-playwright-mcp
 - [ ] Confirm display target, selectors, and detail-page decision
 - [ ] Inspect existing CPT, card, grid, and theme CSS patterns
+- [ ] Drive a Playwright MCP browser QA loop against the CPT display URL
 - [ ] Implement card CSS or SCSS in tracked local files
 - [ ] Implement archive/grid CSS or SCSS in tracked local files
 - [ ] Implement optional single-template CSS or SCSS when detail pages exist
 - [ ] Use Chrome Local Overrides only for temporary spikes
 - [ ] Move any successful spike changes into source files
-- [ ] Run responsive and interaction checks
-- [ ] Run or document Playwright-oriented CPT acceptance checks
+- [ ] Re-run the Playwright MCP browser loop at desktop, tablet, and mobile viewports
+- [ ] Run the optional project-local Playwright regression command when a real harness exists
 - [ ] Record stale-cache or server-output symptoms without running server commands
-- [ ] Update the handoff QA notes
+- [ ] Update the handoff QA notes including local Playwright MCP status
 - [ ] Commit code and handoff updates on the same branch or PR
 ```
 
@@ -87,7 +101,7 @@ Do not edit PHP bootstrap or MU plugin files during CPT frontend QA. `functions.
 Write final card styles in tracked project files:
 
 - Use the handoff's stable card selector, usually shaped like `.wso-<resource>-card`.
-- Preserve selectors used by templates, scripts, WPGB behavior, or Playwright checks.
+- Preserve selectors used by templates, scripts, WPGB behavior, or Playwright MCP browser QA and optional project-local Playwright regression checks.
 - Use scoped card variables for spacing, image ratio, content gap, overlay behavior, and state styling.
 - Reuse project tokens for typography, colors, buttons, links, shadows, borders, and transitions.
 - Handle optional fields so missing taxonomy terms, images, prices, dates, excerpts, or links do not leave broken spacing.
@@ -117,7 +131,7 @@ For single views:
 - Reuse global content, heading, button, image, and layout patterns where they match the project.
 - Handle optional fields, missing media, long rich text, related cards, and taxonomy labels.
 - Verify breadcrumb, back-link, related-content, or CTA behavior when the template includes them.
-- Confirm the single URL is a dev or staging URL before running browser or Playwright checks.
+- Confirm the single URL is a dev or staging URL before running the Playwright MCP browser QA loop or the optional project-local Playwright regression command.
 
 If the CPT has no public detail page, record that single-template QA is not applicable in the handoff.
 
@@ -147,26 +161,33 @@ Update the handoff QA notes with results and remaining risks.
 
 If markup, rendered data, generated CSS, WPGB output, or cache state looks stale, record the URL, selector, expected result, observed result, and local checks already performed in the handoff. Route cache flushes, WP-CLI, deployment, WPGB/server repair, or content action back to WordPress Server Ops or the project's `PROJECT-CONTEXT.md` cache guidance.
 
-## 8. Playwright Acceptance Path
+## 8. Playwright MCP Browser QA Loop
 
-Use the project's Playwright command when `PROJECT-CONTEXT.md` or the handoff provides a real project-local harness. If no test exists yet, document a focused acceptance path and skip reason in the handoff.
+Playwright MCP is the primary browser-driving mechanism for CPT QA. After the preflight confirms `playwright_mcp: ready`, run a focused loop against the handoff's CPT display URL and, when detail pages exist, a representative single URL.
 
-Recommended card/archive/grid checks:
+Core card/archive/grid loop:
 
-- Navigate to the handoff's CPT display URL.
-- Locate the grid, carousel, archive, or Section wrapper by the stable selector from the handoff.
-- Assert the wrapper is visible.
-- Assert the expected card selector is visible or has the expected count from the handoff.
-- Check at the project's desktop, tablet, and mobile viewports.
-- Verify hover or keyboard focus states when cards include links or controls.
-- Verify filter, pagination, or carousel controls when they are part of the display target.
+1. Navigate to the handoff's CPT display URL.
+2. Take an accessibility or DOM snapshot to confirm the page rendered without error.
+3. Locate the grid, carousel, archive, or Section wrapper by the stable selector from the handoff.
+4. Assert the wrapper is visible and the expected card selector is visible or matches the expected count from the handoff.
+5. Switch to desktop, tablet, and mobile viewports from the handoff and re-check visibility, spacing, and card behavior.
+6. Verify hover, keyboard focus, filter, pagination, or carousel controls when they are part of the display target.
+7. Inspect selectors, computed style, or bounding boxes when the MCP exposes them, to diagnose card spacing, image ratio, taxonomy label wrapping, or grid behavior.
+8. Edit tracked CSS or SCSS, rebuild generated CSS when required, reload, and re-check the affected viewports until the handoff's expected visual behavior holds.
 
-Recommended optional single checks:
+Core optional single loop:
 
-- Navigate to a representative single CPT URL from the handoff.
-- Locate the stable single selector.
-- Assert expected title, media, taxonomy label, content area, or CTA behavior.
-- Check responsive visibility at the project's viewport list.
+1. Navigate to a representative single CPT URL from the handoff.
+2. Locate the stable single selector.
+3. Assert expected title, media, taxonomy label, content area, or CTA behavior.
+4. Check responsive visibility at the project's viewport list.
+
+Capture screenshots only when the project workflow uses screenshots for review or handoff QA notes. If a browser access blocker appears, record URL, step, observed message, whether the same URL loads in a regular browser, and suggested next action in the handoff. Do not paste credentials, cookies, or session tokens into chat, tracked files, diagnostics, or screenshots.
+
+## 9. Optional Project-Local Playwright Regression
+
+Run the project's Playwright command as an optional persistent regression check when `PROJECT-CONTEXT.md` or the handoff provides a real project-local harness. If no test exists yet, document a focused acceptance path and skip reason in the handoff.
 
 Generic shape example:
 
@@ -186,23 +207,25 @@ test("resource cards render responsively", async ({ page }) => {
 
 Treat this as a shape example. Use the project's environment variables, locators, viewport list, test runner, and expected counts.
 
-## 9. Update The Handoff
+## 10. Update The Handoff
 
 Write QA notes back to the same CPT foundation handoff that started the local phase. Include:
 
 - Local frontend phase status for card, archive/grid, and optional single-template scope.
+- Local Playwright MCP status (`ready` or `pending: <reason>`) and any browser access blocker.
+- Playwright MCP browser QA findings: display URL, optional single URL, viewports checked, selectors confirmed, screenshots captured when applicable.
 - Responsive browser findings for the handoff's desktop, tablet, and mobile expectations.
-- Playwright result or documented acceptance path tied to the CPT display target and visible behavior in the handoff.
+- Optional project-local Playwright regression result or documented skip reason tied to the CPT display target and visible behavior in the handoff.
 - Implementation notes for changed CSS or SCSS files, generated CSS, and any style loader changes.
 - Remaining risks, open questions, stale-cache or server-output symptoms, route-back owner when action is needed, and confirmation that Chrome Local Overrides were discarded or copied into tracked source.
 
-## 10. Commit The Local Phase
+## 11. Commit The Local Phase
 
 Before finishing:
 
 - Ensure final CSS, SCSS, and generated CSS are in tracked files according to Project Context.
 - Update the CPT foundation handoff's local frontend status and QA result.
-- Include Playwright results or a clear note explaining why checks were documented instead of run.
+- Include Playwright MCP browser QA findings and the optional project-local Playwright regression result or a clear note explaining why a project test was documented instead of run.
 - Confirm Chrome Local Overrides are discarded or copied into tracked files.
 - Commit code and handoff updates on the same branch or PR according to project Git policy.
 
@@ -213,8 +236,10 @@ Do not push, deploy, edit server-side CPT setup, or change release flow unless t
 A developer receives a filled handoff for `Resources`:
 
 1. Reads the handoff and confirms `.wso-resource-card`, `.wso-resource-grid`, the staging URL, card CSS path, and that no public single page exists.
-2. Checks existing card, WPGB, image, and button CSS for matching project tokens.
-3. Implements scoped card and grid variables in tracked local CSS or SCSS files.
-4. Uses Chrome Local Overrides briefly to compare card spacing on staging, then moves the final declarations into source.
-5. Runs responsive checks and a Playwright test that locates `.wso-resource-grid` and verifies `.wso-resource-card` count and mobile visibility.
-6. Updates the CPT handoff QA notes and commits the CSS plus handoff on the same branch or PR.
+2. Confirms `playwright_mcp: ready` for the local workspace, otherwise runs `setup-playwright-mcp`.
+3. Drives a Playwright MCP browser loop: navigates to the staging archive URL, snapshots the page, locates `.wso-resource-grid` and `.wso-resource-card`, verifies count, and checks desktop, tablet, and mobile viewports.
+4. Checks existing card, WPGB, image, and button CSS for matching project tokens.
+5. Implements scoped card and grid variables in tracked local CSS or SCSS files.
+6. Uses Chrome Local Overrides briefly to compare card spacing on staging, then moves the final declarations into source.
+7. Re-runs the Playwright MCP browser loop and runs the optional project-local Playwright regression test when a real harness exists.
+8. Updates the CPT handoff QA notes including local Playwright MCP status, and commits the CSS plus handoff on the same branch or PR.

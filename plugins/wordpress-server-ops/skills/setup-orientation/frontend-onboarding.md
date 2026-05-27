@@ -14,7 +14,7 @@ Diese Anleitung ersetzt den alten `smartflow-frontend-guide.md`. Sie beschreibt 
 - Der `WordPress root` ist geöffnet. Das ist der Hauptordner der WordPress-Installation mit `wp-content/`, `wp-admin/` und `wp-includes/`.
 - `PROJECT-CONTEXT.md` existiert im WordPress-Root und enthält nicht geheime Projektfakten.
 - Die Ablageorte für Section-Handoffs und CPT-Handoffs sind in `PROJECT-CONTEXT.md` dokumentiert oder als offener Punkt notiert.
-- Browser, Figma-Zugang und optional Playwright sind bereit, falls du die finale Frontend-QA lokal machst.
+- Browser und Figma-Zugang sind bereit. Falls du die finale Frontend-QA lokal machst, richtest du `Playwright MCP` einmalig in deinem lokalen Cursor-Workspace über `frontend-design-qa` `setup-playwright-mcp` ein. `Playwright MCP` wird nie im `Remote-SSH`-Server-Workspace eingerichtet.
 
 ## Drei Plugins, drei einfache Verantwortungen
 
@@ -24,7 +24,7 @@ Der Workflow ist auf drei Plugins aufgeteilt. Die Plugin-Namen bleiben wichtig, 
 |---|---|---|
 | `wordpress-server-ops` | Server / Setup | Hilft beim sicheren Einrichten und Prüfen des WordPress-Server-Workspaces: Setup-Wizard, WordPress-Terminalbefehle (`WP-CLI`), Cache leeren, Bearbeitungsgrenzen, Webroot-Sicherheit, WordPress-Inhalte und Medien-Import. |
 | `wst-builder` | Server / WST-Foundation | Baut die technische Grundlage für neue Inhalte: Flexible Content Sections, Custom Post Types, ACF-Feldgruppen, WP Grid Builder Cards/Grids, CSS-Hooks und Übergaben für die Frontend-Arbeit. |
-| `frontend-design-qa` | Lokal / Frontend | Macht die sichtbare Frontend-Arbeit fertig: CSS/SCSS, Figma-zu-Code-Übersetzung, kurze Chrome Local Overrides Tests, responsive Prüfung und Playwright-orientierte Checks. |
+| `frontend-design-qa` | Lokal / Frontend | Macht die sichtbare Frontend-Arbeit fertig: CSS/SCSS, Figma-zu-Code-Übersetzung, Browser-QA über `Playwright MCP` (einmalig lokal eingerichtet über `setup-playwright-mcp`), kurze Chrome Local Overrides Tests, responsive Prüfung und optional projekt-eigene Playwright-Tests als Regressions-Checks. |
 
 Cursor lädt Rules und Skills aus diesen Plugins automatisch, sobald sie im persönlichen Account aktiv sind. Der Projekt-Repository-Ordner enthält nur eine `.cursor/`-Skeleton-Struktur (`.cursor/rules/.gitkeep`, `.cursor/skills/.gitkeep`). Dort können später projektspezifische Hinweise ergänzt werden, ohne die Plugin-Inhalte zu kopieren.
 
@@ -42,13 +42,15 @@ Die Arbeit ist bewusst getrennt. Auf dem Server entstehen Setup, WordPress-Struk
 - Media-Import in die WordPress Media Library (`wp-media-import`).
 - Figma-Analyse für Sections und Post Types: Vor dem Erstellen einer Section oder eines CPTs muss der Agent die zugehörigen Figma-Designs sehen. So passen HTML-Struktur, ACF-Felder und WST-Layouts später besser zum Design. Die Cursor-Verbindung zu Figma (`Figma MCP`) ist deshalb auch im Server-Workspace aktiv (siehe `setup-orientation` Step 8).
 
-### Lokaler Frontend-Workspace (Cursor lokal, optional Browser + Playwright)
+### Lokaler Frontend-Workspace (Cursor lokal, Browser + Playwright MCP)
 
+- Einmalige Einrichtung von `Playwright MCP` über `frontend-design-qa` `setup-playwright-mcp` in der untracked lokalen `.cursor/mcp.json`. Diese Einrichtung passiert nur lokal, nie über `Remote-SSH`.
 - Finale CSS/SCSS-Umsetzung gegen die Section-/CPT-Handoffs aus `wst-builder` (`frontend-design-qa`).
 - Figma-zu-Code-Übersetzung: Farben/Tokens, Abstände, Typografie und Media-Verhalten in projekt-eigene CSS/SCSS-Dateien übertragen.
+- Browser-QA über `Playwright MCP`: Navigation, Snapshot, Screenshot, Desktop/Tablet/Mobile-Viewports, Selektor- und Computed-Style-Checks gegen eine reale Dev-/Staging-URL.
 - Chrome Local Overrides als kurzlebige Tests gegen eine reale Dev-/Staging-Seite.
-- Responsive-Checks und Playwright-Acceptance gegen die Dev-/Staging-URL.
-- QA-Notizen ins jeweilige Section- oder CPT-Handoff zurückschreiben.
+- Responsive-Checks und optional projekt-eigene Playwright-Regression, wenn das Projekt einen echten Test-Harness mitbringt.
+- QA-Notizen inkl. `Local Playwright MCP status` ins jeweilige Section- oder CPT-Handoff zurückschreiben.
 
 ## `PROJECT-CONTEXT.md` als Projektquelle
 

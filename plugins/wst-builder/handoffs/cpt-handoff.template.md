@@ -117,27 +117,33 @@ Copy this document for each WST Custom Post Type foundation into the project-con
 - [ ] Create card template foundation and optional single template foundation.
 - [ ] Record stable selectors and tracked CSS or SCSS file expectations.
 - [ ] Flush relevant WordPress/cache layers with the project-local command.
-- [ ] Fill this handoff before local CSS, responsive QA, or Playwright-oriented work starts.
+- [ ] Fill this handoff before local CSS, responsive QA, or browser QA work starts.
 
 ## Local Frontend Responsibilities
 
+- [ ] Confirm Playwright MCP is ready in the local Cursor workspace, or run `frontend-design-qa` `setup-playwright-mcp` before browser QA starts.
 - [ ] Use Frontend Design QA `cpt-frontend-qa` for CPT card, archive/grid, carousel/filter, WPGB output, and optional single-template presentation.
 - [ ] Use Frontend Design QA `frontend-section-qa` for Section-level layout work when a dedicated WST Section becomes the main CPT display surface.
 - [ ] Keep CPT card, archive/grid, and optional single-template checks recorded in this CPT handoff even when Section layout work is split out.
+- [ ] Drive a Playwright MCP browser QA loop against the CPT display URL and the representative single URL when public detail pages exist.
 - [ ] Implement final CSS or SCSS in tracked local project files.
 - [ ] Use Chrome Local Overrides only as a temporary spike tool if needed.
 - [ ] Run responsive checks against the handoff display URLs.
-- [ ] Run or document Playwright-oriented checks for the target CPT display and optional single view.
+- [ ] Run the optional project-local Playwright regression command when a real harness exists, or document a skip reason.
 - [ ] Commit the handoff updates with the CPT frontend code on the same branch or PR.
 
 ## QA Notes
 
 | Field | Value |
 |-------|-------|
-| Playwright display URL | `<dev-or-staging-display-url>` |
-| Playwright single URL | `<representative-single-url-or-not-applicable>` |
+| Browser QA display URL | `<dev-or-staging-display-url>` |
+| Browser QA single URL | `<representative-single-url-or-not-applicable>` |
+| Local Playwright MCP status | `<ready/pending: reason-and-next-action>` |
+| Required viewports | `<desktop-tablet-mobile-sizes>` |
+| Browser access blockers | `<login-cookie-banner-ip-allowlist-self-signed-cert-or-none>` |
+| Screenshot policy | `<used-for-review/not-used>` |
 | Checks to run | `<card-grid-carousel-filter-single-visibility-and-behavior-checks>` |
-| Responsive viewports | `<desktop-tablet-mobile-sizes>` |
+| Project-local Playwright command | `<command-or-not-applicable>` |
 | Cache state | `<cache-flushed-or-known-cache-state>` |
 | Known risks | `<risks-or-none>` |
 | QA result | `<pending/pass/fail-and-notes>` |

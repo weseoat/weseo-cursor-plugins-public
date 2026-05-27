@@ -1,6 +1,6 @@
 ---
 name: frontend-section-qa
-description: Implement and verify a local frontend Section from a filled Section handoff. Use when doing CSS or SCSS Section work, Chrome Local Overrides spikes, responsive visual QA, or Playwright-oriented acceptance checks against a dev or staging WordPress URL.
+description: Implement and verify a local frontend Section from a filled Section handoff. Use when doing CSS or SCSS Section work, a Playwright MCP browser QA loop for navigation, snapshots, screenshots, viewports, and selector checks, optional Chrome Local Overrides spikes, responsive visual QA, or optional project-local Playwright regression acceptance against a dev or staging WordPress URL.
 ---
 
 # Frontend Section QA
@@ -9,7 +9,7 @@ Use this Skill for the local frontend phase after the server phase has created o
 
 When a CPT display becomes primarily a WST Section layout, use this Skill for the Section-level layout behavior only. Keep CPT card, archive/grid, carousel/filter, WP Grid Builder output, and optional single-template QA in the filled CPT handoff through `cpt-frontend-qa`.
 
-This Skill owns local CSS or SCSS implementation, responsive checks, Playwright-oriented acceptance, and Section handoff QA writeback. It does not own server-side WST templates, ACF field groups, WordPress content, WP Grid Builder setup, WP-CLI, cache execution, deployment, or Remote-SSH setup.
+This Skill owns local CSS or SCSS implementation, the Playwright MCP browser QA loop, responsive checks, optional project-local Playwright regression acceptance, and Section handoff QA writeback. It does not own server-side WST templates, ACF field groups, WordPress content, WP Grid Builder setup, WP-CLI, cache execution, deployment, or Remote-SSH setup. Playwright MCP setup itself is owned by `setup-playwright-mcp` in this plugin.
 
 ## Required Starting Point
 
@@ -17,7 +17,18 @@ Start from a concrete filled Section handoff produced by the WST Builder server 
 
 WST Builder owns the reusable Section handoff template at `plugins/wst-builder/handoffs/section-handoff.template.md`. The filled handoff itself lives at the project-configured storage location from Project Context.
 
-Do not begin final CSS, SCSS, Chrome Local Overrides spikes, responsive checks, or Playwright-oriented work from chat context alone. If the handoff path or project-configured storage location is unknown, stop and ask for it.
+Do not begin final CSS, SCSS, Chrome Local Overrides spikes, responsive checks, or browser QA from chat context alone. If the handoff path or project-configured storage location is unknown, stop and ask for it.
+
+## Playwright MCP Preflight
+
+Browser QA in this Skill runs through Playwright MCP in the local Cursor workspace. Before the first browser interaction:
+
+1. Read `PROJECT-CONTEXT.md` and the active handoff for the `playwright_mcp` status.
+2. If the status is `ready` and a quick navigation to the handoff target URL still works, continue.
+3. If the status is missing, `pending`, or unverified for this local workspace, run `setup-playwright-mcp` first.
+4. If a blocker prevents browser access (login wall, cookie banner, IP allowlist, self-signed cert, headless restriction), record the blocker in the handoff and continue with a focused manual acceptance path until the blocker is resolved.
+
+Never configure Playwright MCP inside a Remote-SSH workspace from this Skill. Route that back to `setup-playwright-mcp` in the local frontend workspace.
 
 ## Inputs
 
@@ -29,7 +40,8 @@ Read these before editing:
 - Template, WST, ACF, and CSS or SCSS file references.
 - Expected desktop, tablet, mobile, content variation, and interaction behavior.
 - Source design or reference notes.
-- Project context for theme tokens, style loader, local build command, Playwright command, and Git branch or PR.
+- Local Playwright MCP status from `PROJECT-CONTEXT.md` and the handoff, including any browser access blocker.
+- Project context for theme tokens, style loader, local build command, optional project-local Playwright command, viewport conventions, and Git branch or PR.
 
 If the handoff is missing the target URL, stable selectors, ACF or WST references, CSS path, visual requirements, local frontend responsibilities, storage facts, cache state, known risks, or open questions, stop and ask for the missing information before final CSS work. Do not invent URLs, selectors, ACF references, WST layout names, theme tokens, file paths, storage locations, cache behavior, or expected behavior.
 
@@ -40,14 +52,16 @@ Track progress with this checklist:
 ```text
 Frontend Section QA:
 - [ ] Read project context and Section handoff
+- [ ] Confirm Playwright MCP is ready locally or run setup-playwright-mcp
 - [ ] Inspect existing Section and theme CSS patterns
+- [ ] Drive a Playwright MCP browser QA loop against the handoff target URL
 - [ ] Implement CSS or SCSS in tracked local files
 - [ ] Use Chrome Local Overrides only for temporary spikes
 - [ ] Move any successful spike changes into source files
-- [ ] Run responsive browser checks
-- [ ] Run or document Playwright acceptance checks
+- [ ] Re-run the Playwright MCP browser loop at desktop, tablet, and mobile viewports
+- [ ] Run the optional project-local Playwright regression command when a real harness exists
 - [ ] Record stale-cache or server-output symptoms without running server commands
-- [ ] Update the handoff QA notes
+- [ ] Update the handoff QA notes including local Playwright MCP status
 - [ ] Commit code and handoff updates on the same branch or PR
 ```
 
@@ -125,21 +139,28 @@ Update the handoff QA notes with the result and remaining risks.
 
 If markup, rendered data, generated CSS, or cache state looks stale, record the URL, selector, expected result, observed result, and local checks already performed in the handoff. Route cache flushes, WP-CLI, deployment, or server repair action back to WordPress Server Ops or the project's `PROJECT-CONTEXT.md` cache guidance.
 
-## 6. Playwright Acceptance Path
+## 6. Playwright MCP Browser QA Loop
 
-Use the project's Playwright command when `PROJECT-CONTEXT.md` or the handoff provides a real project-local harness. If the project has no test yet, document a focused acceptance path and skip reason in the handoff.
+Playwright MCP is the primary browser-driving mechanism for Section QA. After the preflight confirms `playwright_mcp: ready`, run a focused loop against the handoff target URL.
 
-Recommended checks:
+Core loop:
 
-- Navigate to the handoff target URL.
-- Locate the Section by its primary class or stable landmark.
-- Assert the Section is visible.
-- Assert expected key content or item count from the handoff.
-- Check responsive visibility at the project's desktop, tablet, and mobile viewports.
-- Check hover or keyboard focus states when the Section has links or controls.
-- Capture a screenshot only when the project workflow uses screenshots for review.
+1. Navigate to the handoff target URL.
+2. Take an accessibility or DOM snapshot to confirm the page rendered without error.
+3. Locate the Section by its primary class or stable landmark from the handoff.
+4. Assert the Section is visible and expected key content or item count matches the handoff.
+5. Switch to desktop, tablet, and mobile viewports from the handoff and re-check visibility and key content.
+6. Inspect selectors, computed style, or bounding boxes when the MCP exposes them, to diagnose spacing, typography, color, or grid issues.
+7. Edit tracked CSS or SCSS, rebuild generated CSS when required, reload the page, and re-check the affected viewports until the handoff's expected visual behavior holds.
+8. Capture screenshots only when the project workflow uses screenshots for review or handoff QA notes.
 
-Generic example:
+If a browser access blocker appears (login wall, cookie banner overlay, IP allowlist, self-signed cert, headless restriction), record the URL, step, observed message, whether the same URL loads in a regular browser, and the suggested next action in the handoff. Do not paste credentials, cookies, or session tokens into chat, tracked files, diagnostics, or screenshots.
+
+## 7. Optional Project-Local Playwright Regression
+
+Run the project's Playwright command as an optional persistent regression check when `PROJECT-CONTEXT.md` or the handoff provides a real project-local harness. If the project has no test yet, document a focused acceptance path and skip reason in the handoff.
+
+Generic shape example:
 
 ```ts
 test("feature cards section renders responsively", async ({ page }) => {
@@ -156,23 +177,25 @@ test("feature cards section renders responsively", async ({ page }) => {
 
 Treat this as a shape example. Use the project's test runner, environment variables, locators, and viewport list.
 
-## 7. Update The Handoff
+## 8. Update The Handoff
 
 Write QA notes back to the same Section handoff that started the local phase. Include:
 
 - Local frontend phase status.
+- Local Playwright MCP status (`ready` or `pending: <reason>`) and any browser access blocker.
+- Playwright MCP browser QA findings: viewports checked, selectors confirmed, screenshots captured when applicable.
 - Responsive browser findings for the handoff's desktop, tablet, and mobile expectations.
-- Playwright result or documented acceptance path tied to the visible behavior in the handoff.
+- Optional project-local Playwright regression result or documented skip reason tied to the visible behavior in the handoff.
 - Implementation notes for changed CSS or SCSS files and generated CSS when applicable.
 - Remaining risks, open questions, stale-cache or server-output symptoms, route-back owner when action is needed, and confirmation that Chrome Local Overrides were discarded or copied into tracked source.
 
-## 8. Commit The Local Phase
+## 9. Commit The Local Phase
 
 Before finishing:
 
 - Ensure final CSS or generated CSS is in tracked files.
 - Update the Section handoff's local frontend status and QA result.
-- Include Playwright results or a clear note explaining why the check was documented instead of run.
+- Include Playwright MCP browser QA findings and the optional project-local Playwright regression result or a clear note explaining why a project test was documented instead of run.
 - Commit code and handoff changes on the same branch or PR according to project Git policy.
 
 Do not push, deploy, or change release flow unless the project context or maintainer explicitly asks for it.
@@ -182,8 +205,10 @@ Do not push, deploy, or change release flow unless the project context or mainta
 A developer receives a filled handoff for `Feature Cards`:
 
 1. Reads the handoff and confirms `.wso-section-feature-cards`, target URL, CSS path, and expected three-card responsive behavior.
-2. Checks existing card and button CSS for matching tokens.
-3. Implements scoped variables and grid styles in the tracked Section CSS or SCSS file.
-4. Uses Chrome Local Overrides briefly to compare spacing on the staging URL, then moves the final declarations into source.
-5. Runs responsive checks and a Playwright test that locates `.wso-section-feature-cards` and verifies the expected card count.
-6. Updates the handoff QA notes and commits the Section CSS plus handoff on the same branch or PR.
+2. Confirms `playwright_mcp: ready` for the local workspace, otherwise runs `setup-playwright-mcp`.
+3. Drives a Playwright MCP browser loop: navigates to the staging URL, snapshots the page, locates `.wso-section-feature-cards`, verifies the card count, and checks desktop, tablet, and mobile viewports.
+4. Checks existing card and button CSS for matching tokens.
+5. Implements scoped variables and grid styles in the tracked Section CSS or SCSS file.
+6. Uses Chrome Local Overrides briefly to compare spacing, then moves the final declarations into source.
+7. Re-runs the Playwright MCP browser loop to confirm the final result, and runs the optional project-local Playwright regression test when a real harness exists.
+8. Updates the handoff QA notes including local Playwright MCP status, and commits the Section CSS plus handoff on the same branch or PR.

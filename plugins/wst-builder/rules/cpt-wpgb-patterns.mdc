@@ -65,8 +65,8 @@ Do not invent real CPT names, rewrite slugs, taxonomy names, ACF keys, field pos
 - Card templates should expose stable hooks such as `.wso-<resource>-card`.
 - Archive, grid, carousel, filter, and optional single templates should expose stable wrapper selectors for frontend QA.
 - Public single templates should expose stable hooks such as `.wso-<resource>-single`.
-- Preserve selectors used by templates, JavaScript, WPGB behavior, or Playwright checks.
-- Minimal server-phase style files may establish hooks, but final spacing, typography, responsive behavior, Chrome Local Overrides spikes, and Playwright checks belong to Frontend Design QA.
+- Preserve selectors used by templates, JavaScript, WPGB behavior, or Frontend Design QA browser checks (local Playwright MCP and optional project-local Playwright regression).
+- Minimal server-phase style files may establish hooks, but final spacing, typography, responsive behavior, Chrome Local Overrides spikes, local Playwright MCP browser QA, and optional project-local Playwright regression checks belong to Frontend Design QA.
 
 ## Handoff And Routing Invariants
 

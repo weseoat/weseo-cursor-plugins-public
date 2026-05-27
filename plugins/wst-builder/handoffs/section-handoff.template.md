@@ -36,6 +36,8 @@ This template is shared across all Section work types: `new-section-foundation`,
 | Layout name | `<layout-name>` |
 | Page URL | `<dev-or-staging-url-with-section>` |
 | Source design/reference | `<figma-url-or-brief>` |
+| Source design status | `<figma-accessible/brief-only/blocked: reason>` |
+| Variants/states | `<single-variant-or-list-of-variants>` |
 
 ## WordPress And WST References
 
@@ -85,8 +87,9 @@ Fill this section for `existing-section-remodel` work types. List the artifacts 
 
 ## Server Phase Responsibilities
 
-- [ ] Run the bundled `grill-me` preflight before creating or modifying Section files or ACF structures.
+- [ ] Run the shortened Section preflight before creating or modifying Section files or ACF structures.
 - [ ] Classify the request as `new-section-foundation`, `existing-section-remodel`, `visual-only`, or `unclear`.
+- [ ] Ask for the Figma/source design and whether multiple variants/states are required immediately after classification.
 - [ ] Record `Environment`, `Server write scope`, `Frontend route`, and `Preflight gate status` in `Workflow Routing` before any write.
 - [ ] For `live` or `unknown` environments, capture the explicit write confirmation before changing files, ACF objects, content, or cache.
 - [ ] For `existing-section-remodel`, fill `Protected Existing Artifacts` before any write.
@@ -98,24 +101,31 @@ Fill this section for `existing-section-remodel` work types. List the artifacts 
 - [ ] Document CSS hooks, CSS path, and `CSS status` in this handoff; do not create or edit Section CSS files over Remote-SSH.
 - [ ] Create representative content on the target page only when inside the approved server write scope.
 - [ ] Flush relevant WordPress/cache layers only when inside the approved server write scope and, on `live` or `unknown`, explicitly confirmed.
-- [ ] Fill this handoff before local CSS/Playwright work starts.
+- [ ] Fill this handoff before local CSS or browser QA work starts.
 
 ## Local Frontend Responsibilities
 
+- [ ] Confirm Playwright MCP is ready in the local Cursor workspace, or run `frontend-design-qa` `setup-playwright-mcp` before browser QA starts.
+- [ ] Drive a Playwright MCP browser QA loop against the handoff Page URL across the required viewports.
 - [ ] Implement CSS/SCSS in the local Git repo.
 - [ ] Create or register the Section CSS file in tracked local source when `CSS status` is `new-needed-for-frontend`.
 - [ ] Use Chrome Local Overrides only as a temporary spike tool if needed.
 - [ ] Move final CSS changes into tracked files.
 - [ ] Run responsive checks against the handoff Page URL.
-- [ ] Run or document Playwright checks for the target Section.
+- [ ] Run the optional project-local Playwright regression command when a real harness exists, or document a skip reason.
 - [ ] Commit the handoff updates with the Section code on the same branch or PR.
 
 ## QA Notes
 
 | Field | Value |
 |-------|-------|
-| Playwright target URL | `<dev-or-staging-url-with-section>` |
+| Browser QA target URL | `<dev-or-staging-url-with-section>` |
+| Local Playwright MCP status | `<ready/pending: reason-and-next-action>` |
+| Required viewports | `<desktop-tablet-mobile-sizes>` |
+| Browser access blockers | `<login-cookie-banner-ip-allowlist-self-signed-cert-or-none>` |
+| Screenshot policy | `<used-for-review/not-used>` |
 | Checks to run | `<visual-and-behavior-checks>` |
+| Project-local Playwright command | `<command-or-not-applicable>` |
 | Cache state | `<cache-flushed-or-known-cache-state>` |
 | Known risks | `<risks-or-none>` |
 | QA result | `<pending/pass/fail-and-notes>` |

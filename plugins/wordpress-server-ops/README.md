@@ -20,7 +20,7 @@ Use this plugin for server-side work:
 - Media files that must be registered in the WordPress Media Library.
 - Handoff notes for later WST builder and local frontend implementation.
 
-Do not use this plugin as the source of truth for final visual implementation. Final CSS/SCSS work, Chrome Local Overrides spikes, responsive checks, and Playwright acceptance checks belong to the local frontend phase via the `frontend-design-qa` plugin.
+Do not use this plugin as the source of truth for final visual implementation. Final CSS/SCSS work, Chrome Local Overrides spikes, responsive checks, local Playwright MCP browser QA, and optional project-local Playwright regression acceptance belong to the local frontend phase via the `frontend-design-qa` plugin. Playwright MCP itself is configured only in the developer's local Cursor workspace through `frontend-design-qa` `setup-playwright-mcp`, never inside the Remote-SSH workspace.
 
 ## Project Context Contract
 

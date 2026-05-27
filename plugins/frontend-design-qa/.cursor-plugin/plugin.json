@@ -1,7 +1,7 @@
 {
   "name": "frontend-design-qa",
-  "version": "0.1.0",
-  "description": "WESEO Frontend Design QA guidance for the co-installed WordPress/WST workflow with wordpress-server-ops and wst-builder: local CSS/SCSS implementation, Figma-to-code translation, Chrome Local Overrides spikes, responsive QA, Playwright-oriented Section and CPT acceptance, cache/server escalation notes, and handoff QA writeback.",
+  "version": "0.2.0",
+  "description": "WESEO Frontend Design QA guidance for the co-installed WordPress/WST workflow with wordpress-server-ops and wst-builder: local Playwright MCP setup and browser-driven QA, local CSS/SCSS implementation, Figma-to-code translation, Chrome Local Overrides spikes, responsive QA, optional project-local Playwright regression acceptance, cache/server escalation notes, and handoff QA writeback.",
   "author": {
     "name": "WESEO"
   },
@@ -11,6 +11,7 @@
     "scss",
     "figma",
     "playwright",
+    "mcp",
     "qa"
   ]
 }

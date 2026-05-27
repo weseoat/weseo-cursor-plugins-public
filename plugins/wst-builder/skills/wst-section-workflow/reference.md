@@ -135,7 +135,7 @@ Record:
 - Whether the project requires a new style loader registration during local frontend work.
 - `CSS status` from `existing`, `new-needed-for-frontend`, `unknown`, or `not-applicable`.
 
-Final spacing, typography, responsive behavior, Chrome Local Overrides spikes, and Playwright-oriented checks belong to Frontend Design QA. New CSS files and new style loader entries are created or registered by `frontend-section-qa` in tracked local source files, not by this Skill over Remote-SSH.
+Final spacing, typography, responsive behavior, Chrome Local Overrides spikes, local Playwright MCP browser QA, and optional project-local Playwright regression checks belong to Frontend Design QA. New CSS files and new style loader entries are created or registered by `frontend-section-qa` in tracked local source files, not by this Skill over Remote-SSH.
 
 ## Live And Unknown Environment Confirmation
 
@@ -168,7 +168,7 @@ The draft should capture:
 - Primary section class, wrapper classes, custom properties, and selectors to preserve.
 - Expected desktop, tablet, mobile, content variation, and interaction behavior.
 - Server verification results, cache state, known risks, open questions, unresolved placeholders, and stop conditions.
-- Local frontend checklist for CSS/SCSS, responsive checks, Chrome Local Overrides spikes, and Playwright-oriented verification.
+- Local frontend checklist for CSS/SCSS, responsive checks, Chrome Local Overrides spikes, local Playwright MCP browser QA, and optional project-local Playwright regression verification.
 
 Completed Section handoffs route to the Frontend Design QA `frontend-section-qa` Skill.
 
