@@ -15,17 +15,17 @@ The plugin package is the canonical reusable workflow source. Legacy SmartFlow g
 Use this plugin for WST builder work:
 
 - Review reusable ACF/WST structure for Flexible Content layouts, clone child fields, WST shortcodes, and Section template invariants.
-- Create a Flexible Content Section template.
-- Create the matching ACF section field group.
-- Add the Flexible Content layout entry.
-- Create the clone child field with the matching `parent_layout`.
-- Register the Section include in `flexible-content.php`.
-- Create the initial CSS file and stable selector hooks.
+- Classify a Section request as `new-section-foundation`, `existing-section-remodel`, `visual-only`, or `unclear` before any server-side write.
+- Create a Flexible Content Section template when the confirmed work type is `new-section-foundation`.
+- Create the matching ACF section field group when the confirmed work type is `new-section-foundation`, or when a confirmed remodel explicitly requires a new field group.
+- Add the Flexible Content layout entry and clone child field with the matching `parent_layout` when the confirmed work type is `new-section-foundation`, or when a confirmed remodel explicitly requires the new artifact.
+- Register the Section include in `flexible-content.php` when the confirmed work type is `new-section-foundation`.
+- Document CSS hooks, CSS path, and CSS status in the Section handoff. Server-side WST Builder does not create or edit final Section CSS or SCSS over Remote-SSH; that is owned by `frontend-design-qa` `frontend-section-qa`.
 - Create a CPT foundation with optional taxonomy, ACF CPT fields, WP Grid Builder grid/card setup, card template foundation, and optional single template foundation.
-- Flush the project cache using the project-local command.
-- Run the bundled `grill-me` preflight and emit or update a handoff draft on the same branch or PR.
+- Flush the project cache using the project-local command only when the cache action is inside the approved server write scope and, on `live` or `unknown` environments, explicitly confirmed.
+- Run the bundled `grill-me` preflight as a write-gate and emit or update a handoff draft on the same branch or PR before any PHP, ACF, Flexible Content, CSS/SCSS, style loader, WP-CLI, cache, or content write.
 
-Do not use this plugin as the source of truth for final visual implementation. Final CSS/SCSS refinement, Chrome Local Overrides spikes, responsive visual checks, and Playwright acceptance checks belong to the local frontend phase.
+Do not use this plugin as the source of truth for final visual implementation. Final CSS/SCSS refinement, new Section CSS files, style loader registration, Chrome Local Overrides spikes, responsive visual checks, and Playwright acceptance checks belong to the local frontend phase.
 
 ## Project Context Required
 
@@ -46,8 +46,8 @@ Before using the Skill, fill or locate these project-local values:
 - Rule: `cpt-wpgb-patterns`
 - Rule: `plugin-package-boundary`
 - Skill: `grill-me`
-- Skill: `wst-new-fc-section`
-- Reference: `wst-new-fc-section/reference.md`
+- Skill: `wst-section-workflow` (formerly `wst-new-fc-section`)
+- Reference: `wst-section-workflow/reference.md`
 - Template: `handoffs/section-handoff.template.md`
 - Template: `handoffs/cpt-handoff.template.md`
 - Skill: `wst-new-post-type`
@@ -58,7 +58,9 @@ Before using the Skill, fill or locate these project-local values:
 
 WST Builder owns the server-side half of the cross-plugin handoff contract. It runs the bundled preflight, creates the prefilled Section or CPT handoff at the project-configured storage location, and records every project-specific fact that Frontend Design QA needs before local CSS or SCSS work can begin. The handoff, not chat context or legacy source material, is the source of truth for the next phase.
 
-Before the server-side Section foundation is created or changed, run the bundled `grill-me` preflight and create a prefilled Section handoff draft. Use the bundled reusable template at `handoffs/section-handoff.template.md` as the canonical Section handoff source, then store the concrete handoff at the project-configured location from Project Context. The handoff should record the Section identity, page URL, template file, CSS file, ACF references, CSS hooks, cache state, expected visual behavior, QA notes, open questions, and remaining local frontend responsibilities.
+Before the server-side Section foundation is created or changed, run the bundled `grill-me` preflight and create a prefilled Section handoff draft. The preflight is a write-gate: PHP, ACF, Flexible Content, CSS/SCSS, style loader, WP-CLI, cache, and content writes are forbidden until a concrete handoff draft exists in the project-configured storage location. Use the bundled reusable template at `handoffs/section-handoff.template.md` as the canonical Section handoff source, then store the concrete handoff at the project-configured location from Project Context. The handoff should record `Work type`, `Environment`, `Server write scope`, `Frontend route`, `Preflight gate status`, `CSS status`, `Protected Existing Artifacts` for remodels, the Section identity, page URL, template file, CSS file, ACF references, CSS hooks, cache state, expected visual behavior, QA notes, open questions, and remaining local frontend responsibilities.
+
+Visual-only Section changes route directly to Frontend Design QA `frontend-section-qa`; in that case `wst-section-workflow` stops server-side work and does not write. On `live` or `unknown` environments, server-side writes require an explicit, scoped maintainer confirmation, and cache flushes require their own confirmation.
 
 Completed Section handoffs route to the Frontend Design QA `frontend-section-qa` Skill. The filled handoff is the shared contract between WST Builder server-side ownership and Frontend Design QA local implementation ownership.
 

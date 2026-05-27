@@ -1,8 +1,10 @@
-# WST New FC Section Reference
+# WST Section Workflow Reference
 
-Reusable lookup material for the `wst-new-fc-section` Skill. Values shown with angle brackets come from Project Context, the current issue brief, or the prefilled Section handoff draft.
+Reusable lookup material for the `wst-section-workflow` Skill. Values shown with angle brackets come from Project Context, the current issue brief, or the prefilled Section handoff draft.
 
-This file is the bundled, reusable reference for FC Section work. Legacy SmartFlow guide material may be useful as source material, but plugin packages are the canonical workflow source. Do not copy project-only keys, IDs, URLs, paths, labels, or access values from legacy examples into reusable plugin content.
+This file is the bundled, reusable reference for WST Flexible Content Section work. Legacy SmartFlow guide material may be useful as source material, but plugin packages are the canonical workflow source. Do not copy project-only keys, IDs, URLs, paths, labels, or access values from legacy examples into reusable plugin content.
+
+This reference is shared across all Section work types: `new-section-foundation`, `existing-section-remodel`, and the routing decisions for `visual-only`. The Skill itself decides which parts of this reference apply to a given request.
 
 ## Shared Clone Groups
 
@@ -18,7 +20,9 @@ If any clone group key is unknown, stop and ask or record an unresolved placehol
 
 ## Section Field Group Shape
 
-Create one ACF field group for the Section-specific editor fields. It is normally cloned into the Flexible Content layout and does not need a direct location rule unless the project has chosen a different ACF source of truth.
+Create one ACF field group for the Section-specific editor fields only when `Work type` is `new-section-foundation` or the confirmed remodel handoff explicitly requires a new field group. For an `existing-section-remodel`, reuse the existing field group and field keys by default.
+
+It is normally cloned into the Flexible Content layout and does not need a direct location rule unless the project has chosen a different ACF source of truth.
 
 ```php
 $prefix = '<section-prefix>';
@@ -56,7 +60,7 @@ Use generated field keys only after the project creates them. Record those keys 
 
 ## Flexible Content Layout Wiring
 
-Update the project Flexible Content field using the project-local field key or field post ID.
+Update the project Flexible Content field using the project-local field key or field post ID. For `existing-section-remodel`, do not change the existing layout name, layout key, or `parent_layout` unless the confirmed handoff explicitly approves a structural change.
 
 Required values:
 
@@ -117,20 +121,39 @@ Register the Section in the project-local Flexible Content template registry:
 [wst_include template="sections/<section-slug>.php" layout="layout_<section_slug_with_underscores>"]
 ```
 
-Use equivalent paths from Project Context when a project differs.
+Use equivalent paths from Project Context when a project differs. For `existing-section-remodel`, reuse the existing template path; do not create a new template file unless the confirmed handoff explicitly approves it.
 
-## CSS Hook Foundation
+## CSS Hooks Belong In The Handoff
 
-The server-side WST phase should establish stable hooks, not final visual styling.
+Server-side WST Builder records CSS hook expectations in the Section handoff. It does not create or edit final Section CSS or SCSS over Remote-SSH.
 
-Record or create only what the project requires upfront:
+Record:
 
 - Primary class: `.wso-section-<section-slug>`.
 - Wrapper/item selectors that template markup depends on.
 - CSS file path, usually `<theme-css-section-path>/<section-slug>.css`.
-- Style loader registration if the project requires new CSS files to be registered during server setup.
+- Whether the project requires a new style loader registration during local frontend work.
+- `CSS status` from `existing`, `new-needed-for-frontend`, `unknown`, or `not-applicable`.
 
-Final spacing, typography, responsive behavior, Chrome Local Overrides spikes, and Playwright-oriented checks belong to Frontend Design QA.
+Final spacing, typography, responsive behavior, Chrome Local Overrides spikes, and Playwright-oriented checks belong to Frontend Design QA. New CSS files and new style loader entries are created or registered by `frontend-section-qa` in tracked local source files, not by this Skill over Remote-SSH.
+
+## Live And Unknown Environment Confirmation
+
+For any change in a `live` or `unknown` environment, the prompt to the maintainer must be concrete. Generic example:
+
+```text
+Work type: existing-section-remodel
+Environment: live
+Files to change: smart-template-builder/sections/intro.php
+ACF/DB objects to change: none
+Content changes: none
+Cache action: wp cache flush after template change
+Rollback path: Git revert on branch <branch>
+
+May I perform exactly these changes on <environment>?
+```
+
+Cache flush on `live` or `unknown` requires its own confirmation even when other server writes were already approved.
 
 ## Section Handoff Draft
 
@@ -139,6 +162,7 @@ Create the prefilled Section handoff draft during the bundled `grill-me` preflig
 The draft should capture:
 
 - Handoff carrier, owner, project-configured storage location, and source brief.
+- `Work type`, `Environment`, `Server write scope`, `Frontend route`, `Preflight gate status`, `Protected existing artifacts`, and `CSS status`.
 - Section slug, label, layout name, target URL or planned verification URL, and source design or written brief.
 - Template path, CSS path, Section field group, Flexible Content field, layout key/name, clone child field, and Section-specific fields.
 - Primary section class, wrapper classes, custom properties, and selectors to preserve.
@@ -150,6 +174,6 @@ Completed Section handoffs route to the Frontend Design QA `frontend-section-qa`
 
 ## Cleanup
 
-If project-local temporary scripts are used to create ACF or wire Flexible Content, create them only in the safe location required by that project, run them through the project-local WP-CLI command, then delete them immediately.
+If project-local temporary scripts are used to create ACF or wire Flexible Content, create them only in the safe location required by that project, run them through the project-local WP-CLI command, then delete them immediately. Treat this as inside the approved `Server write scope`; do not introduce temporary scripts outside that scope.
 
-After server changes, flush caches with the project-local cache command and record the result in the Section handoff.
+After server changes, flush caches with the project-local cache command only when the cache action is inside the approved `Server write scope` and, on `live` or `unknown` environments, explicitly confirmed. Record the result in the Section handoff.

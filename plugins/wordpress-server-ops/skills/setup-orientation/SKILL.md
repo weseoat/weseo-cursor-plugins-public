@@ -279,7 +279,7 @@ The user runs Cursor with the WESEO plugins (`wordpress-server-ops`, `wst-builde
 Verify the co-installed workflow skills that later phases require:
 
 - `setup-orientation` and `wp-media-import` from `wordpress-server-ops`.
-- `grill-me`, `wst-new-fc-section`, and `wst-new-post-type` from `wst-builder`.
+- `grill-me`, `wst-section-workflow`, and `wst-new-post-type` from `wst-builder`.
 - `frontend-section-qa` and `cpt-frontend-qa` from `frontend-design-qa`.
 
 The project repository keeps a `.cursor` skeleton (Step 5) so the team can add project-specific Rules and Skills later.

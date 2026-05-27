@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "wst-builder",
   "displayName": "WST Builder Plugin",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "responsibility": "Package reusable WESEO Smart Template Builder workflows for the WST Builder role in the co-installed WESEO WordPress/WST workflow: Section and CPT foundations, handoff templates, ACF/WST/CPT/WPGB invariants, and pre-frontend handoffs.",
   "assumptions": [
     "The plugin is used in a Cursor workspace that has access to a WordPress and WST project checkout.",
@@ -38,10 +38,10 @@
       "description": "Run the bundled WST Builder preflight interview before Section or CPT foundation work and produce the required handoff draft."
     },
     {
-      "name": "wst-new-fc-section",
-      "path": "skills/wst-new-fc-section/SKILL.md",
-      "source": "weseo-smartflow-frontend-guide/.cursor/skills/wst-new-fc-section/SKILL.md",
-      "description": "Create a WST Flexible Content Section foundation, wire ACF layout and clone fields, register the template, and update the Section handoff from handoffs/section-handoff.template.md."
+      "name": "wst-section-workflow",
+      "path": "skills/wst-section-workflow/SKILL.md",
+      "source": "plugins/wst-builder/skills/wst-section-workflow/SKILL.md",
+      "description": "Plan, classify, and execute server-side WST Flexible Content Section work for new sections, existing-section remodels, or visual-only routing to Frontend Design QA, with a hardened preflight write-gate and the Section handoff from handoffs/section-handoff.template.md. Replaces the older `wst-new-fc-section` Skill name."
     },
     {
       "name": "wst-new-post-type",
@@ -50,5 +50,5 @@
       "description": "Create a WST Custom Post Type foundation, including required preflight, the bundled CPT handoff template at handoffs/cpt-handoff.template.md, optional taxonomy, ACF CPT fields, WP Grid Builder grid/card foundation, card template, and optional single template."
     }
   ],
-  "releaseNotes": "release-notes/0.1.1.md"
+  "releaseNotes": "release-notes/0.1.2.md"
 }

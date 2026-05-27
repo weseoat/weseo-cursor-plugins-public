@@ -2,6 +2,8 @@
 
 Copy this document for each WST Flexible Content Section into the project-configured handoff storage location from Project Context. Replace placeholders before Section implementation or local frontend work starts. If a blocking value is unknown, keep an explicit `<unresolved: ...>` placeholder instead of inventing a technical value.
 
+This template is shared across all Section work types: `new-section-foundation`, `existing-section-remodel`, and `visual-only`. The `Workflow Routing` section is filled during the preflight and gates all later server-phase writes.
+
 ## Handoff Carrier
 
 | Field | Value |
@@ -13,6 +15,18 @@ Copy this document for each WST Flexible Content Section into the project-config
 | Preflight status | `<not-started/in-progress/done>` |
 | Server phase status | `<not-started/in-progress/done>` |
 | Local frontend phase status | `<not-started/in-progress/done>` |
+
+## Workflow Routing
+
+| Field | Value |
+|-------|-------|
+| Work type | `<new-section-foundation/existing-section-remodel/visual-only/unclear>` |
+| Environment | `<local/dev/staging/live/unknown>` |
+| Server write scope | `<files/database-acf/content/cache/none and a short scope description>` |
+| Frontend route | `<frontend-section-qa/not-needed-yet/blocked>` |
+| Preflight gate status | `<read-only/handoff-created/write-approved/blocked>` |
+| Live or unknown write confirmation | `<not-required/pending/granted/denied and approver>` |
+| CSS status | `<existing/new-needed-for-frontend/unknown/not-applicable>` |
 
 ## Section Identity
 
@@ -36,6 +50,20 @@ Copy this document for each WST Flexible Content Section into the project-config
 | ACF fields | `<field-keys-or-field-names>` |
 | Content setup notes | `<page-id-language-content-state>` |
 
+## Protected Existing Artifacts
+
+Fill this section for `existing-section-remodel` work types. List the artifacts the remodel must preserve unless the confirmed scope explicitly approves a structural change.
+
+| Field | Value |
+|-------|-------|
+| Existing layout name | `<existing-layout-name-or-not-applicable>` |
+| Existing layout key | `<existing-layout-key-or-not-applicable>` |
+| Existing parent_layout binding | `<existing-parent-layout-or-not-applicable>` |
+| Existing ACF field keys | `<existing-field-keys-or-not-applicable>` |
+| Existing template path | `<existing-template-path-or-not-applicable>` |
+| Existing CSS path | `<existing-css-path-or-not-applicable>` |
+| Public selectors to preserve | `<selectors-or-not-applicable>` |
+
 ## CSS Hooks
 
 | Field | Value |
@@ -58,18 +86,24 @@ Copy this document for each WST Flexible Content Section into the project-config
 ## Server Phase Responsibilities
 
 - [ ] Run the bundled `grill-me` preflight before creating or modifying Section files or ACF structures.
+- [ ] Classify the request as `new-section-foundation`, `existing-section-remodel`, `visual-only`, or `unclear`.
+- [ ] Record `Environment`, `Server write scope`, `Frontend route`, and `Preflight gate status` in `Workflow Routing` before any write.
+- [ ] For `live` or `unknown` environments, capture the explicit write confirmation before changing files, ACF objects, content, or cache.
+- [ ] For `existing-section-remodel`, fill `Protected Existing Artifacts` before any write.
 - [ ] Search Project Context for URLs, paths, IDs, selectors, ACF references, and handoff storage before asking the maintainer.
 - [ ] Create this prefilled handoff draft in the project-configured storage location.
-- [ ] Create or update the WST Section template.
-- [ ] Create or update the ACF section field group and Flexible Content layout.
-- [ ] Register the Section in `flexible-content.php`.
-- [ ] Create representative content on the target page.
-- [ ] Flush relevant WordPress/cache layers.
+- [ ] Create or update the WST Section template only when inside the approved server write scope.
+- [ ] Create or update the ACF section field group and Flexible Content layout only when inside the approved server write scope.
+- [ ] Register the Section in `flexible-content.php` only when inside the approved server write scope.
+- [ ] Document CSS hooks, CSS path, and `CSS status` in this handoff; do not create or edit Section CSS files over Remote-SSH.
+- [ ] Create representative content on the target page only when inside the approved server write scope.
+- [ ] Flush relevant WordPress/cache layers only when inside the approved server write scope and, on `live` or `unknown`, explicitly confirmed.
 - [ ] Fill this handoff before local CSS/Playwright work starts.
 
 ## Local Frontend Responsibilities
 
 - [ ] Implement CSS/SCSS in the local Git repo.
+- [ ] Create or register the Section CSS file in tracked local source when `CSS status` is `new-needed-for-frontend`.
 - [ ] Use Chrome Local Overrides only as a temporary spike tool if needed.
 - [ ] Move final CSS changes into tracked files.
 - [ ] Run responsive checks against the handoff Page URL.

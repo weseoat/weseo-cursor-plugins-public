@@ -1,6 +1,6 @@
 {
   "name": "wst-builder",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "WESEO WST Builder workflows for the co-installed WordPress/WST workflow with wordpress-server-ops and frontend-design-qa: Section and Custom Post Type foundations, ACF/WST/CPT/WPGB guidance, bundled Section and CPT handoff templates, and pre-frontend handoff ownership before local implementation.",
   "author": {
     "name": "WESEO"

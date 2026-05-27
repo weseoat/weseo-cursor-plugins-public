@@ -84,7 +84,7 @@ Details: `wordpress-server-ops` Rule `file-edit-boundary`.
 
 Lies die Aufgabe und überlege, welche Phase und welches Plugin zuständig sind:
 
-- Neue Section / neuer CPT / neue ACF-Felder → Remote, `wst-builder` (`wst-new-fc-section`, `wst-new-post-type`).
+- Neue Section, bestehende Section umbauen, neuer CPT, neue ACF-Felder → Remote, `wst-builder` (`wst-section-workflow`, `wst-new-post-type`). Rein visuelle Section-Änderungen gehen direkt an `frontend-design-qa` (`frontend-section-qa`).
 - Bestehende Section visuell finalisieren → lokal, `frontend-design-qa` (`frontend-section-qa`).
 - CPT-Cards, Archive, Single-Templates visuell finalisieren → lokal, `frontend-design-qa` (`cpt-frontend-qa`).
 - Bilder in die Mediathek → Remote, `wordpress-server-ops` (`wp-media-import`).

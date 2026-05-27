@@ -427,7 +427,7 @@ Tracked content in `.cursor/rules/` and `.cursor/skills/` is reserved for projec
 Verify whether the personal plugin guidance is loaded for this Remote-SSH workspace:
 
 1. Frage den User, ob die Plugins `wordpress-server-ops`, `wst-builder`, `frontend-design-qa` in seinem persönlichen Cursor-Account aktiviert sind.
-2. Frage, ob die Plugin-Skills im Remote-SSH-Workspace verfügbar sind: `setup-orientation`, `wp-media-import`, `grill-me`, `wst-new-fc-section`, `wst-new-post-type`, `frontend-section-qa`, `cpt-frontend-qa`.
+2. Frage, ob die Plugin-Skills im Remote-SSH-Workspace verfügbar sind: `setup-orientation`, `wp-media-import`, `grill-me`, `wst-section-workflow`, `wst-new-post-type`, `frontend-section-qa`, `cpt-frontend-qa`.
 3. Wenn ja, dokumentiere in `PROJECT-CONTEXT.md`, dass die Plugin-Guidance aktiv ist und diese Workflow-Skills verfügbar sind; keine projektlokale Kopie nötig.
 4. Wenn die Plugin-Guidance im SSH-Kontext nicht verfügbar ist, schlage manuelle Projektion vor: Plugin-Inhalte werden lokal in `.cursor/rules/` und `.cursor/skills/` projiziert, aber nur als Workaround. Dokumentiere die Abweichung.
 5. Installiere niemals private Setup-Notizen, Dumps oder Credentials in `.cursor/`.

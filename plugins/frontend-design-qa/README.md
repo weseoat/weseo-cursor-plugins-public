@@ -52,7 +52,7 @@ Before using the Skill or Rules, fill or locate these project-local values:
 
 ## Section Handoff
 
-Start from a filled Section handoff created by the WST Builder `wst-new-fc-section` Skill. WST Builder's bundled reusable Section template lives at `plugins/wst-builder/handoffs/section-handoff.template.md`; the filled project handoff lives at the project-configured storage location from Project Context. The handoff should name the target URL, template and CSS files, ACF references, CSS hooks, expected visual behavior, QA notes, and local frontend responsibilities.
+Start from a filled Section handoff created by the WST Builder `wst-section-workflow` Skill (older releases called it `wst-new-fc-section`). WST Builder's bundled reusable Section template lives at `plugins/wst-builder/handoffs/section-handoff.template.md`; the filled project handoff lives at the project-configured storage location from Project Context. The handoff should name the `Work type`, `Environment`, `Frontend route`, `CSS status`, target URL, template and CSS files, ACF references, CSS hooks, expected visual behavior, QA notes, and local frontend responsibilities.
 
 If the Section handoff is missing the target URL, stable selectors, ACF or WST references, CSS path, visual requirements, local frontend responsibilities, or project-configured storage facts, stop and ask for the missing information instead of guessing.
 
