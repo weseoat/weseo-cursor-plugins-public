@@ -4,6 +4,8 @@ Reusable lookup material for the `wst-new-post-type` Skill. Values shown with an
 
 This reference is intentionally generic. Project-specific CPT names, rewrite slugs, ACF keys, field post IDs, WP Grid Builder IDs, URLs, paths, selectors, credentials, and theme tokens must stay in Project Context or the concrete CPT handoff.
 
+This reference is shared across all CPT work types: `new-cpt-foundation`, `existing-cpt-remodel`, and the routing decisions for `visual-only`. The Skill itself decides which parts of this reference apply to a given request.
+
 ## Safe Defaults
 
 Use these defaults only as starting points for discussion during the bundled `grill-me` preflight:
@@ -15,7 +17,39 @@ Use these defaults only as starting points for discussion during the bundled `gr
 - Keep generated IDs and field keys in Project Context or the CPT handoff, never in reusable plugin docs.
 - Route completed CPT handoffs to `cpt-frontend-qa`; if a dedicated WST Section becomes the main display surface, record the split with `frontend-section-qa`.
 
+## Work Type Defaults
+
+Use these workflow defaults before applying any CPT-specific implementation guidance:
+
+| Work type | Default behavior |
+| --- | --- |
+| `new-cpt-foundation` | Create only the artifacts explicitly needed by the handoff: CPT registration, optional taxonomy, optional ACF field group, optional WPGB grid/card, card template, optional archive/grid integration, optional single template, and CSS hook documentation. |
+| `existing-cpt-remodel` | Preserve existing structure by default. Do not create new registration, taxonomy, ACF, WPGB, template, CSS, or style loader artifacts unless the confirmed handoff requires them. |
+| `visual-only` | Do not write server-side artifacts. Route to Frontend Design QA `cpt-frontend-qa`, with `frontend-section-qa` noted when the visible change is Section-level. |
+| `unclear` | Stop and ask before any write or read-only audit beyond Project Context. |
+
+## Live And Unknown Environment Confirmation
+
+For any change in a `live` or `unknown` environment, the prompt to the maintainer must be concrete. Generic example:
+
+```text
+Work type: existing-cpt-remodel
+Environment: live
+Files to change: smart-template-builder/post-types/<resource>/cards/<resource>-card.php
+ACF/DB objects to change: none
+WPGB objects to change: none
+Content changes: none
+Cache action: wp cache flush after template change
+Rollback path: Git revert on branch <branch>
+
+May I perform exactly these changes on <environment>?
+```
+
+Cache flush on `live` or `unknown` requires its own confirmation even when other server writes were already approved.
+
 ## CPT UI Settings
+
+Create or change CPT UI settings only when the approved `Server write scope` includes the CPT registration. For `existing-cpt-remodel`, preserve the registered post type, labels, supports, rewrite, archive, and search behavior unless the confirmed handoff explicitly approves a change.
 
 For CPTs without public detail pages:
 
@@ -60,6 +94,8 @@ Only enable detail pages after the handoff records the URL slug, archive/search 
 
 Use a taxonomy when the CPT needs filtering, grouping, labels, or editor organization.
 
+For `existing-cpt-remodel`, preserve the existing taxonomy name, hierarchy, public archive behavior, and rewrite behavior unless the confirmed handoff explicitly approves a structural taxonomy change.
+
 ```json
 {
   "name": "wso_tax_<resource>",
@@ -84,6 +120,8 @@ Record an explicit no-taxonomy decision when the CPT does not need taxonomy. If 
 ## ACF Field Group Shape
 
 Create one field group for CPT-specific fields, with a location rule targeting the registered post type.
+
+For `existing-cpt-remodel`, reuse the existing field group and field keys by default. Create new fields only when the approved `Server write scope` and handoff say the content model requires them.
 
 ```php
 $group_id = wp_insert_post([
@@ -139,6 +177,8 @@ WST projects commonly use WP Grid Builder for CPT card lists:
 - Record generated `<grid-id>` and `<card-id>` in Project Context or the handoff.
 - Record an explicit no-WPGB decision when the CPT is rendered only by a custom Section, single template, or other project-specific path.
 
+For `existing-cpt-remodel`, preserve existing WPGB grid/card IDs, grid source, selected card, filters, pagination, and carousel behavior unless the confirmed handoff explicitly approves a change.
+
 Template lookup usually follows these shapes:
 
 ```text
@@ -151,6 +191,39 @@ smart-template-builder/post-types/<resource>/singles/<resource>-single.php
 Use the equivalent paths from Project Context when a project differs.
 
 Do not hardcode WPGB IDs in card templates, reusable references, or plugin docs. Generated IDs belong in concrete project context and handoffs.
+
+## Protected Existing Artifacts
+
+Fill this during `existing-cpt-remodel` preflight before any write:
+
+| Artifact | Preserve unless explicitly approved |
+| --- | --- |
+| CPT registration | Registered post type, labels, supports, rewrite, archive, search behavior, REST/admin visibility. |
+| Taxonomy | Taxonomy name, hierarchy, object type binding, public archive behavior, rewrite behavior. |
+| ACF | Field group, field names, field keys, location rules, field ownership. |
+| WPGB | Grid ID, card ID, source settings, selected card, filters, pagination, carousel settings. |
+| Templates | Card, archive/grid, carousel/filter, Section integration, and optional single template paths. |
+| Selectors | Card, archive/grid, filter, carousel, single, and integration selectors used by templates, JS, WPGB behavior, CSS, or tests. |
+| CSS | Existing CSS path, style loader entry, and `CSS status`. |
+
+If the desired change can be made inside an existing template without changing registration, ACF, WPGB, or paths, limit the write scope to that template. If the desired change is visual-only, route to `cpt-frontend-qa`.
+
+## CSS Hooks Belong In The Handoff
+
+Server-side WST Builder records CSS hook expectations in the CPT handoff. It does not create or edit final CPT CSS or SCSS over Remote-SSH.
+
+Record:
+
+- Card selector, usually `.wso-<resource>-card`.
+- Archive/grid wrapper selector.
+- Carousel or filter selectors when relevant.
+- Single selector, usually `.wso-<resource>-single` when detail pages exist.
+- Section integration selector when a dedicated Section renders the CPT display.
+- CSS file path for local frontend work.
+- Whether the project requires a new style loader registration during local frontend work.
+- `CSS status` from `existing`, `new-needed-for-frontend`, `unknown`, or `not-applicable`.
+
+Final spacing, typography, responsive behavior, Chrome Local Overrides spikes, local Playwright MCP browser QA, and optional project-local Playwright regression checks belong to Frontend Design QA. New CSS files and new style loader entries are created or registered by `cpt-frontend-qa` in tracked local source files, not by this Skill over Remote-SSH.
 
 ## WST Card Shortcodes
 
@@ -178,6 +251,7 @@ The CPT handoff draft is separate from the Section handoff template. Create it f
 The draft should capture:
 
 - Handoff carrier, owner, project-configured storage location, and source brief.
+- `Work type`, `Environment`, `Server write scope`, `Frontend route`, `Preflight gate status`, `Protected existing artifacts`, and `CSS status`.
 - CPT slug, registered name, singular label, plural label, and admin visibility.
 - Detail-page decision, URL slug or explicit "no public detail page" decision, archive/search behavior, and unresolved detail-page questions.
 - Taxonomy decision, taxonomy name, labels, hierarchy, public archive decision, purpose, and unresolved taxonomy questions.

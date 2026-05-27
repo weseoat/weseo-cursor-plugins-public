@@ -157,6 +157,8 @@ Never store real tokens, application passwords, SSH private keys, token-bearing 
 
 For handoff storage, record project-configured locations rather than inventing a package path. Section handoff drafts should use WST Builder's bundled template at `plugins/wst-builder/handoffs/section-handoff.template.md` as the reusable contract and then be stored at the concrete project location recorded in `PROJECT-CONTEXT.md`. CPT handoffs should use WST Builder's bundled template at `plugins/wst-builder/handoffs/cpt-handoff.template.md` as the reusable contract and then be stored separately at the project-configured CPT handoff location recorded in `PROJECT-CONTEXT.md`.
 
+Handoffs travel between the Remote-SSH WordPress workspace (server phase) and the local frontend workspace (frontend phase) through Git. Both workspaces clone the same Bitbucket repository, and the deny-all `.gitignore` baseline blocks any folder that is not on the allowlist. Once a project handoff storage location is recorded in this step, the wizard adds it to the `.gitignore` allowlist in Step 5 so the handoff files are trackable in both workspaces.
+
 For `LEARNINGS.md`, check whether the file exists in the WordPress root. If it exists, record `learnings: exists`. If it does not, record that it should be created when the first real project learning appears. Missing learnings are not a setup failure.
 
 If required non-secret values are missing, follow the Project Context fill walkthrough in [reference.md](reference.md). The old SmartFlow placeholder categories (CPTs, Key Page IDs, WP Grid Builder Grids, FC Field Keys, Clone Group Keys, button variants, container widths, clamp values, ACF IDs) are collected here, not by editing plugin Rules.
@@ -222,9 +224,12 @@ The default allowlist covers:
 - Setup files (`.gitignore`, `PROJECT-CONTEXT.md`, `README.md`).
 - Detected child themes (`astra-child`, `betheme-child`, `smarttheme-child`).
 - The `.cursor` skeleton: `.cursor/rules/.gitkeep` and `.cursor/skills/.gitkeep` plus any future project-specific Rules and Skills.
+- The project-configured Section and CPT handoff storage paths from Step 3, so handoffs flow between Remote-SSH and local workspace through Git.
 - `.cursor/mcp.json` stays ignored.
 
 Project-owned plugins (including `weseo-smart-template-builder` when project policy makes it editable) are added to the allowlist only after explicit confirmation in `PROJECT-CONTEXT.md` or by the maintainer.
+
+When Step 3 records concrete handoff storage paths, write the matching unignore entries into `.gitignore` here. Each handoff folder needs both the folder line and the recursive `**` line, and a shared parent folder (for example `handoffs/`) is unignored once so the children are reachable. The detailed allowlist shape and verification commands live in [reference.md](reference.md). If a handoff storage location is still `pending` in `PROJECT-CONTEXT.md`, record the matching `.gitignore` entry as `pending: <reason>` with the next action and add it as soon as the path is known.
 
 Create the `.cursor` skeleton if missing:
 
@@ -361,7 +366,7 @@ Use the final verification walkthrough in [reference.md](reference.md). Confirm 
 
 - Cursor is connected to the expected Remote-SSH workspace and the open folder is the WordPress root.
 - `PROJECT-CONTEXT.md` exists and contains the detected non-secret setup coordinates with no secrets.
-- Section handoff storage and CPT handoff storage are recorded or marked `pending` with a next action.
+- Section handoff storage and CPT handoff storage are recorded or marked `pending` with a next action, and their `.gitignore` allowlist entries are in place so handoffs can flow between Remote-SSH and local workspace through Git.
 - `LEARNINGS.md` status is recorded without treating a missing file as a failure.
 - Git is working through the Bitbucket remote with `git fetch origin` succeeding, identity is set, and the deny-all `.gitignore` produced a clean staging scope before the initial push.
 - WST stack status is recorded.
@@ -418,7 +423,7 @@ When the wizard finishes, leave behind:
 
 - A usable Remote-SSH Cursor workspace at the WordPress root.
 - `PROJECT-CONTEXT.md` filled with non-secret facts, recorded gates, and any `pending`/`skipped` notes with reason and next action.
-- Project-configured Section and CPT handoff storage recorded in `PROJECT-CONTEXT.md`.
+- Project-configured Section and CPT handoff storage recorded in `PROJECT-CONTEXT.md`, with matching `.gitignore` allowlist entries so handoffs travel through Git between Remote-SSH and local workspace.
 - `LEARNINGS.md` status recorded in `PROJECT-CONTEXT.md` without requiring the file to exist on day one.
 - Working project Git through the approved Bitbucket access method.
 - Verified WP-CLI and a documented, executed cache flush command.

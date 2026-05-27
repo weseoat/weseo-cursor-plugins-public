@@ -81,7 +81,17 @@ Follow existing WST and Astra selector style:
 - Match existing heading and paragraph specificity when overriding global typography.
 - Use state classes such as `.is-active`, `.is-open`, or project-established equivalents.
 
-Use `!important` only when overriding a theme or plugin rule that cannot be changed through a cleaner selector or source order.
+Use `!important` only when overriding a theme or plugin rule that cannot be changed through a cleaner selector or source order. `!important` is a last resort; prefer a more specific or better-scoped selector first.
+
+## Specificity Verification
+
+Verify selector specificity against the real rendered target page, not against the source file in isolation.
+
+- Inspect the actual DOM of the Section in the browser through Playwright MCP or DevTools.
+- Capture matched CSS rules and computed styles for the affected elements before any change.
+- After applying or injecting the planned rules, re-read computed styles to confirm the rules win the cascade.
+- When the rules do not win, identify the cause (higher specificity, later source order, `!important`, inline style, plugin style) and adjust with a minimally stronger or better-scoped selector.
+- Stay on the selector being changed. Do not try to analyse the entire theme cascade.
 
 ## Units And Values
 
@@ -101,6 +111,17 @@ For each Section or CPT display target, check:
 - Desktop, tablet, and mobile behavior from the handoff.
 - Long copy, empty optional fields, repeated items, card counts, filters, pagination, and missing media.
 - Hover, focus, active, loading, and reduced-motion states that apply.
+
+## Remote WordPress Verification
+
+Local CSS or SCSS changes against a remote dev or staging WordPress URL are not automatically served by that URL on save. The remote site keeps serving the previously deployed CSS until the change is delivered (Git pull, deploy, sync, or direct local serving). Final visual evaluation against the remote URL is only valid when the new rules are actually present in the served stylesheets.
+
+Two valid verification modes:
+
+- Injection-proof: temporarily inject the planned rules into the rendered remote page through Playwright MCP or CDP, then verify computed styles, specificity, and visual behavior on the real DOM. Use this to confirm the rules work before writing them to tracked source.
+- Source-served verification: after the change has reached the server through the project delivery path (Git pull, deploy, sync, or direct local serving), confirm that the new rules are actually present in the served stylesheets before judging the visual result.
+
+Until a source-served verification succeeds, document the work as `implementation pass, deployed verification pending`, not as a final pass. If injected rules behave differently from served rules, record the symptom and check for caching, build artifacts, file path, source order, or specificity differences.
 
 ## Formatting
 

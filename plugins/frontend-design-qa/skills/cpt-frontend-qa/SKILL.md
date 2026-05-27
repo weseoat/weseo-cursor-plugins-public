@@ -5,32 +5,78 @@ description: Implement and verify local frontend presentation for a WST CPT hand
 
 # CPT Frontend QA
 
-Use this Skill for the local frontend phase after the WST Builder `wst-new-post-type` Skill has created the server-side CPT foundation and filled a CPT foundation handoff. WST Builder owns the reusable CPT handoff template at `plugins/wst-builder/handoffs/cpt-handoff.template.md`; the filled handoff itself lives at the project-configured CPT handoff storage location from Project Context.
+This Skill is a productive QA and CSS/SCSS implementation workflow with safety stops for CPT frontend work, not a strict handoff gate. Discovery and reads are always allowed. Writes proceed when scope is clear, browser access works, and an injection-proof against the real WordPress page passes. The Skill stops only at concrete risk points: missing browser access, server-side discrepancies, or pending Git pull/deploy.
 
-This Skill owns final tracked CSS or SCSS work, a Playwright MCP browser QA loop, responsive checks, optional project-local Playwright regression acceptance, and CPT handoff QA writeback for CPT cards, archive/grid presentation, and optional single-template presentation. It does not own CPT registration, taxonomy setup, ACF field groups, WP Grid Builder card/grid foundation, WST templates, WordPress content, WP-CLI, cache execution, deployment, or Remote-SSH operations. Playwright MCP setup itself is owned by `setup-playwright-mcp` in this plugin.
+Use this Skill for the local frontend phase after the WST Builder `wst-new-post-type` Skill has created the server-side CPT foundation and filled a CPT foundation handoff. When the task is visual-only CPT card or display styling and no handoff exists, the Skill creates a temporary mini-handoff and works from there.
+
+This Skill owns final tracked CSS or SCSS work for CPT cards, archive/grid presentation, carousel/filter behavior, WP Grid Builder frontend output, and optional single-template presentation. It also owns a Playwright MCP browser QA loop, CSS-injection proof against the real target URL, responsive checks, optional project-local Playwright regression acceptance, and CPT handoff QA writeback. It does not own CPT registration, taxonomy setup, ACF field groups, WP Grid Builder card/grid foundation, WST templates, WordPress content, WP-CLI, cache execution, deployment, or Remote-SSH operations. Playwright MCP setup itself is owned by `setup-playwright-mcp` in this plugin.
+
+WST Builder owns the reusable CPT handoff template at `plugins/wst-builder/handoffs/cpt-handoff.template.md`; the filled handoff itself lives at the project-configured CPT handoff storage location from Project Context.
+
+When a CPT display becomes primarily a WST Section layout, route the Section-level layout work to `frontend-section-qa`. CPT card, archive/grid, carousel/filter, WP Grid Builder output, and optional single-template QA stay in this Skill and are documented in the CPT handoff.
 
 ## Required Starting Point
 
-Start from a concrete filled CPT foundation handoff produced by the WST Builder server phase. The handoff is the contract for CPT local frontend work and the place where QA results are written back.
+Always ask first whether a CPT foundation handoff or `handoff.md` exists for this task. The handoff is tracked in Git and flows from the Remote-SSH WordPress workspace (where WST Builder writes it) to the local frontend workspace through a normal commit/push/pull cycle. A missing handoff usually means the local workspace has not pulled the latest commit yet, or WST Builder created the handoff but has not committed and pushed it.
 
-Do not begin final card, archive/grid, optional single-template CSS, Chrome Local Overrides spikes, responsive checks, or browser QA from chat context alone. If the handoff path or project-configured storage location is unknown, stop and ask for it.
+- If a handoff exists locally: read it, use it as the contract, and write QA results back into it.
+- If the user is unsure whether a handoff exists: run `git pull` (or `git fetch` plus a check of the active branch) before deciding the handoff is missing, then search the project-configured CPT handoff storage location from `PROJECT-CONTEXT.md`, and ask again with the findings.
+- If the user confirms `visual-only` CPT card or display styling without a handoff: create a temporary mini-handoff (see below) and continue.
+- If the task turns out to need server-side CPT, taxonomy, ACF, WPGB, or WST template changes: stop and route back to `wst-new-post-type` or `wst-section-workflow`.
+
+## Mini-Handoff For Visual-Only Without Existing Handoff
+
+When the user confirms visual-only CPT styling without an existing handoff, create a temporary mini-handoff in the project-configured CPT handoff storage location from `PROJECT-CONTEXT.md`. If the location is unknown, ask once.
+
+- Filename: `<cpt-or-display-slug>-visual-only-handoff.md`.
+- If the slug is unclear, derive a slug from the CPT display URL or card selector and ask for a one-line confirmation before writing the file.
+- Use `cpt-handoff.template.md` as a base. Fill what is known and keep `<unresolved: ...>` markers for the rest.
+- Treat the mini-handoff as the live work protocol for the rest of the task.
+
+## Status Fields The Skill Maintains
+
+The Skill updates these status fields in the active handoff or mini-handoff. They make the work mode and verification state explicit at every stop.
+
+- `frontend work mode`: `handoff` or `visual-only-mini-handoff`.
+- `browser access`: `ready` or `blocked: <reason>`.
+- `proof mode`: `injection-proof` or `source-served`.
+- `injection proof`: `pending`, `pass`, `fail`, or `not-needed`.
+- `delivery path`: `direct-local-serving`, `auto-deploy-available`, `git-pull-required`, or `unknown`.
+- `server pull/deploy`: `not-needed`, `pending`, `user-confirmed`, or `not-reflected`.
+- `source-served verification`: `pending`, `pass`, `fail`, or `blocked`.
+- `final status`: `implementation-pass-pending-deploy`, `final-source-served-pass`, or `blocked`.
 
 ## Playwright MCP Preflight
 
 Browser QA for CPT card, archive/grid, carousel/filter, and optional single-template work runs through Playwright MCP in the local Cursor workspace. Before the first browser interaction:
 
-1. Read `PROJECT-CONTEXT.md` and the active CPT handoff for the `playwright_mcp` status.
+1. Read `PROJECT-CONTEXT.md` and the active CPT handoff or mini-handoff for the `playwright_mcp` status.
 2. If the status is `ready` and a quick navigation to the CPT display URL still works, continue.
 3. If the status is missing, `pending`, or unverified for this local workspace, run `setup-playwright-mcp` first.
-4. If a blocker prevents browser access (login wall, cookie banner, IP allowlist, self-signed cert, headless restriction), record the blocker in the handoff and continue with a focused manual acceptance path until the blocker is resolved.
+4. If a blocker prevents browser access (login wall, cookie banner, IP allowlist, self-signed cert, headless restriction), record the blocker in the handoff and treat browser access as a hard precondition for final CSS writes (see Browser Access Safety Stop).
 
 Never configure Playwright MCP inside a Remote-SSH workspace from this Skill. Route that back to `setup-playwright-mcp` in the local frontend workspace.
+
+## Browser Access Safety Stop
+
+Final visual CSS or SCSS writes require real browser access to the CPT display URL and, when public detail pages exist, a representative single URL. WordPress with a theme, WST, and WPGB on top has too many overrides to style blindly.
+
+- If the target page needs login, cookie consent, basic auth, IP allowlist, or any other gating that Playwright MCP cannot pass, stop and ask for browser access or session login.
+- Throwaway or placeholder login data may be shared by the user for the current session. Use it only to log in through Playwright/CDP.
+- Do not write login credentials, cookies, tokens, or session details into the handoff, the mini-handoff, project notes, screenshots, console logs, diagnostics, or any tracked file.
+
+Before the stop, the Skill may still:
+
+- Create or update a mini-handoff.
+- Read project context and existing CPT/card/grid CSS or SCSS patterns.
+- Identify likely target files for the CSS or SCSS change.
+- Prepare a draft of the planned rules.
 
 ## Inputs
 
 Read these before editing:
 
-- CPT foundation handoff path, project-configured storage location, and current handoff status.
+- CPT foundation handoff or mini-handoff path, storage location, and current status fields.
 - Target dev or staging URL for the card/archive/grid view and optional single view.
 - CPT registered name, labels, detail-page decision, taxonomy decision, and display target.
 - Card, archive/grid, and optional single template file references.
@@ -39,9 +85,9 @@ Read these before editing:
 - WP Grid Builder grid and card IDs as project-local values when they affect verification.
 - Expected desktop, tablet, mobile, content variation, empty-state, and interaction behavior.
 - Local Playwright MCP status from `PROJECT-CONTEXT.md` and the handoff, including any browser access blocker.
-- Project Context for theme tokens, breakpoints, rem scale, style loader, build command, optional project-local Playwright command, viewport conventions, repository policy, and design references.
+- Project Context for theme tokens, breakpoints, rem scale, style loader, build command, optional project-local Playwright command, viewport conventions, Git workflow, repository policy, and design references.
 
-If the handoff is missing target URLs, stable selectors, ACF references, WP Grid Builder IDs or an explicit no-WPGB decision, visual requirements, local frontend responsibilities, storage facts, cache state, known risks, open questions, or detail-page/display decisions, stop and ask for the missing information before final CSS work. Do not invent URLs, selectors, ACF references, WP Grid Builder IDs, theme tokens, file paths, storage locations, cache behavior, detail-page behavior, taxonomy behavior, or expected behavior.
+If a required value is unresolved, prefer to derive it from project context, the Figma source, the real target page, or existing patterns before asking the user. Stop and ask only when a value is genuinely not derivable and a write would be risky.
 
 ## Workflow
 
@@ -49,26 +95,38 @@ Track progress with this checklist:
 
 ```text
 CPT Frontend QA:
-- [ ] Read Project Context and CPT foundation handoff
+- [ ] Ask whether a CPT handoff exists; create a mini-handoff for visual-only work without one
+- [ ] Read project context and the active handoff or mini-handoff
 - [ ] Confirm Playwright MCP is ready locally or run setup-playwright-mcp
+- [ ] Confirm browser access to the CPT display URL, or stop and ask for login/access
 - [ ] Confirm display target, selectors, and detail-page decision
-- [ ] Inspect existing CPT, card, grid, and theme CSS patterns
-- [ ] Drive a Playwright MCP browser QA loop against the CPT display URL
-- [ ] Implement card CSS or SCSS in tracked local files
-- [ ] Implement archive/grid CSS or SCSS in tracked local files
-- [ ] Implement optional single-template CSS or SCSS when detail pages exist
-- [ ] Use Chrome Local Overrides only for temporary spikes
-- [ ] Move any successful spike changes into source files
+- [ ] Re-read the Figma or source design when a link is available
+- [ ] Inspect existing CPT, card, grid, and theme CSS or SCSS patterns
+- [ ] Drive a Playwright MCP browser QA loop and capture real DOM, matched and computed styles
+- [ ] Run a CSS-injection proof of the planned rules against the real CPT display URL and single URL when applicable
+- [ ] Implement card CSS or SCSS in tracked local files when the injection proof passes
+- [ ] Implement archive/grid/carousel/filter CSS or SCSS in tracked local files when the injection proof passes
+- [ ] Implement optional single-template CSS or SCSS when detail pages exist and the injection proof passes
+- [ ] Detect the delivery path; default to git-pull-required when no auto-deploy exists
+- [ ] On delivery path `git-pull-required` or `unknown`, stop with implementation-pass-pending-deploy and wait for user confirmation
+- [ ] After user confirms server pull or deploy, verify that the new CSS rules are actually served before re-checking visuals
 - [ ] Re-run the Playwright MCP browser loop at desktop, tablet, and mobile viewports
 - [ ] Run the optional project-local Playwright regression command when a real harness exists
 - [ ] Record stale-cache or server-output symptoms without running server commands
-- [ ] Update the handoff QA notes including local Playwright MCP status
+- [ ] Stop and document any server, markup, CPT, taxonomy, ACF, WST, or WPGB discrepancy as a server blocker; route to wst-new-post-type or wst-section-workflow
+- [ ] Update the handoff QA notes and status fields
 - [ ] Commit code and handoff updates on the same branch or PR
+- [ ] On full completion, write a short permanent project note and delete an active mini-handoff
 ```
 
-## 1. Confirm The CPT Handoff
+## 1. Confirm The Work Mode
 
-The CPT foundation handoff is the contract for local work. Confirm it includes:
+Ask the start question and set `frontend work mode`:
+
+- If the user provides a CPT foundation handoff: `frontend work mode = handoff`.
+- If the user confirms visual-only CPT styling and no handoff exists: `frontend work mode = visual-only-mini-handoff`.
+
+For `handoff` mode, confirm the handoff includes:
 
 - CPT name, labels, URL slug, and explicit detail-page decision.
 - Display target: WP Grid Builder grid, carousel, existing Section, dedicated Section, card-only, single-only, or optional single template.
@@ -76,13 +134,23 @@ The CPT foundation handoff is the contract for local work. Confirm it includes:
 - CSS or SCSS files to edit and generated CSS expectations.
 - Stable card, archive/grid, wrapper, taxonomy/filter, and optional single selectors.
 - ACF fields, taxonomy terms, featured image usage, and optional data that affect visible output.
-- WPGB grid/card IDs or an explicit no-WPGB decision, recorded as handoff or Project Context values rather than reusable plugin prose.
+- WPGB grid/card IDs or an explicit no-WPGB decision.
 - Expected visual behavior across breakpoints, including long copy, missing images, empty fields, repeated cards, and filter or carousel behavior.
 - Project-configured handoff storage location, local frontend responsibilities, server verification status, cache notes, known risks, and open questions.
 
-Do not start final CSS work when the handoff still has unresolved placeholders or server-side questions that affect target URLs, markup, selectors, ACF references, WPGB IDs, display target, detail-page behavior, expected visual behavior, cache state, local frontend responsibilities, open questions, or storage location.
+For `visual-only-mini-handoff` mode, ensure the mini-handoff captures at minimum: CPT display URL, representative single URL when applicable, card and grid selectors, original Figma or source link if any, CSS or SCSS target path or a discovery note, expected visual behavior, and a clear statement that no server-side CPT/taxonomy/ACF/WST/WPGB changes are expected.
 
-## 2. Inspect Existing Frontend Patterns
+## 2. Re-Read The Figma Source
+
+When the active handoff or mini-handoff carries a Figma link, re-read it from this Skill instead of trusting only the upstream summary.
+
+- Pull the relevant card, grid, filter, carousel, and optional single frames, including spacing, typography, breakpoints, image behavior, and interaction states.
+- Compare what Figma shows against what the rendered CPT display page shows.
+- Interpret Figma project-conformly: respect established project tokens, typography, container widths, button systems, breakpoints, and rem scale.
+- Document real Figma-vs-project deviations as `figma shows X, project pattern enforces Y, implemented as Z`.
+- If the Figma link is not accessible, fall back to the screenshot or brief in the handoff and record the limitation.
+
+## 3. Inspect Existing Frontend Patterns
 
 Before writing new CSS:
 
@@ -92,16 +160,39 @@ Before writing new CSS:
 - Check style registration such as `styles.json` or the project's equivalent.
 - Search for selectors that already target the same CPT, WPGB, card, taxonomy/filter, carousel, or single-template classes.
 
-Keep the work inside project-approved frontend paths. Do not rename WST hooks or WPGB selectors marked as stable in the handoff.
-Do not perform server-side CPT, taxonomy, ACF, WordPress content, WP Grid Builder foundation, WP-CLI, cache execution, deployment, or Remote-SSH work during CPT frontend QA.
-Do not edit PHP bootstrap or MU plugin files during CPT frontend QA. `functions.php` is forbidden for agent edits; `theme-functions.php` and MU plugin files require explicit prior user confirmation and should be routed to the appropriate server-side phase.
+Keep the work inside project-approved frontend paths. Do not rename WST hooks or WPGB selectors marked as stable in the handoff. Do not perform server-side CPT, taxonomy, ACF, WordPress content, WP Grid Builder foundation, WP-CLI, cache execution, deployment, or Remote-SSH work. Do not edit PHP bootstrap or MU plugin files. `functions.php` is forbidden for agent edits; `theme-functions.php` and MU plugin files require explicit prior user confirmation and should be routed to the appropriate server-side phase.
 
-## 3. Implement Card Presentation
+## 4. Real DOM And Specificity Inspection
 
-Write final card styles in tracked project files:
+Use Playwright MCP against the real CPT display URL (and representative single URL when public detail pages exist) to capture the evidence that local CSS must work against. Specificity is checked at the affected selector, not globally.
+
+- Locate the card, grid, filter wrapper, carousel, or single by the stable selector from the handoff.
+- Read the actual DOM structure of the elements that will be styled.
+- Capture matched CSS rules and computed styles for the affected elements before any change.
+- Note theme, WPGB, or plugin selectors that compete with the target rules.
+
+Do not try to analyse the entire theme cascade. Stay on the elements that the planned rules target.
+
+## 5. CSS-Injection Proof
+
+When the planned CSS or SCSS lives in local files that will reach the server only through Git pull or deploy, prove the rules against the real page through injection before writing them to tracked source.
+
+- Compose the planned rules in the same form they will take in the tracked file.
+- Inject them temporarily into the rendered CPT display URL through Playwright or CDP, for example as a `<style>` element or a CSS rule insertion. Repeat for the representative single URL when single-template rules are part of the change.
+- Re-read computed styles and the visual result for the affected card, grid, filter, carousel, or single elements.
+- Confirm the rules win the cascade. If they do not, document the cause: higher specificity, later source order, `!important` rule, inline style, WPGB style, plugin style.
+- Adjust the rules with minimally stronger or scoped selectors. Use `!important` only when the theme, WPGB, or plugin pattern leaves no better option.
+
+Set `injection proof` to `pass`, `fail`, or `not-needed` in the active handoff or mini-handoff.
+
+Chrome Local Overrides are not the default proof mechanism. Playwright MCP runs in its own browser context without your logged-in session and without your Chrome user profile. Treat Chrome Local Overrides as an optional manual spike in the user's real browser, when the user explicitly chooses that path and confirms session and override availability.
+
+## 6. Implement Card Presentation
+
+After the injection proof passes for card rules, write the final card styles into tracked project files:
 
 - Use the handoff's stable card selector, usually shaped like `.wso-<resource>-card`.
-- Preserve selectors used by templates, scripts, WPGB behavior, or Playwright MCP browser QA and optional project-local Playwright regression checks.
+- Preserve selectors used by templates, scripts, WPGB behavior, or Playwright MCP and optional project-local Playwright regression checks.
 - Use scoped card variables for spacing, image ratio, content gap, overlay behavior, and state styling.
 - Reuse project tokens for typography, colors, buttons, links, shadows, borders, and transitions.
 - Handle optional fields so missing taxonomy terms, images, prices, dates, excerpts, or links do not leave broken spacing.
@@ -109,23 +200,23 @@ Write final card styles in tracked project files:
 
 If a visual decision requires a new project token or shared card pattern, record it in the handoff before treating it as reusable theme behavior.
 
-## 4. Implement Archive, Grid, Or Carousel Presentation
+## 7. Implement Archive, Grid, Or Carousel Presentation
 
-Style the display target named in the handoff:
+After the injection proof passes for grid, filter, or carousel rules, style the display target named in the handoff:
 
 - For WP Grid Builder grids, keep WPGB structure intact and scope layout changes to the CPT grid wrapper or project-approved container.
 - For carousels or sliders, verify slide spacing, overflow, controls, pagination, keyboard focus, and mobile swipe behavior when applicable.
 - For existing Sections that embed the grid, preserve the Section's primary class and local CSS ownership.
-- For dedicated CPT Sections, use the existing `frontend-section-qa` Skill when Section-level layout becomes the dominant work, and keep CPT card, archive/grid, carousel/filter, WPGB output, and optional single-template QA in the CPT handoff.
+- For dedicated CPT Sections, route Section-level layout to `frontend-section-qa` and keep card, archive/grid, carousel/filter, WPGB output, and optional single-template QA in this Skill.
 - For filterable archives, verify filter visibility, selected state, empty result behavior, and responsive wrapping.
 
 Do not make global WPGB, Bootstrap, container, row, or column changes for one CPT unless Project Context explicitly says that shared behavior is intended.
 
-## 5. Implement Optional Single Presentation
+## 8. Implement Optional Single Presentation
 
 Only implement single-template frontend work when the handoff says the CPT has public detail pages.
 
-For single views:
+For single views, after the injection proof passes for single-template rules:
 
 - Use the handoff's stable single selector, usually shaped like `.wso-<resource>-single`.
 - Reuse global content, heading, button, image, and layout patterns where they match the project.
@@ -135,57 +226,89 @@ For single views:
 
 If the CPT has no public detail page, record that single-template QA is not applicable in the handoff.
 
-## 6. Chrome Local Overrides Policy
+## 9. Delivery Path Detection And Server Pull Stop
 
-Chrome Local Overrides are allowed only as short-lived spike work:
+The Skill detects the delivery path itself from project context and Git workflow. The default assumption is Git-based delivery without direct server sync.
 
-- Use them to compare spacing, sizing, state, or responsive ideas against the target URL.
-- Keep the spike small and copy successful declarations into tracked CSS or SCSS immediately.
-- Rebuild generated CSS when the project requires it.
-- Discard failed override changes.
-- Note in the handoff when an override exposed a selector, cache, or browser-only risk.
+Set `delivery path` to one of:
 
-Overrides are never the source of truth for CPT frontend work.
+- `direct-local-serving`: the local CSS file is loaded directly by the target page (rare for a Remote WordPress).
+- `auto-deploy-available`: a documented sync, build, or deploy command runs from this workspace and reaches the server.
+- `git-pull-required`: the change reaches the server only after a commit, push, and a Git pull or deploy on the server side.
+- `unknown`: detection could not confirm a path.
 
-## 7. Responsive And Interaction Checks
+When `delivery path` is `git-pull-required` or `unknown`, stop after writing the local files with:
 
-Check the CPT presentation against the target URL:
+```
+implementation pass; waiting for server pull/deploy
+```
+
+Set `server pull/deploy = pending` and ask the user to pull or deploy on the server, then confirm when the CPT display URL (and the single URL when applicable) actually serves the new CSS. Do not continue source-served verification before that confirmation.
+
+## 10. Source-Served Verification
+
+Only after the user confirms `server pull/deploy = user-confirmed`, run the source-served verification pass against the CPT display URL and, when public detail pages exist, the representative single URL.
+
+- Navigate to the URL with a fresh load.
+- Confirm that the new CSS file or rules are actually present in the served stylesheets, for example by inspecting the loaded stylesheet content, a known new selector, or computed styles without injection.
+- If the new rules are not served, set `server pull/deploy = not-reflected`, document the symptom (deploy not reflected, cache stale, wrong file delivered, WPGB or theme override late), and stop visual evaluation. Route cache flush, WP-CLI, deployment, or server repair back to WordPress Server Ops or the project's `PROJECT-CONTEXT.md` cache guidance.
+- If the new rules are served, continue with responsive and interaction checks and set `source-served verification = pass` when the visual behavior matches expectations.
+
+Final status follows the verification:
+
+- `implementation-pass-pending-deploy` when local files and injection proof are in place but the deploy has not been confirmed or not reflected.
+- `final-source-served-pass` when source-served verification passed.
+- `blocked` when a server, markup, CPT, taxonomy, ACF, WST, or WPGB discrepancy stops the work.
+
+## 11. Responsive And Interaction Checks
+
+After source-served verification passes, check the CPT presentation against the target URL:
 
 - Desktop, tablet, and mobile sizes from Project Context or the handoff.
 - Card counts, repeated cards, long labels, long excerpts, missing images, empty optional fields, and inconsistent image ratios.
 - Grid, carousel, filter, pagination, hover, focus-visible, active, loading, and disabled states that apply.
 - Optional single-template layout with long rich text, missing optional fields, related content, and media variations.
-- Cache state if rendered markup or CSS does not reflect local changes.
+- Cache state if rendered markup or CSS does not reflect the served changes.
 
 Update the handoff QA notes with results and remaining risks.
 
-If markup, rendered data, generated CSS, WPGB output, or cache state looks stale, record the URL, selector, expected result, observed result, and local checks already performed in the handoff. Route cache flushes, WP-CLI, deployment, WPGB/server repair, or content action back to WordPress Server Ops or the project's `PROJECT-CONTEXT.md` cache guidance.
+If markup, rendered data, generated CSS, WPGB output, or cache state looks stale, record the URL, selector, expected result, observed result, and local checks already performed.
 
-## 8. Playwright MCP Browser QA Loop
+## 12. Server, Markup, CPT, ACF, WST, Or WPGB Discrepancies
 
-Playwright MCP is the primary browser-driving mechanism for CPT QA. After the preflight confirms `playwright_mcp: ready`, run a focused loop against the handoff's CPT display URL and, when detail pages exist, a representative single URL.
+If browser QA shows that the problem is not solvable in CSS, hard stop.
+
+- Do not edit PHP, ACF, WST templates, CPT registration, taxonomy, WPGB foundation, content, shortcodes, or WP-CLI from this Skill.
+- Record the observed defect with URL, selector, expected behavior, real DOM, and any console or PHP symptom in the handoff or mini-handoff as a server blocker.
+- Route back to `wst-new-post-type` for CPT, taxonomy, ACF, or WPGB foundation issues, or to `wst-section-workflow` for Section-level WST/ACF issues.
+- Ask the user for OK before another skill or server workflow is started from this context.
+
+## 13. Playwright MCP Browser QA Loop
+
+Playwright MCP is the primary browser-driving mechanism for CPT QA. After the preflight confirms `playwright_mcp: ready` and browser access works, run a focused loop against the CPT display URL and, when detail pages exist, a representative single URL.
 
 Core card/archive/grid loop:
 
-1. Navigate to the handoff's CPT display URL.
+1. Navigate to the CPT display URL.
 2. Take an accessibility or DOM snapshot to confirm the page rendered without error.
-3. Locate the grid, carousel, archive, or Section wrapper by the stable selector from the handoff.
-4. Assert the wrapper is visible and the expected card selector is visible or matches the expected count from the handoff.
-5. Switch to desktop, tablet, and mobile viewports from the handoff and re-check visibility, spacing, and card behavior.
-6. Verify hover, keyboard focus, filter, pagination, or carousel controls when they are part of the display target.
-7. Inspect selectors, computed style, or bounding boxes when the MCP exposes them, to diagnose card spacing, image ratio, taxonomy label wrapping, or grid behavior.
-8. Edit tracked CSS or SCSS, rebuild generated CSS when required, reload, and re-check the affected viewports until the handoff's expected visual behavior holds.
+3. Locate the grid, carousel, archive, or Section wrapper by the stable selector.
+4. Assert the wrapper is visible and the expected card selector is visible or matches the expected count.
+5. Capture matched and computed styles for the elements the planned rules target.
+6. Inject planned CSS through Playwright or CDP as the injection proof; iterate until the rules win the cascade.
+7. Switch to desktop, tablet, and mobile viewports and re-check visibility, spacing, and card behavior.
+8. Verify hover, keyboard focus, filter, pagination, or carousel controls when they are part of the display target.
 
 Core optional single loop:
 
-1. Navigate to a representative single CPT URL from the handoff.
+1. Navigate to a representative single CPT URL.
 2. Locate the stable single selector.
-3. Assert expected title, media, taxonomy label, content area, or CTA behavior.
-4. Check responsive visibility at the project's viewport list.
+3. Capture matched and computed styles, then run an injection proof for the planned single-template rules.
+4. Assert expected title, media, taxonomy label, content area, or CTA behavior.
+5. Check responsive visibility at the project's viewport list.
 
-Capture screenshots only when the project workflow uses screenshots for review or handoff QA notes. If a browser access blocker appears, record URL, step, observed message, whether the same URL loads in a regular browser, and suggested next action in the handoff. Do not paste credentials, cookies, or session tokens into chat, tracked files, diagnostics, or screenshots.
+Capture screenshots only when the project workflow uses screenshots for review or handoff QA notes. If a browser access blocker appears, record URL, step, observed message, whether the same URL loads in a regular browser, and the suggested next action in the handoff, then apply the Browser Access Safety Stop.
 
-## 9. Optional Project-Local Playwright Regression
+## 14. Optional Project-Local Playwright Regression
 
 Run the project's Playwright command as an optional persistent regression check when `PROJECT-CONTEXT.md` or the handoff provides a real project-local harness. If no test exists yet, document a focused acceptance path and skip reason in the handoff.
 
@@ -207,39 +330,43 @@ test("resource cards render responsively", async ({ page }) => {
 
 Treat this as a shape example. Use the project's environment variables, locators, viewport list, test runner, and expected counts.
 
-## 10. Update The Handoff
+## 15. Update The Handoff
 
-Write QA notes back to the same CPT foundation handoff that started the local phase. Include:
+Write QA notes back to the same CPT foundation handoff or mini-handoff that started the local phase. Include:
 
+- All status fields from Status Fields The Skill Maintains.
 - Local frontend phase status for card, archive/grid, and optional single-template scope.
-- Local Playwright MCP status (`ready` or `pending: <reason>`) and any browser access blocker.
 - Playwright MCP browser QA findings: display URL, optional single URL, viewports checked, selectors confirmed, screenshots captured when applicable.
-- Responsive browser findings for the handoff's desktop, tablet, and mobile expectations.
-- Optional project-local Playwright regression result or documented skip reason tied to the CPT display target and visible behavior in the handoff.
+- Injection proof outcomes per surface (card, grid, filter, single) and any specificity adjustments.
+- Source-served verification outcome and cache or deploy symptoms.
+- Responsive findings for desktop, tablet, and mobile expectations.
+- Optional project-local Playwright regression result or documented skip reason.
 - Implementation notes for changed CSS or SCSS files, generated CSS, and any style loader changes.
-- Remaining risks, open questions, stale-cache or server-output symptoms, route-back owner when action is needed, and confirmation that Chrome Local Overrides were discarded or copied into tracked source.
+- Remaining risks, open questions, route-back owner when action is needed, and confirmation that any Chrome Local Overrides spike was discarded or copied into tracked source.
 
-## 11. Commit The Local Phase
+## 16. Commit And Close The Local Phase
 
 Before finishing:
 
 - Ensure final CSS, SCSS, and generated CSS are in tracked files according to Project Context.
-- Update the CPT foundation handoff's local frontend status and QA result.
-- Include Playwright MCP browser QA findings and the optional project-local Playwright regression result or a clear note explaining why a project test was documented instead of run.
-- Confirm Chrome Local Overrides are discarded or copied into tracked files.
+- Update the handoff or mini-handoff's `final status`, QA result, and other status fields.
+- Include Playwright MCP browser QA findings, injection proof per surface, source-served verification, and the optional project-local Playwright regression result or a clear skip note.
 - Commit code and handoff updates on the same branch or PR according to project Git policy.
+
+On full completion, especially when a mini-handoff was used, write a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed, then remove the active mini-handoff with `git rm` and commit and push the removal so the server-side workspace sees the closed task on its next `git pull`. While `final status = implementation-pass-pending-deploy`, keep the mini-handoff in place until the source-served verification pass closes the loop.
 
 Do not push, deploy, edit server-side CPT setup, or change release flow unless the maintainer explicitly asks for it.
 
 ## Concise Example
 
-A developer receives a filled handoff for `Resources`:
+A developer is asked to adjust a `Resources` CPT card grid:
 
-1. Reads the handoff and confirms `.wso-resource-card`, `.wso-resource-grid`, the staging URL, card CSS path, and that no public single page exists.
-2. Confirms `playwright_mcp: ready` for the local workspace, otherwise runs `setup-playwright-mcp`.
-3. Drives a Playwright MCP browser loop: navigates to the staging archive URL, snapshots the page, locates `.wso-resource-grid` and `.wso-resource-card`, verifies count, and checks desktop, tablet, and mobile viewports.
-4. Checks existing card, WPGB, image, and button CSS for matching project tokens.
-5. Implements scoped card and grid variables in tracked local CSS or SCSS files.
-6. Uses Chrome Local Overrides briefly to compare card spacing on staging, then moves the final declarations into source.
-7. Re-runs the Playwright MCP browser loop and runs the optional project-local Playwright regression test when a real harness exists.
-8. Updates the CPT handoff QA notes including local Playwright MCP status, and commits the CSS plus handoff on the same branch or PR.
+1. The Skill asks whether a CPT handoff exists; the user provides the filled foundation handoff for `Resources`.
+2. It reads the handoff and confirms `.wso-resource-card`, `.wso-resource-grid`, the staging archive URL, the card CSS path, and that no public single page exists.
+3. It confirms `playwright_mcp: ready`, navigates to the staging archive URL, and finds the archive gated by a placeholder login; the user pastes a throwaway login for the session.
+4. It captures real DOM and computed styles for `.wso-resource-grid` and `.wso-resource-card`, then prepares scoped card and grid variable changes.
+5. It injects the planned rules through Playwright/CDP, confirms they win the WPGB and theme cascade without `!important`, and sets `injection proof = pass`.
+6. It writes final CSS into the tracked CPT CSS file and detects `delivery path = git-pull-required`.
+7. It stops with `implementation pass; waiting for server pull/deploy`, asks the user to pull on the server, and waits.
+8. The user confirms the pull; the Skill checks that the new rules are served, then runs desktop, tablet, and mobile viewport checks for card count, long taxonomy labels, and missing image fallbacks.
+9. It sets `final status = final-source-served-pass`, updates the CPT handoff QA notes, and commits the CSS plus handoff on the same branch or PR.

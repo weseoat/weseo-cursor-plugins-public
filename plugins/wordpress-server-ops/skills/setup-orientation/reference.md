@@ -162,7 +162,9 @@ Never store: tokens, application passwords, SSH private keys, token-bearing URLs
 
 ## Handoff And Learnings Storage Walkthrough
 
-Section and CPT handoffs are project-local working contracts. The setup wizard records where the project wants filled handoffs to live; it does not store project-specific handoffs inside reusable plugin package folders.
+Section and CPT handoffs are project-local working contracts that travel through Git between the Remote-SSH WordPress workspace and the local frontend workspace. The setup wizard records where the project wants filled handoffs to live, then makes sure those folders are explicitly unignored in `.gitignore` so the server side can commit and push them and the local side can pull them. The wizard does not store project-specific handoffs inside reusable plugin package folders.
+
+Handoffs must not contain secrets, tokens, application passwords, SSH keys, token-bearing URLs, dumps, or media inventories. Tracking handoffs in Git is only safe because the bundled templates already enforce this redaction policy.
 
 For Section handoffs:
 
@@ -170,6 +172,7 @@ For Section handoffs:
 2. Name the bundled reusable Section template: `plugins/wst-builder/handoffs/section-handoff.template.md`.
 3. Ask for or record the concrete project storage location for filled Section handoffs.
 4. If the storage location is not known yet, record `section_handoff_storage: pending: <reason> - next action: Maintainer confirms project handoff location before first Section handoff`.
+5. As soon as the path is known, add the matching unignore entries to the `.gitignore` allowlist (folder line and recursive `**` line), verify with `git check-ignore` against a sample path inside the folder, and confirm `git status --short` shows handoff files as trackable.
 
 For CPT handoffs:
 
@@ -177,6 +180,9 @@ For CPT handoffs:
 2. Ask for or record the concrete project storage location for filled CPT handoffs.
 3. Name the bundled reusable CPT template: `plugins/wst-builder/handoffs/cpt-handoff.template.md`.
 4. If the storage location is not known yet, record `cpt_handoff_storage: pending: <reason> - next action: Maintainer confirms project handoff location before first CPT handoff`.
+5. As soon as the path is known, add the matching unignore entries to the `.gitignore` allowlist (folder line and recursive `**` line), verify with `git check-ignore` against a sample path inside the folder, and confirm `git status --short` shows handoff files as trackable.
+
+When both handoff paths share a common parent (for example `handoffs/sections/` and `handoffs/cpts/`), unignore the parent folder once and then add the recursive `**` entries for each child folder, so the parent directory itself is not blocked by the deny-all root.
 
 For `LEARNINGS.md`:
 
@@ -362,6 +368,16 @@ Use this baseline unless `PROJECT-CONTEXT.md` defines a stricter allowlist:
 !/wp-content/themes/astra-child/
 !/wp-content/themes/astra-child/**
 
+# Allow project-configured handoff storage paths.
+# The wizard inserts the concrete project-configured Section and CPT handoff paths after the
+# Handoff And Learnings Storage Walkthrough. Each tracked handoff folder needs both the
+# folder entry and the recursive ** entry, so any parent directories are unignored too.
+# Example shape (the wizard replaces the placeholders with the recorded project paths):
+# !/<section-handoff-storage-path>/
+# !/<section-handoff-storage-path>/**
+# !/<cpt-handoff-storage-path>/
+# !/<cpt-handoff-storage-path>/**
+
 # Optional project-owned plugin allowlist.
 # Enable only when PROJECT-CONTEXT.md confirms the plugin is project source, not a vendor/runtime plugin.
 # !/wp-content/plugins/
@@ -538,7 +554,7 @@ Lead the user through the final checklist in German before saying setup is compl
 2. Der geöffnete Ordner ist der WordPress-Root und enthält `wp-content/`, `wp-admin/`, `wp-includes/`.
 3. WST Stack ist dokumentiert (Astra Child Theme, WST Plugin, ACF PRO, ACF Extended, WP Grid Builder, CPT UI) - oder fehlende Komponenten sind als offene Frage notiert.
 4. `PROJECT-CONTEXT.md` existiert und enthält keine Secrets.
-5. Section handoff storage und CPT handoff storage sind dokumentiert oder mit nächstem Schritt als `pending` markiert.
+5. Section handoff storage und CPT handoff storage sind dokumentiert oder mit nächstem Schritt als `pending` markiert; sobald der Pfad bekannt ist, sind die passenden Allowlist-Einträge in `.gitignore` gesetzt, damit Handoffs zwischen Remote-SSH- und lokalem Workspace per Git fließen.
 6. `LEARNINGS.md` Status ist dokumentiert; fehlende Datei blockiert nicht.
 7. Git Identity ist gesetzt.
 8. Git Remote ist lokal eingerichtet, `git fetch origin` funktioniert, redaktierte Remote-Form ist dokumentiert.
@@ -565,7 +581,7 @@ Do not say "setup orientation is complete" unless every required gate is verifie
 
 - Valid WordPress root opened over Remote-SSH.
 - `PROJECT-CONTEXT.md` exists with detected non-secret setup facts and recorded gates.
-- Section handoff storage and CPT handoff storage are recorded or pending with next action.
+- Section handoff storage and CPT handoff storage are recorded or pending with next action, and as soon as a concrete path exists its `.gitignore` allowlist entries are in place so handoffs can flow between Remote-SSH and local workspace through Git.
 - `LEARNINGS.md` status is recorded; missing `LEARNINGS.md` is not a hard failure.
 - WST stack status is recorded.
 - Git is working through the Bitbucket remote and identity is set, or stopped with explicit reason and next action. Git is not a normal optional skip for SmartFlow projects.

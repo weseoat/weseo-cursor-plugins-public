@@ -47,7 +47,7 @@
       "name": "wst-new-post-type",
       "path": "skills/wst-new-post-type/SKILL.md",
       "source": "weseo-smartflow-frontend-guide/.cursor/skills/wst-new-post-type/SKILL.md",
-      "description": "Create a WST Custom Post Type foundation, including required preflight, the bundled CPT handoff template at handoffs/cpt-handoff.template.md, optional taxonomy, ACF CPT fields, WP Grid Builder grid/card foundation, card template, and optional single template."
+      "description": "Plan, classify, and execute server-side WST Custom Post Type work for new CPT foundations, existing-CPT remodels, or visual-only routing to Frontend Design QA, with a hardened preflight write-gate and the CPT handoff from handoffs/cpt-handoff.template.md."
     }
   ],
   "releaseNotes": "release-notes/0.1.3.md"

@@ -85,3 +85,10 @@ After implementation:
 - Verify text wrapping, media crop, spacing, card counts, filter or carousel behavior, focus states, and interactive states.
 - Capture Playwright checks or manual notes in the handoff's QA section.
 - Keep design-token gaps or unresolved questions visible in the handoff.
+
+Always document which proof mode the Figma comparison used:
+
+- Injection-proof: the planned rules were injected into the rendered remote page through Playwright MCP or CDP and compared to Figma there. This proves the rules win the cascade against real WordPress and WST markup, but it does not prove that the remote URL serves the change.
+- Source-served verification: the change has already reached the server through the project delivery path and is loaded by the target URL; the Figma comparison was made against that served result.
+
+Until a source-served verification succeeds, the handoff QA result stays at `implementation pass, deployed verification pending`. Do not record a final QA pass for the Figma comparison while the change is only injection-proofed or while deploy or pull is still pending.

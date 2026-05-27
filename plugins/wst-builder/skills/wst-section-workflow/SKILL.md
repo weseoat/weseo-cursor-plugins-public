@@ -1,234 +1,264 @@
 ---
 name: wst-section-workflow
-description: Plan, classify, and execute server-side WST Flexible Content Section work. Use for any new Section, existing Section remodel, or Section-related preflight before local frontend work. Section visual-only changes route directly to Frontend Design QA `frontend-section-qa`.
+description: Plan, classify, and execute server-side WST Flexible Content Section work as a productive implementation workflow with safety stops. Use for any new Section, existing Section remodel, or Section-related preflight before local frontend work. Visual-only Section changes route to Frontend Design QA `frontend-section-qa` with a minimal handoff.
 ---
 
 # WST Section Workflow
 
-This Skill is the single entry point for any WST Flexible Content Section work owned by the server phase. It classifies the request, runs the preflight as a write gate, protects existing Section artifacts during remodels, and emits or updates the Section handoff that Frontend Design QA consumes.
+This Skill is the single entry point for any WST Flexible Content Section work owned by the server phase. It classifies the request, drives the implementation, protects existing Section artifacts during remodels, and emits or updates the Section handoff that Frontend Design QA consumes.
 
-This Skill does not own final Section CSS or SCSS. Server-side WST Builder may document CSS paths, stable classes, hooks, and expected behavior in the handoff. Final CSS/SCSS implementation belongs to the local frontend phase via `frontend-section-qa`.
+The Skill is a productive implementation workflow with safety stops, not a preflight write gate. Reads and discovery are always allowed. Writes proceed when scope is clear and safe; they stop and ask only at concrete risk points.
 
-Older guidance referred to this Skill as `wst-new-fc-section`. That name is replaced by `wst-section-workflow` so the workflow can cover new, remodel, and visual-only Section requests without forcing every request into a new-Section path.
+This Skill does not own final Section CSS or SCSS. WST Builder may document CSS paths, stable classes, hooks, and expected behavior in the handoff. Final CSS/SCSS implementation belongs to the local frontend phase via `frontend-section-qa`, which runs locally and not over Remote-SSH.
 
-## Hard Stop Rules
+Older guidance referred to this Skill as `wst-new-fc-section`. That name is replaced by `wst-section-workflow` so the workflow covers new, remodel, and visual-only Section requests without forcing every request into a new-Section path.
+
+## Skill character
+
+- Productive implementation by default. Read project context, apply the WST/ACF rules, search existing patterns, then implement inside the approved scope.
+- Compact and recommendation-driven. Ask in compact rounds with a clear recommendation, not open-ended interviews.
+- Safety stops only at concrete risks. Live/unknown writes, work-type reclassification, structural ambiguity, content overwrites, and cache flushes on live/unknown require explicit confirmation.
+- CSS/SCSS file writes on the server are never allowed from this Skill.
+
+## Hard safety stops
 
 Apply these rules before any other action.
 
-Do not perform any write operation before the Section preflight has produced a concrete handoff draft.
-Write operations include PHP, ACF, Flexible Content, CSS/SCSS, style loader registration, WP-CLI, cache flushes, and WordPress content edits.
+Stop and confirm before:
 
-If work type is `unclear`, stop and ask for the missing decision.
-If work type is `visual-only`, stop server-side work and route to Frontend Design QA `frontend-section-qa`.
-If environment is `live` or `unknown`, do not write until the maintainer explicitly confirms the exact write scope.
+- Writing on `live` or `unknown` environments (files, ACF/DB, content, cache, style loader).
+- Flushing cache on `live` or `unknown`, even if other writes were already approved.
+- Changing the classified work type during the task. Reclassification is always a stop-and-confirm point, including when it becomes safer (for example `new-section-foundation -> visual-only`).
+- Touching public selectors, layout names, layout keys, or ACF field keys that templates, scripts, or styles rely on.
+- Overwriting existing page content.
+- Creating new artifacts during an `existing-section-remodel` (new template file, ACF field group, Flexible Content layout, clone child field, or style loader entry) unless explicitly approved.
+- Making a structural ACF/FC decision that discovery cannot resolve.
 
-For `existing-section-remodel`, do not create a new field group, Flexible Content layout, clone child field, template file, CSS file, or style loader entry unless the confirmed handoff explicitly says the remodel requires a new artifact.
-Preserve existing layout name, layout key, parent_layout, field keys, template path, and selectors by default.
+Always allowed regardless of environment:
 
-WST Builder may document CSS paths, stable classes, hooks, and expected behavior in the handoff.
-WST Builder must not create or edit final Section CSS/SCSS over Remote-SSH. Missing CSS entry points are recorded as local frontend work for `frontend-section-qa`.
+- Reading project context, files, rendered markup, WST/ACF references.
+- Read-only WP-CLI inspection.
+- Reading and analyzing Figma/source.
+- Lightweight Media Library lookup.
+- Updating the Section handoff with discovery findings and proposed scope.
 
-## Quick Start
+CSS/SCSS file writes on the server, edits to generated CSS, and final visual QA are never allowed from this Skill, regardless of environment.
 
-1. Classify the request into a `Work type`.
-2. Immediately ask for the Figma link or source design for the Section and whether the Section has multiple variants.
-3. Identify the `Environment`.
-4. Run the shortened Section preflight to produce a prefilled Section handoff draft at the project-configured storage location.
-5. For `new-section-foundation` and confirmed `existing-section-remodel`, perform only the explicitly approved server-side steps.
-6. For `visual-only`, route to `frontend-section-qa` without server-side writes.
-7. Emit or update the Section handoff and hand off to `frontend-section-qa`.
+## Workflow at a glance
 
-Before asking the maintainer for technical values, search the project-local context for:
+1. Read project context and the WST/ACF rules.
+2. Run the Start question block in one compact message; skip any question whose answer is already in project context.
+3. Inspect Figma/source, search similar Sections, identify the work type, and update the handoff with `Discovery and safety status`.
+4. If a structural ambiguity remains, run one Structural question block. Otherwise continue.
+5. Announce a short Execution Plan before any write.
+6. Implement server-side WST/ACF/FC artifacts inside the approved scope.
+7. Verify server-side function and existence only.
+8. Update the Section handoff with the Frontend QA Brief and route to `frontend-section-qa`.
 
-- WST template path and theme CSS path.
-- Flexible Content field key and field post ID.
-- Standard clone group keys for content, button, and layout.
-- WP-CLI command and cache flush command.
-- Section handoff storage location and target dev or staging URL.
-- Existing selectors, ACF references, layout names, page IDs, source references, and project workflow notes.
+## Question budget
 
-If any blocking value is missing, stop and ask the maintainer or record an explicit unresolved placeholder in the prefilled handoff draft. Do not invent ACF keys, field post IDs, project paths, URLs, selectors, storage locations, or theme values.
+Maximum three compact rounds. Each round is a single message. After the third round the Skill either applies a documented recommendation or stops and records a blocker in the handoff. It does not keep interviewing.
 
-## 1. Classify The Work
+Questions are structural and operational. Do not ask for HTML tags, CSS classes, spacing, typography, colors, or responsive behavior when those can be derived from Figma, existing project patterns, or belong to local frontend QA.
 
-The very first server-phase decision is the `Work type`. Until this is recorded in the handoff draft, no write is allowed.
+### Start question block (after context check)
 
-| Work type | Meaning |
+Ask in one message, only the values that project context did not already supply:
+
+1. Figma or source design link.
+2. Test placement: on which page should the Section be visible for verification?
+3. For a new Section: confirm the proposed Section slug. The Skill may propose `<derived-slug>` from the Figma frame or brief; the maintainer confirms or replaces it.
+4. Are there server-relevant variants or states? If none mentioned, the Skill derives them from Figma.
+
+### Structural question block (only when needed)
+
+Ask only after Figma analysis and pattern discovery if a server-side structural choice remains ambiguous. Always include a recommendation:
+
+```text
+Recommendation: <X> because <Y>. Confirm or correct.
+```
+
+Do not ask about visual styling, classes, or design details that local frontend QA owns.
+
+### Failsafe question block (last resort)
+
+If a write would otherwise risk a wrong Section structure or a risky server change, ask one more compact round. Otherwise stop and document the blocker in the handoff.
+
+## Work type classification
+
+Classify based on discovery, not on the wording of the request.
+
+| Work type | Trigger |
 | --- | --- |
-| `new-section-foundation` | A WST Section that does not exist yet. Create template, ACF section field group, Flexible Content layout entry, clone child field, registration, and CSS hook documentation. |
-| `existing-section-remodel` | An existing WST Section whose markup, ACF shape, or registration needs to change. Default to preserving structure and require explicit write approval for each new artifact. |
-| `visual-only` | An existing WST Section whose visual behavior should change without touching server-side template, ACF, Flexible Content, or registration. Route immediately to `frontend-section-qa`. |
-| `unclear` | The request cannot be classified yet. Stop and ask before any write or read-only audit beyond Project Context. |
+| `new-section-foundation` | No suitable existing Section/layout/template is found; Figma or brief requires a new reusable Section. |
+| `existing-section-remodel` | A matching existing Section exists and the change touches template markup, ACF, Flexible Content, or registration. Visual change alone is not enough. |
+| `visual-only` | Template, ACF, and Flexible Content already fit; only CSS, spacing, typography, colors, responsive behavior, or interaction states need to change. |
+| `unclear` | The Skill cannot decide after discovery. Use the Structural question block. |
 
-Route after classification:
+Routing:
 
 - `new-section-foundation` -> continue with this Skill.
-- `existing-section-remodel` -> continue with this Skill, but follow the remodel protections in section 4.
-- `visual-only` -> stop server-side work and route to `frontend-section-qa`. Document the visual-only route in the handoff.
-- `unclear` -> stop and ask.
+- `existing-section-remodel` -> continue with this Skill under the in-place protections below.
+- `visual-only` -> stop server-side work, create a minimal handoff, route to `frontend-section-qa`.
+- `unclear` -> ask one Structural question block; if still unclear, stop and record the blocker.
 
-## 2. Identify The Environment And Write Scope
+### Reclassification rule
 
-The handoff draft must record:
+If the work type changes during discovery or implementation:
+
+- Stop before any further write.
+- Explain why the previous classification no longer fits.
+- Propose the new classification and the new `Server write scope`.
+- Wait for explicit confirmation.
+- Update the handoff. If the handoff filename no longer matches the new work type, create a new handoff for the new task.
+
+## Environment and write scope
+
+Record on the handoff:
 
 | Field | Allowed values |
 | --- | --- |
 | `Environment` | `local`, `dev`, `staging`, `live`, `unknown` |
 | `Server write scope` | List of `files`, `database/acf`, `content`, `cache`, or `none` |
 | `Frontend route` | `frontend-section-qa`, `not-needed-yet`, or `blocked` |
+| `Discovery and safety status` | `context-checking`, `ready-for-safe-writes`, `write-approved`, or `blocked` |
 
-When `Environment` is `live` or `unknown`, do not perform any write until the maintainer explicitly confirms:
+On `live` or `unknown`:
 
-- exact environment,
-- exact files or DB/ACF objects to change,
-- exact write scope,
-- expected rollback path,
-- whether a cache flush is part of the scope.
+- Reads and discovery remain allowed.
+- No file, ACF/DB, content, cache, or style-loader write until the maintainer confirms exactly which artifacts may change and how to roll back.
+- Cache flushes need their own explicit confirmation.
 
-Use a concrete confirmation prompt such as `May I change exactly these files/ACF objects on <environment>?`. Do not use broad prompts like `ok?`.
+Use concrete confirmation prompts, not broad approvals:
 
-Cache flush on a live or unknown environment requires its own explicit confirmation, even if other server writes were already approved.
+```text
+On <environment>, may I change exactly <files-or-acf-or-content>?
+Rollback: <plan>
+```
 
-## 3. Mandatory Preflight As Write Gate
+## Pattern discovery and WST language safety
 
-Run the shortened Section preflight before any implementation. The preflight output must be a concrete Section handoff draft at the project-configured storage location, not only a chat summary.
+Before any new template or remodel, orient in the project's WST dialect.
 
-The Section preflight is evidence-first and intentionally short. After `Work type` is classified, ask the maintainer only:
+Reading order:
 
-1. `Please send the Figma link or source design for this Section.`
-2. `Does this Section have multiple variants/states that should be implemented? If yes, which ones?`
+1. Apply [`../../rules/acf-wst-patterns.mdc`](../../rules/acf-wst-patterns.mdc) before any WST template, Flexible Content, clone field, or ACF field group write.
+2. Use [`../../rules/acf-wst-patterns-reference.md`](../../rules/acf-wst-patterns-reference.md) when concrete examples or field-shape details are needed.
+3. Inspect at least one similar existing Section in the project to match local conventions: `conditional_logic_start/end` placeholders, `wst_include` registration, row/wrap/column classes, section ID and tabindex elements, `get_sub_field` and clone-prefix patterns, content/button/layout clone usage.
 
-Then inspect the Figma design, project-local context, existing Section patterns, rendered markup when available, and ACF/WST references before asking anything else. Do not ask the maintainer to specify HTML structure, wrapper classes, field names, selectors, spacing, responsive behavior, or interaction details that are visible in Figma or inferable from existing project patterns.
+Conflict resolution priority:
 
-If a detail is not visible in Figma and not discoverable in project-local context, choose the project-default pattern when there is one and record the assumption in the handoff. Ask a follow-up only when the missing answer blocks a safe server-side write, such as an unknown environment, handoff storage location, target page URL, ACF/Flexible Content reference, or explicit live/unknown write scope.
+1. Explicit user decision for this task.
+2. Project-local context, existing site conventions, and project examples that satisfy the invariants.
+3. `acf-wst-patterns.mdc` invariants.
+4. `acf-wst-patterns-reference.md` examples.
+5. Generic Skill examples.
 
-If the agent cannot invoke Figma tooling, continue from the supplied source design or written brief and record the Figma access blocker in the handoff. Do not replace the short Section preflight with a broad design interview.
+If a local example contradicts a hard invariant, do not copy it blindly. Record the conflict in the handoff as a risk and propose a corrected approach. Ask before correcting unrelated existing Sections; corrections outside the current scope are not implicit approvals.
 
-The draft must record:
+### Searching for similar Sections
 
-- `Work type` and routing decision.
-- `Environment` and `Server write scope`.
-- `Frontend route`.
-- Project-configured handoff storage location.
-- Target URL or planned verification URL.
-- Section name, layout name, source design or written brief, and variants/states.
-- WST template path and CSS path.
-- ACF section field group, Flexible Content field, layout key/name, clone child field, and Section-specific fields.
-- Primary section class, wrapper classes, custom properties, and selectors to preserve.
-- Expected desktop, tablet, mobile, content variation, and interaction behavior.
-- Server phase status, cache status, known risks, open questions, and unresolved placeholders.
-- `Preflight gate status`, Figma/source status, and `Protected existing artifacts` for remodels.
-- `CSS status` from `existing`, `new-needed-for-frontend`, `unknown`, or `not-applicable`.
+The Skill searches for a structural reference by itself before asking. Sources include Section template files under the project's `smart-template-builder/sections/` path (or equivalent), ACF section field groups, Flexible Content layouts, and rendered markup on existing pages when accessible.
 
-Do not proceed past the preflight while the draft contains unresolved placeholders for `Work type`, `Environment`, `Server write scope`, `Frontend route`, target URL, ACF or WST references required for the approved write, CSS path, local frontend responsibilities, or storage location.
+Only ask when no usable reference is found, when multiple references would change the server model differently, or when the maintainer might prefer a specific reference Section. Suggested fallback prompt when needed:
 
-Visual behavior, markup shape, selectors, and Section-specific fields may be recorded as design-derived assumptions when the Figma/source design and project patterns provide enough evidence. They do not require separate maintainer confirmation unless the assumption changes server-side data shape, removes an existing public selector, or creates a live/unknown write risk.
+```text
+I did not find a clear structural reference. Do you want me to model this Section after a specific existing Section (name/file/URL)?
+Otherwise I will derive it from project defaults and the WST/ACF rule.
+```
 
-If the storage location itself is unknown, stop and ask. Do not invent a path.
+## Existing Section remodel: in-place default
 
-## 4. Existing Section Remodel Protections
+`existing-section-remodel` defaults to in-place. By default:
 
-When `Work type` is `existing-section-remodel`, the default position is to preserve everything that exists.
-
-Before any write:
-
-- Read the existing Section template, ACF section field group, Flexible Content layout entry, clone child field, registration, CSS path, and the rendered HTML classes.
-- Record those values in the handoff draft under `Protected existing artifacts`.
-- Propose the exact write scope to the maintainer and wait for explicit approval before changing files or ACF/DB objects.
-
-While remodeling, by default:
-
-- Preserve existing `layout` name, generated layout key, and `parent_layout`.
+- Reuse the existing template path.
+- Preserve `layout` name, generated layout key, and `parent_layout`.
 - Preserve existing ACF field keys and clone child field keys.
-- Preserve the existing Section template path.
 - Preserve public selectors that templates, scripts, or styles rely on.
 
-Do not create a new template file, ACF field group, Flexible Content layout, clone child field, CSS file, or style loader entry during a remodel unless the confirmed handoff explicitly says the remodel requires that new artifact.
+Do not create a new template file, ACF field group, Flexible Content layout, clone child field, or style loader entry during a remodel unless the confirmed handoff explicitly approves that new artifact.
 
-If the desired change only affects markup inside the existing WST template structure, leave ACF and Flexible Content untouched.
+If a desired change only affects spacing, typography, color, responsive behavior, or hover/focus, apply the reclassification rule to switch to `visual-only` and route to `frontend-section-qa`.
 
-If the desired change only affects visual spacing, typography, color, responsive behavior, or hover/focus state, switch `Work type` to `visual-only` and route to `frontend-section-qa` instead of continuing server-side work.
+Record protected artifacts in the handoff under `Protected Existing Artifacts`.
 
-## 5. New Section Foundation Steps
+## Slug, derived names, and handoff filename
 
-Run these steps only when `Work type` is `new-section-foundation` and the handoff draft is filled.
+For a new Section, the Skill proposes a slug derived from the Figma frame or brief and asks the maintainer to confirm.
+
+Once the slug is confirmed, derive the rest deterministically:
+
+| Derived | Pattern |
+| --- | --- |
+| Layout name | `layout_<section_slug_with_underscores>` |
+| Primary class | `.wso-section-<section-slug>` |
+| Template file | `smart-template-builder/sections/<section-slug>.php` (or the project's equivalent path) |
+| Handoff filename | `<section-slug>-<work-type>-handoff.md` |
+
+For `existing-section-remodel`, do not re-confirm the slug if a single existing Section is unambiguously matched. Ask only if multiple candidates apply or the maintainer wants a rename.
+
+## Test placement
+
+If a test placement / target page is not known from project context, ask once in the Start question block. Without a test placement:
+
+- Foundation work (template, ACF, FC, clone child, registration) may still proceed inside scope.
+- Content writes that depend on a target page must be deferred and recorded as open in the handoff.
+
+## Execution Plan before writes
+
+Before performing server writes, output a short Execution Plan:
+
+```text
+Plan:
+- Work type: <classification>
+- Server writes: <files / ACF / FC / content / cache>
+- CSS: not written by this Skill (handed off to frontend-section-qa)
+- Media: <reuse existing IDs / run wp-media-import / not needed>
+- Handoff: <handoff-filename>
+- Frontend route: frontend-section-qa
+```
+
+On `dev`, `staging`, or `local`, proceed after the plan. On `live` or `unknown`, require explicit confirmation of the plan before any write.
+
+## New Section foundation steps
+
+Run only when `Work type` is `new-section-foundation`, the slug is confirmed, and the handoff captures the Discovery Sources, Environment, and Server write scope.
 
 ```text
 New WST FC Section:
-- [ ] Preflight produced concrete handoff draft (no unresolved blockers)
-- [ ] Work type confirmed as `new-section-foundation`
-- [ ] Environment recorded; live/unknown writes explicitly approved
-- [ ] Create Section template
+- [ ] Discovery sources recorded (Figma, similar Sections, rules applied, test placement)
+- [ ] Section slug confirmed and derived names recorded
+- [ ] Execution Plan announced
+- [ ] Create Section template at smart-template-builder/sections/<section-slug>.php
 - [ ] Create ACF section field group
 - [ ] Add Flexible Content layout entry
 - [ ] Create clone child field with matching parent_layout
 - [ ] Register Section in flexible-content.php
 - [ ] Document CSS hooks and CSS path in handoff (no CSS file is created over Remote-SSH)
-- [ ] Flush project caches (only when in scope and approved)
-- [ ] Emit or update Section handoff and route to frontend-section-qa
+- [ ] Optionally create representative test content on the target page (in scope only)
+- [ ] Flush project caches (in scope only; explicit confirmation on live/unknown)
+- [ ] Update Section handoff with Frontend QA Brief and route to frontend-section-qa
 ```
 
-### 5.1 Create Section Template
+Follow `acf-wst-patterns.mdc` for invariants and `acf-wst-patterns-reference.md` for field shapes, clone group usage, layout wiring, and registration patterns. Do not invent ACF keys, field post IDs, project paths, URLs, selectors, storage locations, or theme values.
 
-Create `smart-template-builder/sections/<section-slug>.php` or the equivalent project-local WST sections path.
+Do not place `acf_add_local_field()` snippets in `functions.php`; that file is forbidden for agent edits. Edit `theme-functions.php` or MU plugin files only with explicit prior user confirmation for the exact change.
 
-Required template invariants:
+### Template invariants
 
 - Guard direct access with `if (! defined('ABSPATH')) exit;`.
-- Wrap the template with `{{conditional_logic_start}}` and `{{conditional_logic_end}}` when the project uses those WST placeholders.
+- Preserve `{{conditional_logic_start}}` and `{{conditional_logic_end}}` when the project uses those WST placeholders.
 - Use the primary section class `.wso-section-<section-slug>`.
-- Include the project layout, section ID, and tabindex WST elements when present in the existing WST templates.
+- Include the project layout, section ID, and tabindex WST elements when present in nearby templates.
 - Keep custom markup inside WST row, wrap, column, and column attribute classes that match the project pattern.
 
-### 5.2 Create ACF Section Field Group
+### Flexible Content wiring
 
-Create an `acf-field-group` for the Section. It is cloned into the Flexible Content layout and normally has no direct location rule.
+- Add the layout entry under the project Flexible Content field using the project-local field key or field post ID.
+- Generate the layout key once and record it immediately. The clone child field must reference it exactly through `parent_layout`.
+- Standard clone settings on the child field: `type=clone`, `clone=<section-field-group-key>`, `display=seamless`, `prefix_name=1`, `prefix_label=0`, `parent_layout=<generated-layout-key>`, `acfe_save_meta=1` when the project uses ACF Extended save-meta behavior.
 
-Standard structure:
-
-- Tab field for the Section label.
-- Optional editor message.
-- Content clone, using the project-local content clone group key.
-- Button clone, using the project-local button clone group key.
-- Layout clone, using the project-local layout clone group key.
-- Section-specific custom fields from menu order `5` onward.
-
-Use ACF field group posts or the project's established ACF tooling. Do not place `acf_add_local_field()` snippets in `functions.php`; that file is forbidden for agent edits. Only use `theme-functions.php` or MU plugin files for local PHP field registration after explicit prior user confirmation for that exact change.
-
-Use `reference.md` for reusable FC Section field group, clone group, and field-shape guidance. Treat all keys, IDs, paths, labels, and URLs in that reference as placeholders supplied by Project Context or the Section handoff draft.
-
-### 5.3 Add Flexible Content Layout
-
-Update the project Flexible Content field using the project-local field key or field post ID.
-
-Add a layout entry with:
-
-- `key`: generated layout key.
-- `name`: `layout_<section_slug_with_underscores>`.
-- `label`: human-readable Section label.
-- `display`: usually `block`.
-
-Record the generated layout key immediately. The clone child field must reference it exactly.
-
-Use `reference.md` for generic Flexible Content layout wiring and `parent_layout` guidance.
-
-### 5.4 Create Clone Child Field
-
-Create an `acf-field` child under the Flexible Content field post.
-
-Required clone settings:
-
-- `type`: `clone`.
-- `clone`: the new Section field group key.
-- `display`: `seamless`.
-- `prefix_name`: `1`.
-- `prefix_label`: `0`.
-- `parent_layout`: the generated layout key from step 5.3.
-- `acfe_save_meta`: `1` when the project uses ACF Extended save-meta behavior.
-
-The `parent_layout` value is the critical binding between the Flexible Content layout and the cloned Section fields. If it does not match the layout key, the editor fields will appear under the wrong layout or not appear at all.
-
-### 5.5 Register The Section
+### Registration
 
 Add the Section include inside the project's `[wst_acf_flexible_content]` block:
 
@@ -238,86 +268,134 @@ Add the Section include inside the project's `[wst_acf_flexible_content]` block:
 
 Keep the registration order consistent with the project's existing editor grouping.
 
-## 6. CSS Hooks Belong In The Handoff
+## CSS boundary
 
-WST Builder records CSS hook expectations in the handoff. WST Builder does not create or edit final Section CSS or SCSS over Remote-SSH.
+`wst-section-workflow` never writes or edits CSS or SCSS over Remote-SSH.
 
-In the handoff, capture:
+Allowed:
 
-- `Primary section class`: usually `.wso-section-<section-slug>`.
-- `Wrapper/classes`: any wrapper or item classes that template markup relies on.
-- `CSS custom properties`: initial custom property names if the Section needs local styling tokens.
-- `Selectors to preserve`: any selectors that templates, scripts, or tests rely on.
-- `CSS status`: `existing`, `new-needed-for-frontend`, `unknown`, or `not-applicable`.
+- Detect CSS needs from Figma and existing patterns.
+- Document CSS paths, primary class, wrapper classes, custom properties, and selectors to preserve in the handoff.
+- Set stable, predictable hook classes in the template markup.
+- Record `CSS status` (`existing`, `new-needed-for-frontend`, `unknown`, `not-applicable`).
 
-When the project requires a new CSS file or style loader entry for the Section, record that requirement in the handoff so `frontend-section-qa` can create or register the file in tracked local source. Do not create or edit Section CSS files, generated CSS files, or style loader registrations over Remote-SSH from this Skill.
+Not allowed:
 
-If the project requires server-side style loader registration as a strict prerequisite for any frontend visibility, treat that as an exception that must be explicitly approved in the handoff under `Server write scope` and limited to that registration only.
+- Creating or editing Section CSS/SCSS files on the server.
+- Editing generated CSS.
+- Final responsive QA, pixel-level visual checks, or hover/focus styling.
 
-## 7. Flush And Verify Server State
+Style loader registration on the server is allowed only as a documented exception when a project strictly requires it for frontend visibility, and only after explicit `Server write scope` confirmation limited to that registration.
 
-Only run the project-local cache flush command when it is inside the approved `Server write scope` and, on `live` or `unknown` environments, explicitly confirmed.
+When a new CSS file or style loader entry is needed, record it in the handoff under `CSS status = new-needed-for-frontend` so `frontend-section-qa` can create or register it locally in tracked source.
 
-Then verify:
+## Media handling
 
-- The target page loads.
-- The editor can select the new or modified layout.
-- The template renders without PHP errors.
-- The expected section class exists in the page markup.
+After Figma or source analysis, perform a lightweight Media Library check whether the required assets already exist. Keep this token-efficient, not an exhaustive audit.
 
-Record the cache and verification results in the handoff `Cache state` and `QA notes` fields.
+- If matches are quickly identifiable, use the existing Media IDs and record them in the handoff under `Discovery Sources`.
+- If matches are not quickly identifiable and the Section needs concrete assets to be testable, invoke `wp-media-import` as an explicit sub-flow inside an approved Media write scope. Document the imported Media IDs in the handoff.
+- Ask before importing on `live` or `unknown` environments, when asset rights are unclear, or when many candidate assets exist.
+- `wp-media-import` is an external Skill bundled with `wordpress-server-ops`. The Section workflow may invoke it as a documented sub-flow; it does not duplicate Media import logic itself.
 
-## 8. Emit Or Update Section Handoff
+## Server verification (function and existence only)
 
-Use the bundled `handoffs/section-handoff.template.md` as the reusable contract source, then create or update the concrete handoff at the project-configured storage location from Project Context. Keep the concrete handoff on the same branch or PR as the Section work.
+After server-side work, verify only the server-side function:
 
-Before local frontend work starts, the handoff must record:
+- Target page loads without PHP fatal errors or new warnings.
+- Section markup is present in the rendered page.
+- The primary class `.wso-section-<section-slug>` is present in the page markup.
+- The layout is selectable in the editor or present in ACF where checkable.
 
-- Handoff carrier, owner, project-configured storage location, and server phase status.
-- `Work type`, `Environment`, `Server write scope`, `Frontend route`, `Preflight gate status`, and `CSS status`.
-- Section name, layout name, target page URL, and source reference.
-- Template file, CSS file, ACF section field group, Flexible Content field, layout key/name, clone child field, and ACF fields.
-- Primary section class, wrapper classes, custom properties, and selectors to preserve.
-- `Protected existing artifacts` for remodels.
-- Expected desktop, tablet, mobile, content variation, and interaction behavior.
-- Server responsibilities completed, cache state, known risks, and open questions.
+Pixel-perfect rendering, responsive layout, spacing, typography, colors, and interaction states belong to `frontend-section-qa` and are not part of this Skill's verification.
 
-If the consuming project provides a handoff validator, run that project-local command. Do not depend on repository-local scripts that are not bundled with this plugin.
+Record server verification results in the handoff under `QA Notes`.
 
-Completed Section handoffs route to the Frontend Design QA `frontend-section-qa` Skill. Treat the filled Section handoff as the shared workflow contract between WST Builder server-side ownership and Frontend Design QA local implementation ownership.
+## Visual-only routing
+
+If `Work type` is `visual-only`:
+
+1. Identify the existing Section first using project discovery (template path, layout key/name, primary class) before asking.
+2. Do not perform server writes.
+3. Create a minimal handoff `<section-slug>-visual-only-handoff.md` with the existing Section identity, Figma/source link, target URL, stable classes/hooks, CSS status, and a clear `No server writes required` note.
+4. Route to `frontend-section-qa`.
+
+If discovery cannot identify the existing Section unambiguously, ask one compact Structural question with candidate Sections listed. Do not write until the maintainer confirms which Section is the target.
+
+## Handoff lifecycle
+
+The Section handoff is the live contract between server WST work and local Frontend Design QA. It is created during this Skill on the Remote-SSH WordPress workspace and consumed locally by `frontend-section-qa`. The project-configured handoff storage location is on the `.gitignore` allowlist that `setup-orientation` installs, so the handoff is tracked in Git and travels between the two workspaces through a normal commit, push, and pull cycle.
+
+- One new handoff per Section task: `<section-slug>-<work-type>-handoff.md` at the project-configured handoff storage location.
+- Commit and push the handoff immediately after it is created, so `frontend-section-qa` can pull it locally without waiting on a manual transfer.
+- Pass the original Figma/source link unchanged so `frontend-section-qa` can re-read the design.
+- Update the handoff progressively during discovery, decisions, writes, and verification. After each meaningful update (Discovery and safety status, Discovery Sources, Frontend QA Brief, server verification outcome), commit and push the handoff so the local side sees the latest contract on its next `git pull`.
+- For remodels, fill `Protected Existing Artifacts`.
+- For visual-only, fill the minimal Visual-Only path of the template.
+- Do not put secrets, tokens, application passwords, SSH keys, token-bearing URLs, dumps, or full media inventories into the handoff, because it travels through the shared Git repository.
+
+Cleanup is owned by `frontend-section-qa`:
+
+- After successful local frontend QA, it writes a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed.
+- It then removes the active handoff file with `git rm`, commits the removal, and pushes so the server-side workspace sees the closed task on its next `git pull`.
+
+This Skill must include those completion instructions in the handoff so the cleanup is not forgotten.
+
+## Frontend QA Brief in the handoff
+
+When server work or visual-only routing is complete, write a compact `Frontend QA Brief` into the handoff so `frontend-section-qa` can start without re-asking server-side questions:
+
+```text
+## Frontend QA Brief
+
+- Use `frontend-section-qa` locally (not over Remote-SSH).
+- Target URL: <dev-or-staging-url>
+- Section selector: .wso-section-<section-slug>
+- Figma/source link: <figma-url-or-brief>
+- CSS status: existing / new-needed-for-frontend / unknown / not-applicable
+- Required viewports and expected behavior: <summary>
+- Stable hooks to preserve: <selectors>
+- Server contract: do not change ACF/WST artifacts from the local phase. Report a server blocker in the handoff if a server-side discrepancy is found.
+- On completion: write a short permanent project note and remove this active handoff with `git rm`, commit, and push so both workspaces converge on the closed task.
+```
+
+The Frontend QA Brief is a verifiable starting point, not a blind directive. `frontend-section-qa` re-reads the Figma link and the rendered page locally, and may report contradictions back into the handoff instead of silently working around them.
+
+## Package boundary
+
+When editing this Skill or related plugin files, follow [`../../rules/plugin-package-boundary.mdc`](../../rules/plugin-package-boundary.mdc). Required workflow files must be bundled inside the plugin package. References to `frontend-section-qa` and `wp-media-import` remain explicit external Skills.
+
+See [`../../handoffs/section-handoff.template.md`](../../handoffs/section-handoff.template.md) for the bundled handoff template that this Skill fills.
 
 ## Generic Examples
 
 ### Example A: New `feature-cards` Section foundation
 
 - `Work type`: `new-section-foundation`.
+- Slug confirmed: `feature-cards`.
 - Template: `smart-template-builder/sections/feature-cards.php`.
-- Layout name: `layout_feature_cards`.
-- Primary class: `.wso-section-feature-cards`.
-- ACF group: `<section-field-group-key>` from the project-local ACF setup.
-- Flexible Content field: `<fc-field-key>` or `<fc-post-id>` from project context.
-- `CSS status`: `new-needed-for-frontend`. The handoff records `styles/sections/feature-cards.css` as a path `frontend-section-qa` will create or register, not as a file this Skill writes.
-- Handoff: records the generated layout key, created fields, target URL, cache state, local frontend checklist, and the next Skill route to `frontend-section-qa`.
+- Layout name: `layout_feature_cards`. Primary class: `.wso-section-feature-cards`.
+- ACF group, FC layout, and clone child field created with matching `parent_layout`.
+- `CSS status`: `new-needed-for-frontend`. The handoff records `styles/sections/feature-cards.css` as a path that `frontend-section-qa` will create or register locally.
+- Handoff filename: `feature-cards-new-section-foundation-handoff.md`.
 
 ### Example B: Existing `intro` Section remodel
 
 - `Work type`: `existing-section-remodel`.
-- `Protected existing artifacts`: existing layout name `layout_intro`, layout key, ACF field keys, template path `smart-template-builder/sections/intro.php`, CSS path `styles/sections/intro.css`, and the `.wso-section-intro` selector and any wrapper classes.
-- Read-only audit confirms existing template, ACF, and registration before proposing the write scope.
-- Approved `Server write scope`: only the existing template file change required by the remodel; no new field group, no new layout, no new clone child field, no new CSS file.
-- `CSS status`: `existing`. Visual refinements are routed to `frontend-section-qa`.
-- Handoff: records the exact server-side change, preserved artifacts, and the next Skill route to `frontend-section-qa`.
+- `Protected Existing Artifacts`: `layout_intro`, existing layout key, ACF field keys, `smart-template-builder/sections/intro.php`, `styles/sections/intro.css`, `.wso-section-intro` and wrapper classes.
+- Approved scope: only the in-place template change required by the remodel; no new ACF group, layout, clone child, or CSS file.
+- Handoff filename: `intro-existing-section-remodel-handoff.md`.
 
 ### Example C: Visual-only `intro` change
 
 - `Work type`: `visual-only`.
 - `Server write scope`: `none`.
-- This Skill stops server-side work and routes directly to `frontend-section-qa`.
-- Handoff records the visual-only routing decision and the existing Section identity so `frontend-section-qa` can pick up the request without re-asking server-side questions.
+- The Skill identifies the existing `layout_intro` first, writes a minimal handoff, and routes to `frontend-section-qa`.
+- Handoff filename: `intro-visual-only-handoff.md`.
 
 ### Example D: Live or unknown environment
 
 - `Environment`: `live` or `unknown`.
-- No write occurs until the maintainer explicitly confirms the exact files, ACF objects, content, and cache scope to change.
-- Cache flushes require their own explicit confirmation, even when other server writes were already approved.
-- Handoff records the confirmed scope and any deferred actions as open questions.
+- Reads and discovery proceed; no writes until explicit, concrete confirmation per artifact.
+- Cache flushes require their own explicit confirmation.
+- Handoff records the confirmed scope and any deferred actions.
