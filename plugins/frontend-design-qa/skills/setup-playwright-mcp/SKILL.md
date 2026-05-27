@@ -46,6 +46,7 @@ Setup Playwright MCP:
 - [ ] Add Playwright MCP to the local untracked .cursor/mcp.json
 - [ ] Restart Cursor and verify the Playwright MCP server is active in Settings -> Tools & MCP
 - [ ] Run a verification browser loop against the target URL
+- [ ] On a known defect symptom (URL.canParse, missing tools, unreachable target URL), apply Common Defects And Repair Notes before reporting status
 - [ ] Record playwright_mcp status in PROJECT-CONTEXT.md and the active handoff
 ```
 
@@ -170,7 +171,43 @@ If the verification loop fails for an environmental reason (login wall, geo bloc
 - Whether the same URL loads in a regular browser.
 - Suggested next action (user login flow, cookie consent dismiss, IT allowlist request, accept cert, switch URL).
 
-## 7. Record Status In PROJECT-CONTEXT.md And The Active Handoff
+## 7. Common Defects And Repair Notes
+
+Some failures look like missing browser access but are really defects in the MCP server process itself. Recognise them and route the correct repair before reporting status.
+
+### `TypeError: URL.canParse is not a function`
+
+Symptom: Playwright MCP appears active in `Settings -> Tools & MCP`, Chromium opens, the user can see the browser tab, but calling `browser_navigate` throws `TypeError: URL.canParse is not a function`. `browser_evaluate` may still work and can read the page, run `location.assign(...)`, and inject CSS.
+
+Root cause: the MCP server process is running on a Node runtime older than 18.17, where `URL.canParse` does not exist. Chromium and the page are fine; the failure is inside the MCP host.
+
+Repair, in order:
+
+1. Re-run the Local Node Runtime preflight: `node --version` must report `v18.17.x` or higher; `v20.x` LTS is the safe target.
+2. If `node --version` is fine in a regular terminal, check that Cursor inherits the same PATH. Fully quit Cursor, reopen the workspace, and confirm again.
+3. Clear the local `npx` cache so the next launch fetches a fresh MCP binary:
+   ```sh
+   npm cache verify
+   npx clear-npx-cache || true
+   ```
+4. Pin or upgrade the MCP package in the local `.cursor/mcp.json`, for example `npx -y @playwright/mcp@latest`. If a pinned older version is in use, bump it.
+5. Restart Cursor again and re-run the verification loop.
+
+While the defect is open, downstream QA Skills may continue in their documented Degraded Mode through `browser_evaluate`, but this Skill must still flag the underlying defect and a concrete repair step, not call it `ready`.
+
+### Server active but no browser tools listed
+
+Symptom: `playwright` shows as active in `Settings -> Tools & MCP`, but the chat does not see `browser_navigate`, `browser_evaluate`, or related tools.
+
+Repair: stop, inspect the local `.cursor/mcp.json` for a typo or wrong package name, restart Cursor, and re-check the tool list. If still empty, route to the local machine setup owner before declaring `ready`.
+
+### Browser opens but cannot reach the target URL
+
+Symptom: Tools list is fine, navigation works for `https://example.com`, but the project's dev or staging URL never finishes loading.
+
+Repair: distinguish content-level blockers (login, cookie banner, IP allowlist, self-signed cert) from network-level blockers (proxy, VPN, DNS). Document under the active handoff with the concrete next action and do not mark `playwright_mcp: ready` until the URL truly loads through Playwright MCP.
+
+## 8. Record Status In PROJECT-CONTEXT.md And The Active Handoff
 
 After verification, write a short, non-secret status entry in `PROJECT-CONTEXT.md`:
 
@@ -187,7 +224,7 @@ Add a matching line to the active Section or CPT handoff so the next QA Skill ca
 
 Do not write tokens, cookies, basic-auth credentials, session IDs, or token-bearing URLs into `PROJECT-CONTEXT.md`, handoffs, chat, tracked files, diagnostics, or screenshots.
 
-## 8. Handoff Back To Frontend QA Skills
+## 9. Handoff Back To Frontend QA Skills
 
 When `playwright_mcp: ready` is recorded, the active handoff is unblocked for browser-driven QA. Continue with:
 

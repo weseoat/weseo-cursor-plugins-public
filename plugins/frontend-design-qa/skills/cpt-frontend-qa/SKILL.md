@@ -38,13 +38,16 @@ When the user confirms visual-only CPT styling without an existing handoff, crea
 The Skill updates these status fields in the active handoff or mini-handoff. They make the work mode and verification state explicit at every stop.
 
 - `frontend work mode`: `handoff` or `visual-only-mini-handoff`.
-- `browser access`: `ready` or `blocked: <reason>`.
+- `browser access`: `ready`, `degraded: <broken-tool>-fallback-evaluate`, or `blocked: <reason>`.
+- `mcp tool defect`: empty, or a short tag plus reason, for example `browser_navigate: URL.canParse missing in MCP runtime`.
 - `proof mode`: `injection-proof` or `source-served`.
-- `injection proof`: `pending`, `pass`, `fail`, or `not-needed`.
+- `injection proof`: `pending`, `pass`, `pass-degraded`, `fail`, or `not-needed`.
 - `delivery path`: `direct-local-serving`, `auto-deploy-available`, `git-pull-required`, or `unknown`.
 - `server pull/deploy`: `not-needed`, `pending`, `user-confirmed`, or `not-reflected`.
-- `source-served verification`: `pending`, `pass`, `fail`, or `blocked`.
-- `final status`: `implementation-pass-pending-deploy`, `final-source-served-pass`, or `blocked`.
+- `source-served verification`: `pending`, `pass`, `pass-degraded`, `fail`, or `blocked`.
+- `final status`: `implementation-pass-pending-deploy`, `final-source-served-pass`, `final-source-served-pass-degraded`, or `blocked`.
+
+`pass-degraded` and `final-source-served-pass-degraded` mean Playwright MCP produced the evidence, but through the Capability Probe fallback documented under Degraded Mode, not through the standard tool chain. They still count as Playwright MCP evidence; they do not unlock a Cursor Browser fallback.
 
 ## Playwright MCP Preflight
 
@@ -53,8 +56,10 @@ Browser QA for CPT card, archive/grid, carousel/filter, and optional single-temp
 1. Read `PROJECT-CONTEXT.md` and the active CPT handoff or mini-handoff for the `playwright_mcp` status.
 2. If the status is `ready` and a quick Playwright MCP navigation to the CPT display URL (and the representative single URL when applicable) still works, continue.
 3. If the status is missing, `pending`, or unverified for this local workspace, run `setup-playwright-mcp` first as the setup/repair target. Do not improvise a workaround in this Skill.
-4. If Playwright MCP fails to start, shows red in `Settings -> Tools & MCP`, exposes no browser tools, or cannot navigate to the CPT display or single URL after a clean retry, hard stop. Set `browser access: blocked: playwright-mcp-unavailable` (or `playwright-mcp-navigation-failed: <short reason>` when navigation is the failure mode) and `final status: blocked`, record the symptom in the active CPT handoff or mini-handoff, and route back to `setup-playwright-mcp` for repair.
-5. If a content-level blocker prevents browser access (login wall, cookie banner, IP allowlist, self-signed cert, headless restriction) even though Playwright MCP itself works, record the blocker in the handoff and treat browser access as a hard precondition for final CSS writes (see Browser Access Safety Stop).
+4. Run a Capability Probe before any QA work: try `browser_navigate` against the CPT display URL once (and the representative single URL when applicable), then `browser_evaluate` to read `location.href`, `document.title`, a known card selector, and a known grid or single selector. Record each tool result as `ok`, `failed: <short reason>`, or `not-tested` in the active handoff or mini-handoff. The result drives the next step.
+5. If the entire MCP server fails (process down, red in `Settings -> Tools & MCP`, no browser tools listed) or both `browser_navigate` and `browser_evaluate` fail, hard stop. Set `browser access: blocked: playwright-mcp-unavailable` and `final status: blocked`, record the symptom, and route back to `setup-playwright-mcp` for repair.
+6. If only individual tools are broken but at least `browser_evaluate` works and reaches the CPT display URL (and the representative single URL when applicable) through a documented fallback, switch to Degraded Mode (see Degraded Mode For Partial Playwright MCP Tool Defects). Do not call this a workaround that bypasses Playwright MCP; it is still Playwright MCP, just through a smaller tool surface.
+7. If a content-level blocker prevents browser access (login wall, cookie banner, IP allowlist, self-signed cert, headless restriction) even though Playwright MCP itself works, record the blocker in the handoff and treat browser access as a hard precondition for final CSS writes (see Browser Access Safety Stop).
 
 Never configure Playwright MCP inside a Remote-SSH workspace from this Skill. Route that back to `setup-playwright-mcp` in the local frontend workspace.
 
@@ -67,6 +72,23 @@ When Playwright MCP is unavailable, broken, or cannot navigate to the CPT displa
 - Chrome Local Overrides remain an optional manual spike in the user's own Chrome, when the user explicitly chooses that path. They never replace Playwright MCP for proof or final verification of CPT presentation.
 
 If Playwright MCP cannot be brought up, the next action is always `setup-playwright-mcp`, not a different browser. If the user wants to force a Cursor Browser run, document that as `cursor-browser: diagnostic-only - not used for proof/verification` and keep `final status: blocked` until Playwright MCP works again.
+
+## Degraded Mode For Partial Playwright MCP Tool Defects
+
+Playwright MCP exposes several tools (`browser_navigate`, `browser_evaluate`, `browser_screenshot`, `browser_set_viewport`, etc.). Sometimes a single tool is defective while the rest works, for example when the MCP runtime is missing modern JS APIs and `browser_navigate` throws `TypeError: URL.canParse is not a function` even though Chromium and `browser_evaluate` are fine. In that case the Skill enters Degraded Mode instead of hard-stopping.
+
+Degraded Mode rules:
+
+- Degraded Mode requires that `browser_evaluate` works and that it can reach the CPT display URL (and the representative single URL when applicable). Set `browser access: degraded: <broken-tool>-fallback-evaluate` and record the concrete defect in `mcp tool defect`, for example `browser_navigate: URL.canParse missing in MCP runtime`.
+- `browser_evaluate` based navigation is the only sanctioned fallback. Use it explicitly, for example `await new Promise(r => { addEventListener('load', r, { once: true }); location.assign('<target>'); })` or a `location.href = ...` plus readiness check.
+- `browser_evaluate` based DOM, selector, and computed-style reads are sufficient for the CSS-injection proof on card, archive/grid, carousel/filter, and optional single-template surfaces.
+- CSS-injection through `browser_evaluate` is allowed: insert a `<style>` element, use `CSSStyleSheet.insertRule`, or `document.adoptedStyleSheets`. After insertion, read computed styles back through `browser_evaluate`.
+- Source-served verification in Degraded Mode reads the served stylesheet content through `browser_evaluate`, for example by fetching the stylesheet URL via `fetch(...).then(r => r.text())` from the page context and searching for the new selector, plus a computed-style spot check on the card or single element.
+- Set `injection proof: pass-degraded` and `source-served verification: pass-degraded` when those passes succeed through `browser_evaluate`. Final status can become `final-source-served-pass-degraded`. These statuses are still Playwright MCP evidence; they remain off-limits to Cursor Browser, manual checks, and screenshots.
+- Document Degraded Mode explicitly in the handoff or mini-handoff, including the broken tool, the observed error, the fallback path used, and the next action (`run setup-playwright-mcp`, file an MCP defect, pin or upgrade the MCP package, verify Node 20 plus for the MCP runtime).
+- If the user accepts Degraded Mode for the current task, that is fine, but the Skill must still route the defect back to `setup-playwright-mcp` so the underlying MCP issue gets a real fix in the next session.
+
+If `browser_evaluate` itself is broken, or the CPT display URL cannot be reached through the fallback, leave Degraded Mode and apply the hard stop from the Playwright MCP Preflight.
 
 ## Browser Access Safety Stop
 
@@ -109,7 +131,9 @@ CPT Frontend QA:
 - [ ] Ask whether a CPT handoff exists; create a mini-handoff for visual-only work without one
 - [ ] Read project context and the active handoff or mini-handoff
 - [ ] Confirm Playwright MCP is ready locally or run setup-playwright-mcp
-- [ ] If Playwright MCP cannot start or cannot navigate, hard stop; do not fall back to Cursor Browser; route to setup-playwright-mcp
+- [ ] Run the Capability Probe (browser_navigate, browser_evaluate, and the planned tools) and record per-tool status
+- [ ] If the MCP server is fully down or both navigate and evaluate fail, hard stop; do not fall back to Cursor Browser; route to setup-playwright-mcp
+- [ ] If only individual tools are broken but browser_evaluate reaches the target, enter Degraded Mode and document the defect
 - [ ] Confirm browser access to the CPT display URL, or stop and ask for login/access
 - [ ] Confirm display target, selectors, and detail-page decision
 - [ ] Re-read the Figma or source design when a link is available
@@ -249,13 +273,26 @@ Set `delivery path` to one of:
 - `git-pull-required`: the change reaches the server only after a commit, push, and a Git pull or deploy on the server side.
 - `unknown`: detection could not confirm a path.
 
-When `delivery path` is `git-pull-required` or `unknown`, stop after writing the local files with:
+When `delivery path` is `git-pull-required` or `unknown`, stop after writing the local files. This stop is a hard handoff to the user; do not run source-served verification before the user confirms back. Vague phrases like "please deploy" are not enough at this point. Spell out exactly what the user has to do, in plain language.
 
-```
-implementation pass; waiting for server pull/deploy
-```
+Set `server pull/deploy = pending` and post a handoff message that contains:
 
-Set `server pull/deploy = pending` and ask the user to pull or deploy on the server, then confirm when the CPT display URL (and the single URL when applicable) actually serves the new CSS. Do not continue source-served verification before that confirmation.
+1. A one-line status: `implementation pass; waiting for server pull/deploy`.
+2. A short list of the local files that were just changed and need to reach the server. Name them with their real project paths. Cover all touched surfaces (card, archive/grid, carousel/filter, optional single) and include any generated CSS or built artifact when the project uses SCSS.
+3. The exact commit and push commands the user has to run in this local frontend workspace, using the project's conventions. Default shape, adapted to the project's Git policy and branch:
+   ```sh
+   git status
+   git add <changed-files>
+   git commit -m "FEATURE - <cpt slug>: <short description>"
+   git push origin "$(git branch --show-current)"
+   ```
+4. The exact server-side step the user has to do next, named for the project. Pick the correct one and only mention that one to avoid confusion:
+   - For projects where the WordPress server itself pulls via WP Pusher or a deploy hook: tell the user to open their Remote-SSH server workspace and run `git fetch origin` plus `git pull` (or to confirm WP Pusher has deployed the push), then to run the project's documented cache flush from `PROJECT-CONTEXT.md` (default `php wp-cli.phar cache flush && php wp-cli.phar eval "if(function_exists('rocket_clean_domain')){rocket_clean_domain();}"`).
+   - For projects with an auto-deploy or push-to-deploy setup: tell the user to confirm the deploy completed for the just-pushed commit and to confirm the documented cache flush ran.
+5. A clear `come back when ...` line that tells the user how to resume: `come back when the new CSS file is reachable on the CPT display URL <and on the representative single URL when applicable>`.
+6. A note that the user does not have to start a new chat. A short `deployed and cache flushed` (or `deploy confirmed`) in the same conversation is enough. The Skill then continues with Source-Served Verification on the display URL and, when applicable, the single URL.
+
+Do not continue source-served verification before the user actually confirms back. If the user reports an error during the deploy or cache flush (login wall, push rejected, cache flush failure, deploy job failed), record it on the active CPT handoff and route the action to `wordpress-server-ops` or to the project's documented server step instead of guessing.
 
 ## 10. Source-Served Verification
 
@@ -359,12 +396,14 @@ Write QA notes back to the same CPT foundation handoff or mini-handoff that star
 
 When Playwright MCP itself failed or could not navigate to the CPT display URL or representative single URL, record the blocker explicitly:
 
-- Playwright MCP status at the time of failure (`unavailable`, `no-tools`, `navigation-failed: <reason>`).
+- Playwright MCP status at the time of failure (`unavailable`, `no-tools`, `navigation-failed: <reason>`, or `degraded: <broken-tool>-fallback-evaluate`).
+- Capability Probe result per tool (`browser_navigate`, `browser_evaluate`, `browser_screenshot`, `browser_set_viewport`, others) with `ok`, `failed: <short reason>`, or `not-tested`.
 - The step that failed (preflight navigation, card or grid injection proof, single injection proof, source-served verification, viewport pass).
-- Observed error message or symptom.
+- Observed error message or symptom, copied verbatim when short (for example `TypeError: URL.canParse is not a function`).
 - Whether the target URL was checked diagnostically through the Cursor Browser; if yes, note `cursor-browser: diagnostic-only - not used for proof/verification` and what was observed.
-- Next action: `run setup-playwright-mcp`, `install Node.js LTS locally and restart Cursor`, `provide session login`, `request IT allowlist`, or other concrete repair step.
-- Keep `final status: blocked` while the Playwright MCP blocker is unresolved.
+- Whether Degraded Mode was used; if yes, name the fallback path (for example `browser_evaluate location.assign + getComputedStyle` and `fetch stylesheet text` for source-served).
+- Next action: `run setup-playwright-mcp`, `install Node.js LTS locally and restart Cursor`, `file MCP defect issue and pin/upgrade @playwright/mcp`, `provide session login`, `request IT allowlist`, or other concrete repair step.
+- Keep `final status: blocked` while the Playwright MCP blocker is unresolved. If the task closed under Degraded Mode, set `final status: final-source-served-pass-degraded` and still record the open defect so the next session repairs it.
 
 ## 16. Commit And Close The Local Phase
 
