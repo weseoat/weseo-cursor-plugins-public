@@ -7,9 +7,15 @@ description: Implement and verify a local frontend Section from a filled Section
 
 Use this Skill for the local frontend phase after the server phase has created or updated a WST Section foundation and filled a Section handoff.
 
+When a CPT display becomes primarily a WST Section layout, use this Skill for the Section-level layout behavior only. Keep CPT card, archive/grid, carousel/filter, WP Grid Builder output, and optional single-template QA in the filled CPT handoff through `cpt-frontend-qa`.
+
+This Skill owns local CSS or SCSS implementation, responsive checks, Playwright-oriented acceptance, and Section handoff QA writeback. It does not own server-side WST templates, ACF field groups, WordPress content, WP Grid Builder setup, WP-CLI, cache execution, deployment, or Remote-SSH setup.
+
 ## Required Starting Point
 
 Start from a concrete filled Section handoff produced by the WST Builder server phase. The handoff is the contract for local frontend work and the place where QA results are written back.
+
+WST Builder owns the reusable Section handoff template at `plugins/wst-builder/handoffs/section-handoff.template.md`. The filled handoff itself lives at the project-configured storage location from Project Context.
 
 Do not begin final CSS, SCSS, Chrome Local Overrides spikes, responsive checks, or Playwright-oriented work from chat context alone. If the handoff path or project-configured storage location is unknown, stop and ask for it.
 
@@ -25,7 +31,7 @@ Read these before editing:
 - Source design or reference notes.
 - Project context for theme tokens, style loader, local build command, Playwright command, and Git branch or PR.
 
-If the handoff is missing the target URL, stable selectors, ACF or WST references, CSS path, visual requirements, local frontend responsibilities, or storage facts, stop and ask for the missing information. Do not invent URLs, selectors, ACF references, WST layout names, theme tokens, file paths, storage locations, or expected behavior.
+If the handoff is missing the target URL, stable selectors, ACF or WST references, CSS path, visual requirements, local frontend responsibilities, storage facts, cache state, known risks, or open questions, stop and ask for the missing information before final CSS work. Do not invent URLs, selectors, ACF references, WST layout names, theme tokens, file paths, storage locations, cache behavior, or expected behavior.
 
 ## Workflow
 
@@ -40,6 +46,7 @@ Frontend Section QA:
 - [ ] Move any successful spike changes into source files
 - [ ] Run responsive browser checks
 - [ ] Run or document Playwright acceptance checks
+- [ ] Record stale-cache or server-output symptoms without running server commands
 - [ ] Update the handoff QA notes
 - [ ] Commit code and handoff updates on the same branch or PR
 ```
@@ -57,13 +64,15 @@ The Section handoff is the contract for local work. Confirm it includes:
 - Expected visual behavior across breakpoints.
 - Project-configured handoff storage location, local frontend responsibilities, QA notes, cache state, known risks, and open questions.
 
-Do not start final CSS work while the handoff contains unresolved placeholders for markup, selectors, ACF/WST references, visual behavior, target URLs, or storage location.
+Do not start final CSS work while the handoff contains unresolved placeholders for markup, selectors, ACF/WST references, visual behavior, target URLs, cache state, local frontend responsibilities, open questions, or storage location.
 
-Run the handoff validator when the handoff lives in this repository:
+If the current project provides a Section handoff validator, run that project-local command. In this development repository, the optional validator is:
 
 ```sh
 python scripts/validate-section-handoffs.py
 ```
+
+Do not require that command in installed plugin consumers. When no validator is bundled by the current project, proceed if the filled handoff contains the required URL, selectors, WST and ACF references, CSS path, visual behavior, local responsibilities, QA storage facts, cache state, and open risks.
 
 ## 2. Inspect Existing Frontend Patterns
 
@@ -75,6 +84,8 @@ Before writing new CSS:
 - Check whether the project uses SCSS as an authoring layer and generated CSS as the runtime file.
 
 Do not restructure the theme or move files outside the paths approved by project context.
+Do not perform server-side WST, ACF, WordPress content, WP Grid Builder, WP-CLI, cache execution, deployment, or Remote-SSH work during local frontend QA.
+Do not edit PHP bootstrap or MU plugin files during local frontend QA. `functions.php` is forbidden for agent edits; `theme-functions.php` and MU plugin files require explicit prior user confirmation and should be routed to the appropriate server-side phase.
 
 ## 3. Implement Tracked CSS Or SCSS
 
@@ -112,9 +123,11 @@ Check the Section against the target URL:
 
 Update the handoff QA notes with the result and remaining risks.
 
+If markup, rendered data, generated CSS, or cache state looks stale, record the URL, selector, expected result, observed result, and local checks already performed in the handoff. Route cache flushes, WP-CLI, deployment, or server repair action back to WordPress Server Ops or the project's `PROJECT-CONTEXT.md` cache guidance.
+
 ## 6. Playwright Acceptance Path
 
-Use the project's Playwright command when available. If the project has no test yet, document a focused acceptance path in the handoff.
+Use the project's Playwright command when `PROJECT-CONTEXT.md` or the handoff provides a real project-local harness. If the project has no test yet, document a focused acceptance path and skip reason in the handoff.
 
 Recommended checks:
 
@@ -151,7 +164,7 @@ Write QA notes back to the same Section handoff that started the local phase. In
 - Responsive browser findings for the handoff's desktop, tablet, and mobile expectations.
 - Playwright result or documented acceptance path tied to the visible behavior in the handoff.
 - Implementation notes for changed CSS or SCSS files and generated CSS when applicable.
-- Remaining risks, open questions, cache notes, and confirmation that Chrome Local Overrides were discarded or copied into tracked source.
+- Remaining risks, open questions, stale-cache or server-output symptoms, route-back owner when action is needed, and confirmation that Chrome Local Overrides were discarded or copied into tracked source.
 
 ## 8. Commit The Local Phase
 

@@ -173,7 +173,7 @@ Common card data:
 
 ## CPT Handoff Draft
 
-The CPT handoff draft is separate from the Section handoff template. Create it during the bundled `grill-me` preflight at the project-configured storage location from Project Context, then keep updating it as server-side CPT foundation work proceeds.
+The CPT handoff draft is separate from the Section handoff template. Create it from the bundled reusable template at `plugins/wst-builder/handoffs/cpt-handoff.template.md` during the bundled `grill-me` preflight, store the filled draft at the project-configured CPT handoff storage location from Project Context, then keep updating it as server-side CPT foundation work proceeds.
 
 The draft should capture:
 
@@ -183,7 +183,7 @@ The draft should capture:
 - Taxonomy decision, taxonomy name, labels, hierarchy, public archive decision, purpose, and unresolved taxonomy questions.
 - ACF field group, field names, and unresolved field questions.
 - WPGB grid/card IDs as project-local values, or an explicit no-WPGB decision.
-- Display target: grid, carousel, existing Section, or dedicated Section.
+- Display target: grid, carousel, existing Section, dedicated Section, card-only, or single-only.
 - Card template files, archive/grid integration, optional single template files, and optional Section integration files.
 - Expected selectors for card, archive/grid, optional single template, and Section integration.
 - Expected desktop, tablet, mobile, content variation, filtering, linking, and interaction behavior.

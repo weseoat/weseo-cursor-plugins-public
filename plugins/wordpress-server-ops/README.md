@@ -4,12 +4,16 @@ Reusable server-phase guidance for safe Cursor Remote-SSH work in WESEO WordPres
 
 This plugin keeps WordPress-root work constrained and explicit. It covers the guided first-setup wizard, file boundaries, public webroot safety, WP-CLI/cache expectations, WordPress content editing, and media imports. Project-specific values live in the project-local `PROJECT-CONTEXT.md`; access values never do.
 
+For the full WESEO WordPress/WST delivery workflow, install this plugin together with `wst-builder` and `frontend-design-qa`. WordPress Server Ops owns the server/setup phase: Remote-SSH orientation, Project Context, server-safety boundaries, WP-CLI/cache guidance, media import, content editing, and the frontend onboarding handoff that prepares later WST Builder and Frontend Design QA work.
+
+PHP bootstrap files are sensitive across the full workflow. `functions.php` is forbidden for agent edits. `theme-functions.php` and MU plugin files require explicit prior user confirmation for the exact change.
+
 ## Responsibility
 
 Use this plugin for server-side work:
 
 - WordPress root orientation and Remote-SSH safety.
-- Guided first-run setup for Remote-SSH WordPress roots: plain-language German explanations, concrete user actions, root detection, `PROJECT-CONTEXT.md` creation as required contract, WST stack verification, local Bitbucket Git access, restrictive `.gitignore` with tracked `.cursor` skeleton, WP-CLI/cache verification and execution, personal Cursor plugin verification, untracked `.cursor/mcp.json` setup for WordPress and Figma, safe temp policy.
+- Guided first-run setup for Remote-SSH WordPress roots: plain-language German explanations, concrete user actions, root detection, `PROJECT-CONTEXT.md` creation as required contract, Section/CPT handoff storage, `LEARNINGS.md` status, WST stack verification, local Bitbucket Git access, restrictive `.gitignore` with tracked `.cursor` skeleton, WP-CLI/cache verification and execution, co-installed workflow skill verification, untracked `.cursor/mcp.json` setup for WordPress and Figma, safe temp policy.
 - WST template and server-side PHP context.
 - ACF field and content updates.
 - WP-CLI commands and cache flushes.
@@ -26,6 +30,8 @@ The final context should contain:
 
 - Project name, environment URLs, server hostname, WordPress root.
 - Theme path and WST template path.
+- Project-configured Section handoff storage and CPT handoff storage.
+- `LEARNINGS.md` status (`exists`, `create when first learning appears`, or `pending: <reason>`).
 - Repository host/name, default/current branch, redacted access method.
 - WP-CLI command, cache flush command.
 - Editable path policy and any approved plugin exceptions.
@@ -41,6 +47,7 @@ The final context should contain:
 - Rule: `server-phase-boundary`
 - Rule: `webroot-safety`
 - Rule: `file-edit-boundary`
+- Rule: `plugin-package-boundary`
 - Rule: `wp-cli-cache`
 - Rule: `wordpress-content-editing`
 - Skill: `setup-orientation` (with `reference.md` and `frontend-onboarding.md`)
@@ -55,11 +62,11 @@ It works from any starting state: if Cursor has no Remote-SSH connection or the 
 The wizard:
 
 - Detects the WordPress root, project facts, and the WST stack (Astra Child Theme, WST plugin, ACF PRO, ACF Extended, WP Grid Builder, CPT UI).
-- Creates or updates `PROJECT-CONTEXT.md` and treats it as the required context contract for later Skills.
+- Creates or updates `PROJECT-CONTEXT.md` and treats it as the required context contract for later Skills, including Section/CPT handoff storage and `LEARNINGS.md` status.
 - Configures Bitbucket Git for this project through a hidden terminal prompt with `x-token-auth`, with detailed step-by-step terminal instructions for users who are not familiar with the terminal. Verifies access with `git fetch origin`; never runs a blind `git pull origin master`.
 - Installs a deny-all WordPress-root `.gitignore` allowing only setup files, the `.cursor` skeleton (`.cursor/rules/.gitkeep`, `.cursor/skills/.gitkeep`), and detected child themes by default. Project-owned plugins (including `weseo-smart-template-builder`) are allowed only after explicit confirmation.
 - Verifies WP-CLI and runs the documented cache flush as part of setup once WP-CLI and the WordPress root are confirmed.
-- Verifies that the personal Cursor plugins (`wordpress-server-ops`, `wst-builder`, `frontend-design-qa`) are loaded for the Remote-SSH workspace and falls back to manual projection only when needed.
+- Verifies that the personal Cursor plugins (`wordpress-server-ops`, `wst-builder`, `frontend-design-qa`) and required workflow skills (`grill-me`, `frontend-section-qa`, `cpt-frontend-qa`) are loaded for the Remote-SSH workspace and falls back to manual projection only when needed.
 - Configures untracked `.cursor/mcp.json` in the opened Cursor workspace for both WordPress MCP and Figma MCP as required setup gates, with explicit `pending: <reason>` allowed.
 - Records a safe temp/scratch path outside the public webroot.
 - Shows `frontend-onboarding.md` as the final handoff for users new to the three-plugin workflow, or records that the user already knows it or will read it later.
@@ -67,9 +74,17 @@ The wizard:
 
 Tracked examples use placeholders such as `<token>`, `<repo-host>`, `<repo-name>`, `<domain>`, `<user>`, `<app-password>`, `<figma-api-key>`, `<wp-root>`, and `<path-outside-webroot>`. Real tokens, application passwords, SSH keys, database dumps, and token-bearing URLs stay out of chat, `PROJECT-CONTEXT.md`, Git, commits, tracked files, diagnostics, screenshots, and public webroot artifacts.
 
+## Package Boundary Guard Rail
+
+Plugin consumers only have access to files inside the installed plugin package. Any required Skill, Rule, reference, checklist, script, or workflow contract named by this plugin must be bundled inside `plugins/wordpress-server-ops` in this development repository, or explicitly marked as optional and external.
+
+`PROJECT-CONTEXT.md` is project-local and created or maintained in the target WordPress project. Do not reference a plugin-local Project Context template unless this package actually bundles one. Required commands, handoff paths, URLs, server roots, repository values, and access details belong in the project-local context or concrete handoffs, not reusable package prose.
+
+Do not make required WordPress Server Ops workflows depend on development-only paths such as `.agents`, `.cursor/plugins/cache`, `weseo-smartflow-frontend-guide`, `.scratch`, or repository-local scripts.
+
 ## Server-To-Local Handoff
 
-When server work creates or changes a WST Flexible Content Section or CPT foundation, the `wst-builder` plugin emits a handoff on the same Git branch or PR. The handoff names the page URL, template file, ACF references, CSS hooks, expected visual behavior, and QA notes before local frontend work begins through the `frontend-design-qa` plugin.
+When server work creates or changes a WST Flexible Content Section or CPT foundation, the `wst-builder` plugin emits a handoff on the same Git branch or PR. Section handoffs use the bundled reusable template at `plugins/wst-builder/handoffs/section-handoff.template.md`; CPT handoffs use the bundled reusable template at `plugins/wst-builder/handoffs/cpt-handoff.template.md`. Filled Section and CPT handoffs live at the project-configured storage locations recorded in `PROJECT-CONTEXT.md`. The handoff names the page URL, template file, ACF references, CSS hooks, expected visual behavior, cache state, QA notes, and open risks before local frontend work begins through the `frontend-design-qa` plugin.
 
 ## Not Included
 

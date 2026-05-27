@@ -14,6 +14,8 @@ Communicate with the user in German throughout setup. Keep command names, file p
 | Project facts | Record non-secret detections. | Run discovery commands automatically. |
 | WST stack | Record active theme + WST/ACF/ACFE/WPGB/CPT UI plugins. | Note missing components as open question. |
 | `PROJECT-CONTEXT.md` | Update missing non-secret values. | Create from template, fill detected facts. |
+| Section/CPT handoff storage | Record project-configured storage locations for both handoff types. | Ask for the intended project locations or record `pending` with next action. |
+| `LEARNINGS.md` | Record `exists` or `create when first learning appears`. | Missing file is safe to continue; do not fail setup. |
 | Git repository | Verify `git fetch origin` and identity. | Run prescribed Bitbucket setup with hidden token prompt. |
 | Restrictive `.gitignore` and `.cursor` skeleton | Confirm deny-all behavior and skeleton tracked. | Install baseline `.gitignore`, create `.gitkeep` files. |
 | WP-CLI | Verify `--info`. | Install local `wp-cli.phar`, use global `wp`, or skip with reason. |
@@ -141,6 +143,9 @@ Required non-secret fields:
 | WordPress root | `pwd` after root verification. |
 | Theme path | `wp-content/themes/astra-child/` or detected child theme. |
 | WST template path | `wp-content/plugins/weseo-smart-template-builder/`. |
+| Section handoff storage | Project-configured storage location for filled Section handoffs. |
+| CPT handoff storage | Project-configured storage location for filled CPT handoffs. |
+| `LEARNINGS.md` status | `exists`, `create when first learning appears`, or `pending: <reason>`. |
 | Repository host/name | Redacted `origin`. |
 | Default/current branch | `git branch --show-current`. |
 | Repository access method | `token-in-remote-url`, `credential-helper`, `ssh`. |
@@ -154,6 +159,31 @@ Required non-secret fields:
 Old SmartFlow placeholder categories (CPTs, Key Page IDs, WP Grid Builder Grids, FC Field Keys, Clone Group Keys, ACF IDs, button variants, container widths, clamp values) belong in `PROJECT-CONTEXT.md` under a `Project specifics` section. The wizard collects them here so plugin Rules stay generic.
 
 Never store: tokens, application passwords, SSH private keys, token-bearing URLs, REST credentials, database dumps, complete media inventories.
+
+## Handoff And Learnings Storage Walkthrough
+
+Section and CPT handoffs are project-local working contracts. The setup wizard records where the project wants filled handoffs to live; it does not store project-specific handoffs inside reusable plugin package folders.
+
+For Section handoffs:
+
+1. Explain in German that `wst-builder` owns the server-side Section foundation and emits the filled handoff before local frontend work starts.
+2. Name the bundled reusable Section template: `plugins/wst-builder/handoffs/section-handoff.template.md`.
+3. Ask for or record the concrete project storage location for filled Section handoffs.
+4. If the storage location is not known yet, record `section_handoff_storage: pending: <reason> - next action: Maintainer confirms project handoff location before first Section handoff`.
+
+For CPT handoffs:
+
+1. Explain in German that CPT handoffs are separate from Section handoffs because they can include archive, taxonomy, WP Grid Builder, card, carousel, detail-page, and optional single-template decisions.
+2. Ask for or record the concrete project storage location for filled CPT handoffs.
+3. Name the bundled reusable CPT template: `plugins/wst-builder/handoffs/cpt-handoff.template.md`.
+4. If the storage location is not known yet, record `cpt_handoff_storage: pending: <reason> - next action: Maintainer confirms project handoff location before first CPT handoff`.
+
+For `LEARNINGS.md`:
+
+1. Check the WordPress root for `LEARNINGS.md`.
+2. If present, record `learnings: exists`.
+3. If missing, record `learnings: create when first learning appears`.
+4. Do not block setup only because `LEARNINGS.md` is missing.
 
 ## Bitbucket Git Setup Walkthrough
 
@@ -397,8 +427,8 @@ Tracked content in `.cursor/rules/` and `.cursor/skills/` is reserved for projec
 Verify whether the personal plugin guidance is loaded for this Remote-SSH workspace:
 
 1. Frage den User, ob die Plugins `wordpress-server-ops`, `wst-builder`, `frontend-design-qa` in seinem persönlichen Cursor-Account aktiviert sind.
-2. Frage, ob die Plugin-Skills im Remote-SSH-Workspace verfügbar sind (z. B. `setup-orientation`, `wp-media-import`, `wst-new-fc-section`, `wst-new-post-type`).
-3. Wenn ja, dokumentiere in `PROJECT-CONTEXT.md`, dass die Plugin-Guidance aktiv ist; keine projektlokale Kopie nötig.
+2. Frage, ob die Plugin-Skills im Remote-SSH-Workspace verfügbar sind: `setup-orientation`, `wp-media-import`, `grill-me`, `wst-new-fc-section`, `wst-new-post-type`, `frontend-section-qa`, `cpt-frontend-qa`.
+3. Wenn ja, dokumentiere in `PROJECT-CONTEXT.md`, dass die Plugin-Guidance aktiv ist und diese Workflow-Skills verfügbar sind; keine projektlokale Kopie nötig.
 4. Wenn die Plugin-Guidance im SSH-Kontext nicht verfügbar ist, schlage manuelle Projektion vor: Plugin-Inhalte werden lokal in `.cursor/rules/` und `.cursor/skills/` projiziert, aber nur als Workaround. Dokumentiere die Abweichung.
 5. Installiere niemals private Setup-Notizen, Dumps oder Credentials in `.cursor/`.
 
@@ -508,18 +538,21 @@ Lead the user through the final checklist in German before saying setup is compl
 2. Der geöffnete Ordner ist der WordPress-Root und enthält `wp-content/`, `wp-admin/`, `wp-includes/`.
 3. WST Stack ist dokumentiert (Astra Child Theme, WST Plugin, ACF PRO, ACF Extended, WP Grid Builder, CPT UI) - oder fehlende Komponenten sind als offene Frage notiert.
 4. `PROJECT-CONTEXT.md` existiert und enthält keine Secrets.
-5. Git Identity ist gesetzt.
-6. Git Remote ist lokal eingerichtet, `git fetch origin` funktioniert, redaktierte Remote-Form ist dokumentiert.
-7. `.gitignore` verwendet Deny-all mit explizitem Allowlist; `git status --short` zeigt nur erlaubte Pfade.
-8. Erstcommit und Erst-Push sind erfolgt oder bewusst pausiert.
-9. WP-CLI ist verfügbar oder bewusst geskippt mit Grund/nächstem Schritt.
-10. Cache Flush wurde ausgeführt oder bewusst pausiert.
-11. `.cursor` Skeleton mit `.gitkeep` ist vorhanden; `.cursor/mcp.json` existiert nur im geöffneten Cursor-Workspace und ist untracked.
-12. WordPress MCP ist aktiv oder als `pending: <reason>` dokumentiert.
-13. Figma MCP ist aktiv oder als `pending: <reason>` dokumentiert.
-14. Safe Temp Path liegt außerhalb des Public Webroot.
-15. Keine echten Tokens, Application Passwords, SSH Keys oder tokenhaltigen URLs wurden in Chat, `PROJECT-CONTEXT.md`, Git, Commits, tracked files, Diagnosen oder Screenshots geschrieben.
-16. Der Frontend-Onboarding-Handoff (Schritt 11) wurde durchgeführt und das Ergebnis ist in `PROJECT-CONTEXT.md` als `frontend_onboarding: read`, `skipped (<reason>)` oder `pending` dokumentiert.
+5. Section handoff storage und CPT handoff storage sind dokumentiert oder mit nächstem Schritt als `pending` markiert.
+6. `LEARNINGS.md` Status ist dokumentiert; fehlende Datei blockiert nicht.
+7. Git Identity ist gesetzt.
+8. Git Remote ist lokal eingerichtet, `git fetch origin` funktioniert, redaktierte Remote-Form ist dokumentiert.
+9. `.gitignore` verwendet Deny-all mit explizitem Allowlist; `git status --short` zeigt nur erlaubte Pfade.
+10. Erstcommit und Erst-Push sind erfolgt oder bewusst pausiert.
+11. WP-CLI ist verfügbar oder bewusst geskippt mit Grund/nächstem Schritt.
+12. Cache Flush wurde ausgeführt oder bewusst pausiert.
+13. `.cursor` Skeleton mit `.gitkeep` ist vorhanden; `.cursor/mcp.json` existiert nur im geöffneten Cursor-Workspace und ist untracked.
+14. Co-installierte Plugin-Guidance ist für `wordpress-server-ops`, `wst-builder`, `frontend-design-qa` und die Workflow-Skills `grill-me`, `frontend-section-qa`, `cpt-frontend-qa` bestätigt oder mit Fallback dokumentiert.
+15. WordPress MCP ist aktiv oder als `pending: <reason>` dokumentiert.
+16. Figma MCP ist aktiv oder als `pending: <reason>` dokumentiert.
+17. Safe Temp Path liegt außerhalb des Public Webroot.
+18. Keine echten Tokens, Application Passwords, SSH Keys oder tokenhaltigen URLs wurden in Chat, `PROJECT-CONTEXT.md`, Git, Commits, tracked files, Diagnosen oder Screenshots geschrieben.
+19. Der Frontend-Onboarding-Handoff (Schritt 11) wurde durchgeführt und das Ergebnis ist in `PROJECT-CONTEXT.md` als `frontend_onboarding: read`, `skipped (<reason>)` oder `pending` dokumentiert.
 
 After this checklist and the Step 11 answer are recorded, present the final setup result in this order:
 
@@ -532,13 +565,15 @@ Do not say "setup orientation is complete" unless every required gate is verifie
 
 - Valid WordPress root opened over Remote-SSH.
 - `PROJECT-CONTEXT.md` exists with detected non-secret setup facts and recorded gates.
+- Section handoff storage and CPT handoff storage are recorded or pending with next action.
+- `LEARNINGS.md` status is recorded; missing `LEARNINGS.md` is not a hard failure.
 - WST stack status is recorded.
 - Git is working through the Bitbucket remote and identity is set, or stopped with explicit reason and next action. Git is not a normal optional skip for SmartFlow projects.
 - Restrictive WordPress-root `.gitignore` and tracked `.cursor` skeleton are installed before any initial commit/push.
 - Initial commit and push are done or explicitly pending.
 - WP-CLI is working or pending/skipped with reason.
 - Cache flush command is documented and was executed during setup, or pending because WP-CLI is unavailable.
-- Cursor plugin guidance is verified or fallback is documented.
+- Cursor plugin guidance and required workflow skills (`grill-me`, `frontend-section-qa`, `cpt-frontend-qa`) are verified or fallback is documented.
 - WordPress MCP is configured locally or pending with reason.
 - Figma MCP is configured locally or pending with reason.
 - Safe temp path exists outside the public webroot.
@@ -622,4 +657,6 @@ Additions not in the old guide that the wizard now covers:
 - Tracked `.cursor` skeleton with `.gitkeep` (Step 5).
 - Cache flush execution as part of setup (Step 6).
 - Safe temp path outside the public webroot (Step 9).
+- Project-configured Section and CPT handoff storage locations (Step 3).
+- `LEARNINGS.md` status as an optional project learning file (Step 3).
 - Explicit `pending: <reason>` and `skipped: <reason>` records with next action.

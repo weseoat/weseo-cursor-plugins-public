@@ -1,0 +1,77 @@
+---
+description: CPT, WP Grid Builder, card, archive, and optional single-template invariants for WST Builder work
+globs:
+  - "**/smart-template-builder/post-types/**/*.php"
+  - "**/smart-template-builder/sections/**/*.php"
+  - "**/manifest.json"
+  - "**/README.md"
+  - "**/skills/wst-new-post-type/**/*.md"
+  - "**/handoffs/cpt-handoff.template.md"
+alwaysApply: false
+---
+
+# CPT/WPGB Patterns
+
+Use this Rule when writing or reviewing WST Builder Custom Post Type work, including CPT registration, taxonomy setup, ACF CPT field groups, WP Grid Builder card/grid foundations, WST card templates, archive/grid integration, optional single templates, and CPT handoff content.
+
+## Required Context
+
+Before changing CPT, WPGB, ACF, or template structure, read the project-local context and current CPT handoff for:
+
+- CPT naming convention, registered post type, URL slug policy, and detail-page decision.
+- Taxonomy decision, hierarchy, public archive behavior, and filtering or label purpose.
+- ACF CPT field group approach and field ownership between core post fields, taxonomy, featured image, and ACF.
+- WP Grid Builder usage, generated grid/card IDs, display target, and card/grid source.
+- Card, archive/grid, carousel/filter, optional single, and optional Section integration template paths.
+- Stable selectors, CSS or SCSS paths, target dev or staging URLs, cache command, and handoff storage.
+
+Do not invent real CPT names, rewrite slugs, taxonomy names, ACF keys, field post IDs, WPGB IDs, paths, URLs, selectors, credentials, or client examples. Use placeholders such as `<resource>`, `<url-slug>`, `<field-key>`, `<grid-id>`, `<card-id>`, and `<dev-or-staging-url>` until Project Context or the concrete CPT handoff supplies the real values.
+
+## CPT And Detail-Page Invariants
+
+- Decide whether public detail pages exist before enabling public single URLs, rewrites, archives, search inclusion, or single templates.
+- Non-detail CPTs must not accidentally create public single URLs, public archives, or searchable content just because the CPT is visible in the admin.
+- Public detail-page CPTs must record URL slug, archive/search behavior, representative single URL, single template path, stable single selector, and local frontend responsibilities in the CPT handoff.
+- `show_ui` and `show_in_rest` should be enabled unless the project context gives a reason not to.
+- `supports` should include only fields the content model actually uses.
+
+## Taxonomy Invariants
+
+- Add a taxonomy only when it has a clear filtering, grouping, card-label, archive, or editor-organization purpose.
+- Taxonomy names usually follow the project pattern, commonly `wso_tax_<resource>`.
+- Choose hierarchical behavior deliberately: category-style for controlled groups, tag-style for loose labels.
+- Disable public rewrites unless taxonomy archives are part of the brief.
+- Record an explicit no-taxonomy decision when the CPT does not need taxonomy.
+
+## ACF CPT Field Invariants
+
+- Prefer core post title, featured image, editor, excerpt, and taxonomy terms before duplicating the same data in ACF fields.
+- Create one CPT-specific ACF field group when custom fields are needed, with location rules targeting the registered post type.
+- Use project field naming conventions and record generated field keys only after the project creates them.
+- Stop when field ownership is unclear; do not invent field names, field keys, or generated IDs.
+- Templates must handle optional fields so empty data does not leave broken markup or spacing.
+
+## WP Grid Builder Invariants
+
+- Create WPGB card and grid foundations only when the display target uses WPGB.
+- The WPGB grid source should point at the new CPT when the display target is a grid or carousel.
+- The WPGB card exists so the grid can select a card; WST PHP card templates may still render the actual markup.
+- Record generated grid/card IDs in Project Context or the concrete CPT handoff, never in reusable plugin prose.
+- Record an explicit no-WPGB decision when the CPT is rendered only by a custom Section, single template, or another project-specific path.
+
+## Template And Selector Invariants
+
+- Guard PHP templates with `if (! defined('ABSPATH')) exit;`.
+- Card templates should expose stable hooks such as `.wso-<resource>-card`.
+- Archive, grid, carousel, filter, and optional single templates should expose stable wrapper selectors for frontend QA.
+- Public single templates should expose stable hooks such as `.wso-<resource>-single`.
+- Preserve selectors used by templates, JavaScript, WPGB behavior, or Playwright checks.
+- Minimal server-phase style files may establish hooks, but final spacing, typography, responsive behavior, Chrome Local Overrides spikes, and Playwright checks belong to Frontend Design QA.
+
+## Handoff And Routing Invariants
+
+- Create CPT handoff drafts from `plugins/wst-builder/handoffs/cpt-handoff.template.md` and store filled handoffs at the project-configured CPT handoff storage location.
+- Keep CPT handoffs separate from Section handoffs because CPT work has detail-page, taxonomy, WPGB, card, archive/grid, carousel, and optional single-template decisions.
+- Completed CPT handoffs route to Frontend Design QA `cpt-frontend-qa` for card, archive/grid, carousel/filter, WPGB output, and optional single-template QA.
+- When a CPT display becomes primarily a dedicated WST Section layout, record the split: `frontend-section-qa` owns Section-level layout behavior, while `cpt-frontend-qa` owns CPT card, archive/grid, carousel/filter, and optional single-template behavior.
+- Stop instead of guessing when blocking handoff values are unresolved.

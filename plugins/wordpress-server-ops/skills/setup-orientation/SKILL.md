@@ -1,11 +1,11 @@
 ---
 name: setup-orientation
-description: Guided wizard for the complete first setup of a WESEO WordPress/WST project over Cursor Remote-SSH. Use when starting a new project, re-orienting an existing SSH workspace, opening the WordPress root, creating or updating PROJECT-CONTEXT.md, configuring this project's Bitbucket Git access via hidden terminal prompt, verifying WP-CLI and cache flush, preparing the .cursor skeleton, and configuring untracked .cursor/mcp.json access for WordPress and Figma.
+description: Guided wizard for the complete first setup of a WESEO WordPress/WST project over Cursor Remote-SSH. Use when starting a new project, re-orienting an existing SSH workspace, opening the WordPress root, creating or updating PROJECT-CONTEXT.md, recording Section/CPT handoff storage and LEARNINGS.md status, configuring this project's Bitbucket Git access via hidden terminal prompt, verifying WP-CLI and cache flush, preparing the .cursor skeleton, and configuring untracked .cursor/mcp.json access for WordPress and Figma.
 ---
 
 # Setup Orientation
 
-Run this Skill as a guided wizard for the first run of a WESEO WordPress/WST project opened through Cursor Remote-SSH. The expected outcome is a usable SSH development workspace with `PROJECT-CONTEXT.md` filled, working project Git, verified WP-CLI/cache, a tracked `.cursor` skeleton, and untracked `.cursor/mcp.json` access for WordPress and Figma.
+Run this Skill as a guided wizard for the first run of a WESEO WordPress/WST project opened through Cursor Remote-SSH. The expected outcome is a usable SSH development workspace with `PROJECT-CONTEXT.md` filled, project-configured Section and CPT handoff storage recorded, `LEARNINGS.md` status recorded, working project Git, verified WP-CLI/cache, a tracked `.cursor` skeleton, and untracked `.cursor/mcp.json` access for WordPress and Figma.
 
 The wizard must work from any starting state. If Cursor is open without a Remote-SSH connection, lead the user through Remote-SSH first. If the WordPress root is already open and Git is already configured, skip those steps and continue.
 
@@ -141,6 +141,9 @@ At minimum, fill:
 - Project name, live URL, and staging/dev URL.
 - Server hostname and WordPress root.
 - Theme path and WST template path.
+- Project-configured Section handoff storage location.
+- Project-configured CPT handoff storage location.
+- `LEARNINGS.md` status (`exists`, `create when first learning appears`, or `pending: <reason>`).
 - Repository host/name and default/current branch.
 - Repository access method as a non-secret description (`token-in-remote-url`, `credential-helper`, or `ssh`).
 - WP-CLI command shape.
@@ -151,6 +154,10 @@ At minimum, fill:
 - Setup completion status per step (`done`, `pending: <reason>`, `skipped: <reason>`).
 
 Never store real tokens, application passwords, SSH private keys, token-bearing URLs, REST credentials, dumps, or media inventories.
+
+For handoff storage, record project-configured locations rather than inventing a package path. Section handoff drafts should use WST Builder's bundled template at `plugins/wst-builder/handoffs/section-handoff.template.md` as the reusable contract and then be stored at the concrete project location recorded in `PROJECT-CONTEXT.md`. CPT handoffs should use WST Builder's bundled template at `plugins/wst-builder/handoffs/cpt-handoff.template.md` as the reusable contract and then be stored separately at the project-configured CPT handoff location recorded in `PROJECT-CONTEXT.md`.
+
+For `LEARNINGS.md`, check whether the file exists in the WordPress root. If it exists, record `learnings: exists`. If it does not, record that it should be created when the first real project learning appears. Missing learnings are not a setup failure.
 
 If required non-secret values are missing, follow the Project Context fill walkthrough in [reference.md](reference.md). The old SmartFlow placeholder categories (CPTs, Key Page IDs, WP Grid Builder Grids, FC Field Keys, Clone Group Keys, button variants, container widths, clamp values, ACF IDs) are collected here, not by editing plugin Rules.
 
@@ -269,6 +276,12 @@ Record the chosen command shape and the cache flush command in `PROJECT-CONTEXT.
 
 The user runs Cursor with the WESEO plugins (`wordpress-server-ops`, `wst-builder`, `frontend-design-qa`) installed in their personal Cursor account. The wizard does not copy plugin Rules or Skills into the project.
 
+Verify the co-installed workflow skills that later phases require:
+
+- `setup-orientation` and `wp-media-import` from `wordpress-server-ops`.
+- `grill-me`, `wst-new-fc-section`, and `wst-new-post-type` from `wst-builder`.
+- `frontend-section-qa` and `cpt-frontend-qa` from `frontend-design-qa`.
+
 The project repository keeps a `.cursor` skeleton (Step 5) so the team can add project-specific Rules and Skills later.
 
 Background verification commands:
@@ -279,7 +292,7 @@ ls .cursor/rules
 ls .cursor/skills
 ```
 
-Record in `PROJECT-CONTEXT.md` whether the personal plugin guidance is active for this Remote-SSH workspace and whether project-specific Rules or Skills exist. If plugin guidance is not available in the SSH context, follow the Cursor Guidance fallback walkthrough in [reference.md](reference.md).
+Record in `PROJECT-CONTEXT.md` whether the personal plugin guidance is active for this Remote-SSH workspace, whether each required workflow skill above is available, and whether project-specific Rules or Skills exist. If plugin guidance is not available in the SSH context, follow the Cursor Guidance fallback walkthrough in [reference.md](reference.md).
 
 ## Step 8: Cursor mit WordPress und Figma verbinden
 
@@ -348,10 +361,13 @@ Use the final verification walkthrough in [reference.md](reference.md). Confirm 
 
 - Cursor is connected to the expected Remote-SSH workspace and the open folder is the WordPress root.
 - `PROJECT-CONTEXT.md` exists and contains the detected non-secret setup coordinates with no secrets.
+- Section handoff storage and CPT handoff storage are recorded or marked `pending` with a next action.
+- `LEARNINGS.md` status is recorded without treating a missing file as a failure.
 - Git is working through the Bitbucket remote with `git fetch origin` succeeding, identity is set, and the deny-all `.gitignore` produced a clean staging scope before the initial push.
 - WST stack status is recorded.
 - WP-CLI is verified and the cache flush command was executed during setup.
 - The `.cursor` skeleton with `.gitkeep` files is in place; `.cursor/mcp.json` is untracked.
+- Co-installed plugin guidance is verified for `wordpress-server-ops`, `wst-builder`, `frontend-design-qa`, and the workflow skills `grill-me`, `frontend-section-qa`, and `cpt-frontend-qa`.
 - WordPress MCP and Figma MCP are active or recorded as `pending: <reason>` with next action.
 - Safe temp path exists outside the public webroot.
 - No real tokens, application passwords, SSH keys, or token-bearing URLs were written to chat, tracked docs, or commits.
@@ -382,10 +398,11 @@ Setup ist durch. Letzter Schritt: das Frontend-Onboarding.
 
 `frontend-onboarding.md` erklärt kompakt:
 - die drei WESEO-Plugins (`wordpress-server-ops`, `wst-builder`, `frontend-design-qa`),
-- die Aufteilung Remote-Server vs. lokale Frontend-Arbeit,
-- wie Figma in beiden Phasen genutzt wird,
-- wie `PROJECT-CONTEXT.md` als zentrale Projektquelle funktioniert,
-- die wichtigsten Regeln und den Handoff-Workflow.
+- was das Setup vorbereitet und wo `PROJECT-CONTEXT.md`, Section-/CPT-Handoffs und `LEARNINGS.md` stehen,
+- was `wst-builder` vor der lokalen Frontend-Arbeit erzeugt,
+- was `frontend-design-qa` lokal übernimmt,
+- wann Cache-/Server-Themen zurück an `wordpress-server-ops` gehen,
+- die wichtigsten Stop-Conditions.
 
 Soll ich es dir jetzt zeigen, oder kennst du den Workflow schon?
 - "Zeig es mir": ich öffne `frontend-onboarding.md` direkt im Chat.
@@ -401,6 +418,8 @@ When the wizard finishes, leave behind:
 
 - A usable Remote-SSH Cursor workspace at the WordPress root.
 - `PROJECT-CONTEXT.md` filled with non-secret facts, recorded gates, and any `pending`/`skipped` notes with reason and next action.
+- Project-configured Section and CPT handoff storage recorded in `PROJECT-CONTEXT.md`.
+- `LEARNINGS.md` status recorded in `PROJECT-CONTEXT.md` without requiring the file to exist on day one.
 - Working project Git through the approved Bitbucket access method.
 - Verified WP-CLI and a documented, executed cache flush command.
 - Tracked `.cursor` skeleton (`.gitkeep` files) and untracked `.cursor/mcp.json`.

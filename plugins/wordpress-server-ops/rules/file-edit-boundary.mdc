@@ -26,6 +26,14 @@ Do not create, edit, or delete files in these areas unless project context expli
 - Root configuration files such as `wp-config.php` and `.htaccess`.
 - Runtime, language, cache, and generated directories.
 
+## PHP Bootstrap Safety
+
+Do not edit `functions.php`. It is the theme bootstrap entry point and is forbidden for agent edits even when it lives inside an otherwise editable child theme.
+
+Only edit `theme-functions.php` after explicit prior user confirmation for that exact change. Do not treat project context or a broad editable theme path as blanket permission.
+
+Only create or edit MU plugin files after explicit prior user confirmation for that exact change. Project-owned MU plugins are sensitive runtime extension points, not default scratch space.
+
 ## If A Task Needs An Exception
 
 Stop and ask for direction when the requested change is outside the approved boundary. Do not assume a plugin, upload, root config, or runtime file can be edited because it exists in the workspace.
@@ -35,8 +43,8 @@ Stop and ask for direction when the requested change is outside the approved bou
 When behavior needs to change, prefer project-approved extension points:
 
 - Child theme includes.
-- Dedicated theme function files.
-- Project-owned mu-plugin files only when the project explicitly allows them.
+- Dedicated theme include files that are not `functions.php` or `theme-functions.php`.
+- Project-owned MU plugin files only after explicit prior user confirmation.
 - WST templates when WST is part of the project's editable source.
 
 ## Uploads

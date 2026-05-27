@@ -13,6 +13,7 @@ Diese Anleitung ersetzt den alten `smartflow-frontend-guide.md`. Sie beschreibt 
 - Cursor ist per `Remote-SSH` mit dem Server verbunden. Das bedeutet: Cursor arbeitet im Server-Workspace, nicht in einem lokalen Projektordner auf deinem Rechner.
 - Der `WordPress root` ist geöffnet. Das ist der Hauptordner der WordPress-Installation mit `wp-content/`, `wp-admin/` und `wp-includes/`.
 - `PROJECT-CONTEXT.md` existiert im WordPress-Root und enthält nicht geheime Projektfakten.
+- Die Ablageorte für Section-Handoffs und CPT-Handoffs sind in `PROJECT-CONTEXT.md` dokumentiert oder als offener Punkt notiert.
 - Browser, Figma-Zugang und optional Playwright sind bereit, falls du die finale Frontend-QA lokal machst.
 
 ## Drei Plugins, drei einfache Verantwortungen
@@ -58,6 +59,8 @@ Typischer Inhalt:
 - Projekt, Live-/Staging-URL, Server, WordPress-Root, Theme-Pfad, WST-Template-Pfad.
 - Repository-Host/Name, Branch, Access-Methode (`token-in-remote-url`, `credential-helper`, `ssh`).
 - WP-CLI-Command, Cache-Flush-Command, Safe-Temp-Path.
+- Section-Handoff-Ablage und CPT-Handoff-Ablage für die Übergabe zwischen `wst-builder` und `frontend-design-qa`.
+- `LEARNINGS.md` Status: vorhanden oder beim ersten echten Learning anzulegen.
 - Editier-Policy: erlaubte Pfade, Plugin-Ausnahmen.
 - WST-Stack-Status: aktives Theme + Plugins.
 - Projekt-Spezifika: CPTs, Key Page IDs, WP Grid Builder Grids, FC Field Keys, Clone Group Keys, Button-Varianten, Container-Widths, Clamp-Werte, ACF IDs.
@@ -96,22 +99,26 @@ Auch im Server-Schritt: Bevor eine Section oder ein CPT erzeugt wird, soll der A
 Server-Phase und lokale Frontend-Phase sind über Handoffs gekoppelt. Ein Handoff ist die schriftliche Übergabe zwischen technischer Grundlage und finaler Frontend-Umsetzung:
 
 - `wst-builder` produziert Section- und CPT-Handoffs auf demselben Branch oder PR. Das Handoff nennt URL, Template-Datei, ACF-Referenzen, CSS-Hooks, erwartetes Verhalten, QA-Hinweise, offene Punkte.
+- Die wiederverwendbare Section-Vorlage liegt im `wst-builder` Plugin unter `plugins/wst-builder/handoffs/section-handoff.template.md`. Das ausgefüllte Handoff liegt aber am projekt-konfigurierten Ablageort aus `PROJECT-CONTEXT.md`.
+- CPT-Handoffs haben einen eigenen Ablageort, weil sie zusätzlich Archiv, Taxonomie, WP Grid Builder, Cards, Carousel, Detailseite und optionale Single-Templates betreffen können.
 - `frontend-design-qa` liest das Handoff vor der Umsetzung, ergänzt nach der Umsetzung Status, Responsive-/Playwright-Ergebnis und verbleibende Risiken.
 
 ### 4. Editieren - nur im erlaubten Bereich
 
 - CSS/SCSS in den freigegebenen Theme-Pfaden, nie inline, nie `<style>`-Blöcke.
 - Neue CSS-Dateien gemäß der projekt-eigenen Loader-/`styles.json`-Konvention registrieren.
-- `functions.php` nicht anfassen - stattdessen `theme-functions.php` oder ein MU-Plugin, sofern `PROJECT-CONTEXT.md` das vorsieht.
+- `functions.php` nie anfassen. Wenn `theme-functions.php` oder ein MU-Plugin nötig wirkt, muss der Agent den geplanten Eingriff vorher nennen und fragen, ob das ok ist.
 - WST-Templates nur im freigegebenen WST-Pfad ändern.
 
-### 5. Testen und Cache leeren
+### 5. Testen und Cache-Themen richtig routen
 
 Nach Template- oder DB-Änderungen den Cache flushen. Genauer Befehl steht in `PROJECT-CONTEXT.md`. WESEO-Default:
 
 ```sh
 php wp-cli.phar cache flush && php wp-cli.phar eval "if(function_exists('rocket_clean_domain')){rocket_clean_domain();}"
 ```
+
+Wichtig für die lokale Frontend-Phase: `frontend-design-qa` führt keinen Server- oder Cache-Eingriff selbst aus. Wenn eine lokale QA nach stale Markup, alter Server-Ausgabe oder Cache aussieht, notiert der Agent das Symptom im Handoff und routet die Aktion zurück an `wordpress-server-ops` oder an den in `PROJECT-CONTEXT.md` dokumentierten Server-Schritt.
 
 ### 6. Git-Workflow
 
@@ -170,14 +177,16 @@ Wenn ein Learning dauerhaft und allgemein gültig ist, sollte es in eine Plugin-
 ## Wichtige Regeln auf einen Blick
 
 - Setup-Status und Projektfakten in `PROJECT-CONTEXT.md` führen.
+- Section- und CPT-Handoff-Ablagen aus `PROJECT-CONTEXT.md` verwenden; keine Handoffs in Plugin-Paketordner schreiben.
 - Drei Plugins, drei Phasen: `wordpress-server-ops` (Setup/Server), `wst-builder` (WST-Foundation), `frontend-design-qa` (lokales Frontend).
 - Figma sowohl Remote (für Section/CPT-Vorbereitung) als auch lokal (für finale Umsetzung) nutzen.
 - Nur in `astra-child/` editieren - WST-Plugin nur, wenn `PROJECT-CONTEXT.md` es freigibt.
-- Nie `functions.php` ändern → `theme-functions.php` oder MU-Plugin.
+- Nie `functions.php` ändern. `theme-functions.php` oder MU-Plugin nur nach vorheriger Ankündigung und Bestätigung.
 - Nie inline Styles → CSS-Klassen in den freigegebenen Style-Pfaden.
 - Neue CSS-Dateien gemäß projekt-eigener Style-Loader-Konvention registrieren.
 - Git: `git fetch` statt blindem `pull origin master`; Branch-Wechsel nur nach Bestätigung.
 - WP Pusher = Push-to-Deploy → immer committen und pushen.
+- Stoppen und fragen, wenn Handoff-Ablage, Template-Pfad, ACF/WST-Referenzen, Cache-Zuständigkeit oder erlaubter Editierbereich unklar sind.
 - Code und Commits auf Englisch, Commit-Keywords `FEATURE`, `FIX`, `DEV`.
 - Keine temp/backup/sensiblen Dateien im öffentlichen Webroot - Safe-Temp-Path aus `PROJECT-CONTEXT.md` verwenden.
 - Echte Tokens, Application Passwords, SSH Keys und tokenhaltige URLs nie in Chat, `PROJECT-CONTEXT.md`, Git, Commits, tracked files, Diagnosen, Screenshots oder öffentliche Webroot-Artefakte schreiben.

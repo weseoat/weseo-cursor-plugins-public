@@ -1,0 +1,30 @@
+---
+description: Guard rail for keeping WordPress Server Ops self-contained and project-safe
+globs:
+  - "**/manifest.json"
+  - "**/README.md"
+  - "**/skills/**/*.md"
+  - "**/rules/**/*.mdc"
+  - "**/release-notes/**/*.md"
+alwaysApply: false
+---
+
+# WordPress Server Ops Plugin Package Boundary
+
+Use this Rule when writing or reviewing reusable WordPress Server Ops plugin content.
+
+The plugin package must be self-contained for consumers who only receive the `wordpress-server-ops` plugin folder. A required setup, server-safety, WP-CLI/cache, media, or onboarding step must not depend on files elsewhere in this development repository.
+
+## Required Checks
+
+- Every required Skill, Rule, reference, script, checklist, or workflow contract named by the plugin must exist inside the plugin package, which is `plugins/wordpress-server-ops` in this development repository, or be explicitly marked as an optional external dependency.
+- Default WordPress Server Ops workflows must not require `.agents`, `.cursor/plugins/cache`, `weseo-smartflow-frontend-guide`, `.scratch`, repository-local scripts, or any other development-only path.
+- If a workflow says "run `<skill-name>`", that Skill must be bundled in `plugins/wordpress-server-ops/skills/<skill-name>/SKILL.md` unless the workflow clearly says the Skill is optional and external.
+- `PROJECT-CONTEXT.md` is a project-local file created or updated in the opened WordPress root. Do not reference a plugin-local Project Context template unless this package actually bundles that file.
+- Required commands, scripts, templates, and handoff references must either be bundled with the relevant plugin package or clearly described as project-local and optional.
+- Reusable guidance must not include real client IDs, server paths, URLs, credentials, token-bearing examples, repository names, WordPress roots, cache commands, WP-CLI commands, editable path exceptions, handoff storage locations, ACF keys, field post IDs, WP Grid Builder IDs, or access values.
+- Secret-handling guidance stays with Server Ops and Project Context: real access values must never be copied into reusable plugin content, tracked files, chat, diagnostics, screenshots, or public webroot artifacts.
+- The plugin README, manifest, release notes, rules, and skills must agree on the bundled content list.
+- Manifest `source` fields and archive references are development provenance only. Runtime `path` fields and required workflow references must point to bundled plugin content.
+
+Stop and fix the package before shipping if a required workflow path points outside the plugin folder without being marked optional or project-local, or if reusable guidance contains project-only values.

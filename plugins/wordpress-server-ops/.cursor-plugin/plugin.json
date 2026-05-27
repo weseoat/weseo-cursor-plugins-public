@@ -1,7 +1,7 @@
 {
   "name": "wordpress-server-ops",
   "version": "0.4.3",
-  "description": "WESEO server-phase guidance for safe Cursor Remote-SSH work in WordPress and WST projects, including a guided plain-language setup wizard with PROJECT-CONTEXT.md, WST stack verification, Bitbucket Git via hidden terminal prompt, tracked .cursor skeleton, required untracked WordPress and Figma MCP config, file boundaries, webroot safety, WP-CLI and cache use, content editing, and media import.",
+  "description": "WESEO WordPress Server Ops guidance for the co-installed WordPress/WST workflow with wst-builder and frontend-design-qa: safe Cursor Remote-SSH setup, PROJECT-CONTEXT.md, Section/CPT handoff storage, LEARNINGS.md status, WST stack verification, Bitbucket Git via hidden terminal prompt, tracked .cursor skeleton, required untracked WordPress and Figma MCP config, file boundaries, webroot safety, WP-CLI/cache use, content editing, media import, and frontend onboarding.",
   "author": {
     "name": "WESEO"
   },

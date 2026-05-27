@@ -38,6 +38,12 @@ Do not invent real field keys, field post IDs, clone group keys, layout keys, pa
 - Keep WST row, wrap, column, and column-attribute classes consistent with nearby templates.
 - Register the template include with the matching layout name in the Flexible Content render block.
 
+## PHP Bootstrap Safety
+
+Do not edit `functions.php`. It is forbidden for agent edits even when the child theme is otherwise inside the project-approved editable path.
+
+Edit `theme-functions.php` only after explicit prior user confirmation for the exact change. Edit or create MU plugin files only after explicit prior user confirmation for the exact change.
+
 ## Scope Boundary
 
 This Rule owns reusable WST Builder structure and review checks. Final visual CSS, responsive QA, Chrome Local Overrides spikes, and Playwright checks belong to Frontend Design QA. WordPress server access, cache policy, media import, and access setup belong to WordPress Server Ops or Project Context.

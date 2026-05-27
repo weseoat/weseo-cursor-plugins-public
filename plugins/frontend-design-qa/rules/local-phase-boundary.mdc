@@ -1,0 +1,44 @@
+---
+description: Keep Frontend Design QA limited to local CSS, SCSS, visual QA, and handoff writeback
+globs:
+  - "**/skills/**/*.md"
+  - "**/rules/**/*.mdc"
+  - "**/README.md"
+alwaysApply: false
+---
+
+# Frontend Design QA Local Phase Boundary
+
+Use this Rule when doing Section or CPT frontend QA from a filled WST Builder handoff.
+
+Frontend Design QA owns the local frontend phase only. It consumes a concrete project-local Section or CPT handoff, implements final CSS or SCSS in tracked local source files, verifies visual behavior, and writes QA results back to the same handoff.
+
+## Allowed Local Work
+
+- Read `PROJECT-CONTEXT.md` and the filled Section or CPT handoff for project-local facts.
+- Inspect existing local frontend source files, generated CSS expectations, style loader references, and nearby theme patterns.
+- Implement final CSS or SCSS-derived changes in project-approved tracked frontend files.
+- Use Chrome Local Overrides only as temporary spike work, then copy successful declarations into tracked source files and discard the override.
+- Run or document responsive browser checks against the handoff's dev or staging URL.
+- Run the project's Playwright command when a real project-local harness exists, or document a focused acceptance path in the handoff when it does not.
+- Write local frontend status, responsive results, Playwright results or skip reasons, changed files, cache notes, risks, and open questions back to the same handoff.
+
+## Forbidden In This Phase
+
+- Do not create or edit server-side WST templates, CPT registration, taxonomy registration, ACF field groups, WP Grid Builder cards or grids, WordPress content, media imports, or deployment configuration.
+- Do not run WP-CLI, cache flushes, database commands, deployment commands, Remote-SSH setup steps, or server-side verification commands from this phase.
+- Do not edit PHP bootstrap or MU plugin files during local frontend QA. `functions.php` is forbidden for agent edits. `theme-functions.php` and MU plugin files require explicit prior user confirmation and belong in the appropriate server-side phase.
+- Do not treat browser overrides, chat context, reusable examples, or legacy SmartFlow material as the final source of truth.
+- Do not invent missing URLs, selectors, ACF/WST references, WP Grid Builder IDs, file paths, build commands, Playwright commands, handoff storage locations, or expected behavior.
+
+## Handoff Gate
+
+Before final CSS or SCSS work begins, the filled handoff must identify the target URL, stable selectors, relevant WST/ACF/CPT/WPGB references or explicit non-use decisions, editable CSS or SCSS paths, visual requirements, local frontend responsibilities, storage location, cache state, known risks, and open questions.
+
+If a required fact is missing, stop and ask for the missing value or update the handoff before continuing. Do not unblock local frontend work by performing server-side changes in this phase.
+
+## Cache And Server Escalation
+
+If rendered markup, data, generated CSS, or cache state does not match the handoff or local source changes, record the symptom, URL, selector, expected result, observed result, and local checks already performed in the handoff.
+
+Route the action back to WordPress Server Ops or the project's `PROJECT-CONTEXT.md` cache guidance. Frontend Design QA may document the stale-cache or server-output risk, but it must not execute cache, WP-CLI, deployment, or server-side repair steps.

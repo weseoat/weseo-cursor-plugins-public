@@ -3,11 +3,12 @@
   "name": "frontend-design-qa",
   "displayName": "Frontend Design QA Plugin",
   "version": "0.1.0",
-  "responsibility": "Package reusable local frontend implementation guidance for CSS conventions, Figma-to-code translation, Chrome Local Overrides spikes, and Playwright-oriented Section and CPT verification.",
+  "responsibility": "Package reusable local frontend implementation guidance for the Frontend Design QA role in the co-installed WESEO WordPress/WST workflow: CSS/SCSS, Figma-to-code, Chrome Local Overrides spikes, responsive QA, Playwright-oriented acceptance, and handoff QA writeback.",
   "assumptions": [
     "The plugin is used from a local Git checkout that contains or mirrors the project frontend source files.",
+    "For the full WESEO WordPress/WST delivery workflow, this plugin is expected to be co-installed with wordpress-server-ops and wst-builder.",
     "A filled Section handoff or CPT foundation handoff exists before local CSS, responsive QA, and Playwright checks begin.",
-    "Project-specific theme tokens, URLs, Figma style mappings, repository details, deployment steps, WP Grid Builder IDs, and validation commands live in project context, the Section handoff, or the CPT foundation handoff."
+    "Project-specific theme tokens, URLs, Figma style mappings, repository details, deployment steps, WP Grid Builder IDs, and validation commands live in the project-local PROJECT-CONTEXT.md, the Section handoff, or the CPT foundation handoff."
   ],
   "rules": [
     {
@@ -27,6 +28,18 @@
       "path": "rules/figma-to-code.mdc",
       "source": "weseo-smartflow-frontend-guide/.cursor/rules/figma-to-code.mdc",
       "description": "Guide Figma-to-code translation for grid sizing, spacing, typography, image behavior, and specificity checks."
+    },
+    {
+      "name": "plugin-package-boundary",
+      "path": "rules/plugin-package-boundary.mdc",
+      "source": "plugins/frontend-design-qa/rules/plugin-package-boundary.mdc",
+      "description": "Keep required Frontend Design QA workflows self-contained inside the plugin package and prevent development-only path or project-value dependencies."
+    },
+    {
+      "name": "local-phase-boundary",
+      "path": "rules/local-phase-boundary.mdc",
+      "source": "plugins/frontend-design-qa/rules/local-phase-boundary.mdc",
+      "description": "Keep Frontend Design QA limited to local CSS, SCSS, visual QA, and handoff writeback while routing server, cache, WST, ACF, WP-CLI, and deployment work out of phase."
     }
   ],
   "skills": [
@@ -40,7 +53,7 @@
       "name": "cpt-frontend-qa",
       "path": "skills/cpt-frontend-qa/SKILL.md",
       "source": "weseo-smartflow-frontend-guide/.cursor/skills/wst-new-post-type/SKILL.md",
-      "description": "Implement and verify local frontend presentation for WST CPT cards, archive or grid views, and optional single templates from a filled CPT foundation handoff."
+      "description": "Implement and verify local frontend presentation for WST CPT cards, archive or grid views, and optional single templates from a filled CPT foundation handoff produced by WST Builder's wst-new-post-type Skill and CPT handoff template."
     }
   ],
   "releaseNotes": "release-notes/0.1.0.md"

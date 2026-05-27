@@ -7,7 +7,7 @@ description: Create a WESEO Smart Template Builder Custom Post Type foundation. 
 
 ## Quick Start
 
-Use this Skill for the server-side WST foundation of a new Custom Post Type. Start with the bundled `grill-me` preflight before creating or modifying CPT registration, taxonomy setup, ACF field groups, WP Grid Builder card/grid foundations, card templates, archive/grid integration, optional single templates, CSS hooks, or handoff content.
+Use this Skill for the server-side WST foundation of a new Custom Post Type. Start with the bundled `grill-me` preflight before creating or modifying CPT registration, taxonomy setup, ACF field groups, WP Grid Builder card/grid foundations, card templates, archive/grid integration, optional single templates, CSS hooks, or handoff content. Use the bundled CPT/WPGB invariant guidance in `rules/cpt-wpgb-patterns.mdc` when reviewing CPT foundation decisions.
 
 Before asking the maintainer for technical values, search the project-local context for:
 
@@ -22,7 +22,7 @@ If any blocking value is missing, stop and ask the maintainer or record an expli
 
 ## Mandatory Preflight
 
-Run the bundled `grill-me` preflight before implementation starts. The preflight output is a dedicated CPT handoff draft, not only a chat summary and not the Section handoff template.
+Run the bundled `grill-me` preflight before implementation starts. The preflight output is a dedicated CPT handoff draft created from `plugins/wst-builder/handoffs/cpt-handoff.template.md`, not only a chat summary and not the Section handoff template.
 
 The draft must record:
 
@@ -37,7 +37,7 @@ The draft must record:
 - Expected desktop, tablet, mobile, content variation, filtering, linking, and interaction behavior.
 - Server phase status, cache status, known risks, open questions, local frontend responsibilities, and unresolved placeholders.
 
-Do not proceed to CPT implementation until the draft exists in the project-configured storage location or the maintainer explicitly confirms where it should live.
+Do not proceed to CPT implementation until the draft exists in the project-configured CPT handoff storage location or the maintainer explicitly confirms where it should live.
 
 ## Inputs
 
@@ -121,7 +121,7 @@ Recommended structure:
 - Optional tabs for complex CPTs.
 - Field names prefixed with the CPT naming convention when the project does that already.
 
-Use ACF field group posts or the project's established ACF tooling. Do not place `acf_add_local_field()` snippets in theme bootstrap files unless the project has already chosen local PHP field registration as its source of truth.
+Use ACF field group posts or the project's established ACF tooling. Do not place `acf_add_local_field()` snippets in `functions.php`; that file is forbidden for agent edits. Only use `theme-functions.php` or MU plugin files for local PHP field registration after explicit prior user confirmation for that exact change.
 
 Use `reference.md` for generic ACF field group and field-shape guidance.
 
@@ -197,7 +197,7 @@ Run the project-local cache flush command. Then verify:
 
 ### 10. Emit Or Update CPT Foundation Handoff
 
-Update the dedicated CPT handoff draft on the same branch or PR as the CPT foundation work. Keep it separate from the Section handoff template because CPT work has its own detail-page, taxonomy, WP Grid Builder, card, archive, and optional single-template decisions.
+Update the dedicated CPT handoff draft on the same branch or PR as the CPT foundation work. Use the bundled reusable template at `plugins/wst-builder/handoffs/cpt-handoff.template.md` as the canonical CPT handoff source, and keep the filled project handoff separate from the Section handoff template because CPT work has its own detail-page, taxonomy, WP Grid Builder, card, archive, carousel, and optional single-template decisions.
 
 Fill these handoff areas before local frontend work starts:
 

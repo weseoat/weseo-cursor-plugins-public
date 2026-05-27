@@ -91,7 +91,7 @@ Standard structure:
 - Layout clone, using the project-local layout clone group key.
 - Section-specific custom fields from menu order `5` onward.
 
-Use ACF field group posts or the project's established ACF tooling. Do not place `acf_add_local_field()` snippets in theme bootstrap files unless the project has already chosen local PHP field registration as its source of truth.
+Use ACF field group posts or the project's established ACF tooling. Do not place `acf_add_local_field()` snippets in `functions.php`; that file is forbidden for agent edits. Only use `theme-functions.php` or MU plugin files for local PHP field registration after explicit prior user confirmation for that exact change.
 
 Use `reference.md` for reusable FC Section field group, clone group, and field-shape guidance. Treat all keys, IDs, paths, labels, and URLs in that reference as placeholders supplied by Project Context or the Section handoff draft.
 
