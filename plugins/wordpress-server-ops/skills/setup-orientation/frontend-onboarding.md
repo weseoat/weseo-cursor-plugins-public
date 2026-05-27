@@ -74,7 +74,9 @@ Nicht in `PROJECT-CONTEXT.md`, Chat, Git, Commits, tracked files, Diagnosen, Scr
 
 Standardmäßig sind nur Dateien unter `wp-content/themes/astra-child/` (oder dem in `PROJECT-CONTEXT.md` genannten Child Theme) bearbeitbar.
 
-`wp-content/plugins/weseo-smart-template-builder/` ist nur dann bearbeitbar, wenn `PROJECT-CONTEXT.md` das Plugin als projekt-eigene Quelle bestätigt hat. Andernfalls gilt es als Vendor-Plugin.
+WST Sections, CPT-Cards, Archive/Grid-Integrationen und optionale Single-Templates leben **immer** im Child Theme unter `wp-content/themes/<child-theme>/smart-template-builder/`, nicht im Plugin-Verzeichnis.
+
+`wp-content/plugins/weseo-smart-template-builder/` ist die WST-Runtime/-Library und standardmäßig tabu. Edits dort sind nur erlaubt, wenn `PROJECT-CONTEXT.md` für genau diesen Unterpfad eine projekt-eigene Quelle bestätigt. Andernfalls gilt das Plugin als Vendor-Plugin.
 
 Alles andere (WordPress Core, andere Plugins, Uploads, Config) ist tabu. Falls eine Aufgabe Änderungen außerhalb erfordert, vorher Rücksprache mit dem Maintainer halten.
 

@@ -35,7 +35,7 @@ For any change in a `live` or `unknown` environment, the prompt to the maintaine
 ```text
 Work type: existing-cpt-remodel
 Environment: live
-Files to change: smart-template-builder/post-types/<resource>/cards/<resource>-card.php
+Files to change: wp-content/themes/<child-theme>/smart-template-builder/post-types/<resource>/cards/<resource>-card.php
 ACF/DB objects to change: none
 WPGB objects to change: none
 Content changes: none
@@ -179,7 +179,7 @@ WST projects commonly use WP Grid Builder for CPT card lists:
 
 For `existing-cpt-remodel`, preserve existing WPGB grid/card IDs, grid source, selected card, filters, pagination, and carousel behavior unless the confirmed handoff explicitly approves a change.
 
-Template lookup usually follows these shapes:
+CPT card and single templates live in the project-owned WST source inside the active child theme. The theme-relative lookup shapes are:
 
 ```text
 smart-template-builder/post-types/<resource>/cards/<resource>-card.php
@@ -188,7 +188,16 @@ smart-template-builder/post-types/<resource>/cards/<resource>-card-part-2.php
 smart-template-builder/post-types/<resource>/singles/<resource>-single.php
 ```
 
-Use the equivalent paths from Project Context when a project differs.
+Resolved against the active child theme that means:
+
+```text
+<wp-root>/wp-content/themes/<child-theme>/smart-template-builder/post-types/<resource>/cards/<resource>-card.php
+<wp-root>/wp-content/themes/<child-theme>/smart-template-builder/post-types/<resource>/cards/<resource>-card-part-1.php
+<wp-root>/wp-content/themes/<child-theme>/smart-template-builder/post-types/<resource>/cards/<resource>-card-part-2.php
+<wp-root>/wp-content/themes/<child-theme>/smart-template-builder/post-types/<resource>/singles/<resource>-single.php
+```
+
+Do not place CPT card, archive/grid, or single templates under `wp-content/plugins/weseo-smart-template-builder/`. That folder is the WST runtime/library and is off-limits unless `PROJECT-CONTEXT.md` records an explicit project-source exception for that exact subpath. Use the equivalent theme-internal paths from Project Context when a project differs.
 
 Do not hardcode WPGB IDs in card templates, reusable references, or plugin docs. Generated IDs belong in concrete project context and handoffs.
 

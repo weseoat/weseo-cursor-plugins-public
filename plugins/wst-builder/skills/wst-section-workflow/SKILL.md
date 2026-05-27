@@ -33,6 +33,7 @@ Stop and confirm before:
 - Overwriting existing page content.
 - Creating new artifacts during an `existing-section-remodel` (new template file, ACF field group, Flexible Content layout, clone child field, or style loader entry) unless explicitly approved.
 - Making a structural ACF/FC decision that discovery cannot resolve.
+- Writing any Section, template, ACF, or Flexible Content artifact inside the WST plugin folder `wp-content/plugins/weseo-smart-template-builder/`. Project-owned WST artifacts always live in the child theme under `wp-content/themes/<child-theme>/smart-template-builder/`. Treat the plugin folder as a hard off-limits target unless `PROJECT-CONTEXT.md` records an explicit project-source exception for that exact subpath.
 
 Always allowed regardless of environment:
 
@@ -158,7 +159,7 @@ If a local example contradicts a hard invariant, do not copy it blindly. Record 
 
 ### Searching for similar Sections
 
-The Skill searches for a structural reference by itself before asking. Sources include Section template files under the project's `smart-template-builder/sections/` path (or equivalent), ACF section field groups, Flexible Content layouts, and rendered markup on existing pages when accessible.
+The Skill searches for a structural reference by itself before asking. Sources include Section template files under the project's `wp-content/themes/<child-theme>/smart-template-builder/sections/` path, ACF section field groups, Flexible Content layouts, and rendered markup on existing pages when accessible. Do not search inside `wp-content/plugins/weseo-smart-template-builder/` for project-owned references; it is the WST runtime/library and contains framework code, not the project's Sections.
 
 Only ask when no usable reference is found, when multiple references would change the server model differently, or when the maintainer might prefer a specific reference Section. Suggested fallback prompt when needed:
 
@@ -182,17 +183,30 @@ If a desired change only affects spacing, typography, color, responsive behavior
 
 Record protected artifacts in the handoff under `Protected Existing Artifacts`.
 
+## WST template path anchor
+
+Section templates, ACF includes, Flexible Content registrations, and clone field wiring always live in the project-owned WST source inside the active child theme. Resolve the absolute path before any write:
+
+```text
+<wp-root>/wp-content/themes/<child-theme>/smart-template-builder/
+```
+
+Read `PROJECT-CONTEXT.md` for `Theme path` and `WST template path`. The WST template path is theme-internal; if `PROJECT-CONTEXT.md` records a value under `wp-content/plugins/weseo-smart-template-builder/`, stop and ask the maintainer to confirm the project-source exception, then prefer the child-theme path for new and remodeled artifacts unless the maintainer explicitly directs otherwise. Verify with a quick filesystem check (for example `ls wp-content/themes/<child-theme>/smart-template-builder/sections/`) before writing.
+
+The WST plugin folder `wp-content/plugins/weseo-smart-template-builder/` is the WST runtime/library and is hard off-limits for project-owned Section, ACF, FC, clone field, or style loader writes unless `PROJECT-CONTEXT.md` records an explicit project-source exception for that exact subpath.
+
 ## Slug, derived names, and handoff filename
 
 For a new Section, the Skill proposes a slug derived from the Figma frame or brief and asks the maintainer to confirm.
 
-Once the slug is confirmed, derive the rest deterministically:
+Once the slug is confirmed, derive the rest deterministically. All paths below are relative to the active child theme root resolved in WST template path anchor:
 
 | Derived | Pattern |
 | --- | --- |
 | Layout name | `layout_<section_slug_with_underscores>` |
 | Primary class | `.wso-section-<section-slug>` |
-| Template file | `smart-template-builder/sections/<section-slug>.php` (or the project's equivalent path) |
+| Template file (theme-relative) | `smart-template-builder/sections/<section-slug>.php` |
+| Template file (absolute) | `<wp-root>/wp-content/themes/<child-theme>/smart-template-builder/sections/<section-slug>.php` |
 | Handoff filename | `<section-slug>-<work-type>-handoff.md` |
 
 For `existing-section-remodel`, do not re-confirm the slug if a single existing Section is unambiguously matched. Ask only if multiple candidates apply or the maintainer wants a rename.
@@ -229,7 +243,7 @@ New WST FC Section:
 - [ ] Discovery sources recorded (Figma, similar Sections, rules applied, test placement)
 - [ ] Section slug confirmed and derived names recorded
 - [ ] Execution Plan announced
-- [ ] Create Section template at smart-template-builder/sections/<section-slug>.php
+- [ ] Create Section template at <child-theme>/smart-template-builder/sections/<section-slug>.php inside the active child theme (never under wp-content/plugins/weseo-smart-template-builder/)
 - [ ] Create ACF section field group
 - [ ] Add Flexible Content layout entry
 - [ ] Create clone child field with matching parent_layout
@@ -373,7 +387,7 @@ See [`../../handoffs/section-handoff.template.md`](../../handoffs/section-handof
 
 - `Work type`: `new-section-foundation`.
 - Slug confirmed: `feature-cards`.
-- Template: `smart-template-builder/sections/feature-cards.php`.
+- Template: `wp-content/themes/<child-theme>/smart-template-builder/sections/feature-cards.php` (theme-relative `smart-template-builder/sections/feature-cards.php`).
 - Layout name: `layout_feature_cards`. Primary class: `.wso-section-feature-cards`.
 - ACF group, FC layout, and clone child field created with matching `parent_layout`.
 - `CSS status`: `new-needed-for-frontend`. The handoff records `styles/sections/feature-cards.css` as a path that `frontend-section-qa` will create or register locally.
@@ -382,7 +396,7 @@ See [`../../handoffs/section-handoff.template.md`](../../handoffs/section-handof
 ### Example B: Existing `intro` Section remodel
 
 - `Work type`: `existing-section-remodel`.
-- `Protected Existing Artifacts`: `layout_intro`, existing layout key, ACF field keys, `smart-template-builder/sections/intro.php`, `styles/sections/intro.css`, `.wso-section-intro` and wrapper classes.
+- `Protected Existing Artifacts`: `layout_intro`, existing layout key, ACF field keys, `wp-content/themes/<child-theme>/smart-template-builder/sections/intro.php` (theme-relative `smart-template-builder/sections/intro.php`), `styles/sections/intro.css`, `.wso-section-intro` and wrapper classes.
 - Approved scope: only the in-place template change required by the remodel; no new ACF group, layout, clone child, or CSS file.
 - Handoff filename: `intro-existing-section-remodel-handoff.md`.
 

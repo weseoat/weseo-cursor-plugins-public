@@ -56,7 +56,7 @@ For visual-only CPT styling without a server foundation step, the handoff is int
 | URL slug | `<url-slug-or-not-applicable>` |
 | Public archive | `<yes/no>` |
 | Search behavior | `<included/excluded/not-applicable>` |
-| Single template file | `smart-template-builder/post-types/<resource>/singles/<resource>-single.php` |
+| Single template file | `wp-content/themes/<child-theme>/smart-template-builder/post-types/<resource>/singles/<resource>-single.php` (theme-relative `smart-template-builder/post-types/<resource>/singles/<resource>-single.php`). Never under `wp-content/plugins/weseo-smart-template-builder/`. |
 | Representative single URL | `<dev-or-staging-single-url-or-not-applicable>` |
 | Unresolved detail-page questions | `<questions-or-none>` |
 
@@ -102,7 +102,7 @@ For visual-only CPT styling without a server foundation step, the handoff is int
 
 | Field | Value |
 |-------|-------|
-| Card template file | `smart-template-builder/post-types/<resource>/cards/<resource>-card.php` |
+| Card template file | `wp-content/themes/<child-theme>/smart-template-builder/post-types/<resource>/cards/<resource>-card.php` (theme-relative `smart-template-builder/post-types/<resource>/cards/<resource>-card.php`). Never under `wp-content/plugins/weseo-smart-template-builder/`. |
 | Additional card parts | `<part-1-part-2-or-none>` |
 | Single template file | `<single-template-path-or-not-applicable>` |
 | Section integration file | `<section-template-path-or-not-applicable>` |

@@ -12,7 +12,7 @@ Before editing files in a WordPress root, read the project-local file boundary p
 Only edit paths that the project marks as editable. In WESEO WST projects this usually includes:
 
 - The active child theme path, such as `wp-content/themes/astra-child/`.
-- WST template paths when the project explicitly treats WST as project code.
+- The project-owned WST source inside the active child theme: `wp-content/themes/<child-theme>/smart-template-builder/`. Section templates, CPT card templates, archive/grid integration files, optional single templates, and `flexible-content.php` registrations live here.
 - Project-local documentation and handoff files that are tracked by the current branch.
 
 ## Default Off-Limits Areas
@@ -21,7 +21,7 @@ Do not create, edit, or delete files in these areas unless project context expli
 
 - WordPress core files, including `wp-admin/`, `wp-includes/`, and root `wp-*.php` files.
 - Parent themes and third-party themes.
-- Third-party plugin code.
+- Third-party plugin code, including the WST plugin folder `wp-content/plugins/weseo-smart-template-builder/`. The WST plugin is the runtime/library; project-owned WST templates belong in the child theme path above. Treat the plugin folder as editable only when `PROJECT-CONTEXT.md` records an explicit project-source exception for that exact folder.
 - Upload files, except through approved media import or upload workflows.
 - Root configuration files such as `wp-config.php` and `.htaccess`.
 - Runtime, language, cache, and generated directories.
@@ -45,7 +45,7 @@ When behavior needs to change, prefer project-approved extension points:
 - Child theme includes.
 - Dedicated theme include files that are not `functions.php` or `theme-functions.php`.
 - Project-owned MU plugin files only after explicit prior user confirmation.
-- WST templates when WST is part of the project's editable source.
+- WST Section and CPT template files inside the child theme under `wp-content/themes/<child-theme>/smart-template-builder/`. Do not place these in the WST plugin folder.
 
 ## Uploads
 

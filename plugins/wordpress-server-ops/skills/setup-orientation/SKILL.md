@@ -67,7 +67,7 @@ Use these defaults unless Project Context or the maintainer says otherwise:
 - Cursor connects through Remote-SSH and opens the WordPress installation directly.
 - The WordPress root contains `wp-content/`, `wp-admin/`, and `wp-includes/`.
 - The editable theme is usually `wp-content/themes/astra-child/`.
-- The WST stack is Astra Child Theme, WST plugin (`weseo-smart-template-builder`), ACF PRO, ACF Extended, WP Grid Builder, CPT UI.
+- The WST stack is Astra Child Theme, WST plugin (`weseo-smart-template-builder`), ACF PRO, ACF Extended, WP Grid Builder, CPT UI. Project-owned WST Sections, CPT cards, archive/grid integrations, and optional single templates live in the child theme under `wp-content/themes/<child-theme>/smart-template-builder/`. The plugin folder `wp-content/plugins/weseo-smart-template-builder/` is the WST runtime/library and is off-limits by default.
 - A local `wp-cli.phar` in the WordPress root is preferred when global `wp` is not available.
 - Default cache flush command: `php wp-cli.phar cache flush && php wp-cli.phar eval "if(function_exists('rocket_clean_domain')){rocket_clean_domain();}"`.
 - Bitbucket remotes use HTTPS with `x-token-auth`. The real token never leaves this project's Git configuration.
@@ -140,7 +140,7 @@ At minimum, fill:
 
 - Project name, live URL, and staging/dev URL.
 - Server hostname and WordPress root.
-- Theme path and WST template path.
+- Theme path and WST template path. The WST template path is the project-owned WST source inside the active child theme (for example `wp-content/themes/<child-theme>/smart-template-builder/`). The WST plugin folder `wp-content/plugins/weseo-smart-template-builder/` is the runtime/library and is off-limits by default.
 - Project-configured Section handoff storage location.
 - Project-configured CPT handoff storage location.
 - `LEARNINGS.md` status (`exists`, `create when first learning appears`, or `pending: <reason>`).
@@ -227,7 +227,7 @@ The default allowlist covers:
 - The project-configured Section and CPT handoff storage paths from Step 3, so handoffs flow between Remote-SSH and local workspace through Git.
 - `.cursor/mcp.json` stays ignored.
 
-Project-owned plugins (including `weseo-smart-template-builder` when project policy makes it editable) are added to the allowlist only after explicit confirmation in `PROJECT-CONTEXT.md` or by the maintainer.
+Project-owned plugins (including `weseo-smart-template-builder` when project policy makes it editable) are added to the allowlist only after explicit confirmation in `PROJECT-CONTEXT.md` or by the maintainer. By default the WST plugin folder stays off-limits and Section/CPT template work happens inside the child theme under `wp-content/themes/<child-theme>/smart-template-builder/`.
 
 When Step 3 records concrete handoff storage paths, write the matching unignore entries into `.gitignore` here. Each handoff folder needs both the folder line and the recursive `**` line, and a shared parent folder (for example `handoffs/`) is unignored once so the children are reachable. The detailed allowlist shape and verification commands live in [reference.md](reference.md). If a handoff storage location is still `pending` in `PROJECT-CONTEXT.md`, record the matching `.gitignore` entry as `pending: <reason>` with the next action and add it as soon as the path is known.
 

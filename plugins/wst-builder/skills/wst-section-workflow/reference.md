@@ -109,11 +109,19 @@ wp_insert_post([
 
 ## Section Template And Registration
 
-Template lookup usually follows this shape:
+Section templates live in the project-owned WST source inside the active child theme. The theme-relative lookup shape is:
 
 ```text
 smart-template-builder/sections/<section-slug>.php
 ```
+
+Resolved against the active child theme that means:
+
+```text
+<wp-root>/wp-content/themes/<child-theme>/smart-template-builder/sections/<section-slug>.php
+```
+
+Do not place Section templates, ACF includes, or `flexible-content.php` registrations under `wp-content/plugins/weseo-smart-template-builder/`. That folder is the WST runtime/library and is off-limits unless `PROJECT-CONTEXT.md` records an explicit project-source exception for that exact subpath.
 
 Register the Section in the project-local Flexible Content template registry:
 
@@ -144,7 +152,7 @@ For any change in a `live` or `unknown` environment, the prompt to the maintaine
 ```text
 Work type: existing-section-remodel
 Environment: live
-Files to change: smart-template-builder/sections/intro.php
+Files to change: wp-content/themes/<child-theme>/smart-template-builder/sections/intro.php
 ACF/DB objects to change: none
 Content changes: none
 Cache action: wp cache flush after template change

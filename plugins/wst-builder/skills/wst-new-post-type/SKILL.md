@@ -40,7 +40,7 @@ Use the bundled CPT/WPGB invariant guidance in `rules/cpt-wpgb-patterns.mdc` whe
 
 Before asking the maintainer for technical values, search the project-local context for:
 
-- WordPress root, WST template path, theme path, and style registration path.
+- WordPress root, WST template path, theme path, and style registration path. The WST template path is theme-internal: `wp-content/themes/<child-theme>/smart-template-builder/`. The WST plugin folder `wp-content/plugins/weseo-smart-template-builder/` is the WST runtime/library and is off-limits for CPT card, archive/grid, single template, and ACF/FC writes unless `PROJECT-CONTEXT.md` records an explicit project-source exception for that exact subpath.
 - CPT naming conventions, URL slug policy, and whether the CPT has a detail page.
 - ACF field creation approach, field key naming expectations, and existing CPT field groups.
 - WP Grid Builder grid/card conventions and where grid/card IDs are recorded.
@@ -239,7 +239,13 @@ Do not hardcode generated WPGB IDs into reusable plugin content. Treat them as p
 
 ### 5.6 Create Card Template Foundation
 
-Create card template files in the project-local WST post-type template location.
+Create card template files in the project-owned WST source inside the active child theme. Resolve the absolute path against the active theme:
+
+```text
+<wp-root>/wp-content/themes/<child-theme>/smart-template-builder/post-types/<resource>/cards/<resource>-card.php
+```
+
+Do not place card templates, ACF includes, or any project-owned CPT artifact under `wp-content/plugins/weseo-smart-template-builder/`. That folder is the WST runtime/library and is off-limits unless `PROJECT-CONTEXT.md` records an explicit project-source exception for that exact subpath.
 
 Common shapes:
 
@@ -262,7 +268,7 @@ Only create a single template when the CPT is publicly queryable and the brief r
 
 Template invariants:
 
-- Use the project-local WST single template location.
+- Place the single template inside the active child theme at `wp-content/themes/<child-theme>/smart-template-builder/post-types/<resource>/singles/<resource>-single.php`. Do not place CPT singles under `wp-content/plugins/weseo-smart-template-builder/`.
 - Keep markup compatible with existing WST element, row, wrap, and typography patterns.
 - Establish stable `.wso-<resource>-single` hooks.
 - Record any required local CSS and QA expectations in the CPT handoff draft.

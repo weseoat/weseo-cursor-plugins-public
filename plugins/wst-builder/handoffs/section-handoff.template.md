@@ -64,7 +64,7 @@ Record the evidence the server-side decisions are based on. Keep the original Fi
 
 | Field | Value |
 |-------|-------|
-| Template file | `smart-template-builder/sections/<section-template>.php` |
+| Template file | `wp-content/themes/<child-theme>/smart-template-builder/sections/<section-template>.php` (theme-relative `smart-template-builder/sections/<section-template>.php`). Never under `wp-content/plugins/weseo-smart-template-builder/`. |
 | CSS file | `styles/sections/<section-template>.css` |
 | ACF section field group | `<group-key-or-title>` |
 | ACF Flexible Content field | `<fc-field-key-or-post-id>` |

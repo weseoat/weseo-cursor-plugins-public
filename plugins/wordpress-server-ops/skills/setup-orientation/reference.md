@@ -142,7 +142,7 @@ Required non-secret fields:
 | Server hostname | `hostname` or approved alias. |
 | WordPress root | `pwd` after root verification. |
 | Theme path | `wp-content/themes/astra-child/` or detected child theme. |
-| WST template path | `wp-content/plugins/weseo-smart-template-builder/`. |
+| WST template path | Theme-internal WST source: `wp-content/themes/<child-theme>/smart-template-builder/`. Project-owned WST Sections, CPT cards, archive/grid integrations, and optional single templates live here. The WST plugin folder `wp-content/plugins/weseo-smart-template-builder/` is the runtime/library and is off-limits by default; record an explicit plugin allowlist entry only when `PROJECT-CONTEXT.md` confirms the plugin is project source, not a vendor/runtime plugin. |
 | Section handoff storage | Project-configured storage location for filled Section handoffs. |
 | CPT handoff storage | Project-configured storage location for filled CPT handoffs. |
 | `LEARNINGS.md` status | `exists`, `create when first learning appears`, or `pending: <reason>`. |
@@ -152,7 +152,7 @@ Required non-secret fields:
 | WP-CLI command shape | `php wp-cli.phar <command>` or `wp <command>`. |
 | Cache flush command | WESEO default unless project overrides. |
 | Approved temp path | `$HOME/.weseo-tmp` or maintainer-approved outside-webroot path. |
-| Editable path policy | Allowlist for `astra-child`, optional plugin allowlist. |
+| Editable path policy | Default allowlist for the active child theme (including its `smart-template-builder/` WST source). The WST plugin folder `wp-content/plugins/weseo-smart-template-builder/` stays off-limits unless `PROJECT-CONTEXT.md` records an explicit project-source exception. |
 | WST stack status | Active theme + plugins detected. |
 | Setup completion status | Per step: `done`, `pending: <reason>`, `skipped: <reason>`. |
 
