@@ -299,6 +299,20 @@ ls .cursor/skills
 
 Record in `PROJECT-CONTEXT.md` whether the personal plugin guidance is active for this Remote-SSH workspace, whether each required workflow skill above is available, and whether project-specific Rules or Skills exist. If plugin guidance is not available in the SSH context, follow the Cursor Guidance fallback walkthrough in [reference.md](reference.md).
 
+When `.cursor/rules` contains any `.mdc` file beyond the `.gitkeep` skeleton, recommend the separate `project-rules-cleanup` Skill from this plugin as a follow-up. Do not start cleanup inline. The setup wizard only documents that legacy or project-local Rules were detected and points the user to `project-rules-cleanup`. Detection shape:
+
+```sh
+ls .cursor/rules 2>/dev/null | grep -E '\.mdc$' | head -n 50
+```
+
+Record one of the following in `PROJECT-CONTEXT.md`:
+
+- `project_rules_cleanup: not needed` when only the `.gitkeep` skeleton is present.
+- `project_rules_cleanup: pending - nächster Schritt: project-rules-cleanup ausführen` when legacy or project-local `.mdc` files are present and cleanup has not run yet.
+- `project_rules_cleanup: done <YYYY-MM-DD>` after `project-rules-cleanup` has written its `Cursor Rules Cleanup Status` block.
+
+Setup-orientation never edits or deletes `.cursor/rules/*.mdc` itself. Rule migration and hygiene are owned by `project-rules-cleanup`.
+
 ## Step 8: Cursor mit WordPress und Figma verbinden
 
 **Was passiert:** Der Wizard richtet die Cursor-Verbindungen zu WordPress und Figma ein und prüft sie danach unter `Settings` -> `Tools & MCP`.
@@ -373,6 +387,7 @@ Use the final verification walkthrough in [reference.md](reference.md). Confirm 
 - WP-CLI is verified and the cache flush command was executed during setup.
 - The `.cursor` skeleton with `.gitkeep` files is in place; `.cursor/mcp.json` is untracked.
 - Co-installed plugin guidance is verified for `wordpress-server-ops`, `wst-builder`, `frontend-design-qa`, and the workflow skills `grill-me`, `frontend-section-qa`, and `cpt-frontend-qa`.
+- `project_rules_cleanup` status is recorded as `not needed`, `pending`, or `done <YYYY-MM-DD>` based on whether `.cursor/rules` contains non-skeleton `.mdc` files.
 - WordPress MCP and Figma MCP are active or recorded as `pending: <reason>` with next action.
 - Safe temp path exists outside the public webroot.
 - No real tokens, application passwords, SSH keys, or token-bearing URLs were written to chat, tracked docs, or commits.
@@ -450,3 +465,5 @@ Stop and ask before:
 ## Scope Boundaries
 
 This Skill does not migrate final visual CSS, Chrome Local Overrides spikes, responsive QA, Playwright MCP setup, project-local Playwright regression tests, WST Builder section creation, or Frontend Design QA work. Those belong to the `wst-builder` and `frontend-design-qa` plugins after setup is complete. Playwright MCP in particular is set up only in the local Cursor workspace through `frontend-design-qa` `setup-playwright-mcp`, never inside the Remote-SSH server workspace covered by this Skill.
+
+This Skill also does not migrate, edit, or delete legacy `.cursor/rules` Rules. When non-skeleton `.mdc` files are detected in Step 7, recommend the separate `project-rules-cleanup` Skill from `wordpress-server-ops` as a follow-up and record `project_rules_cleanup: pending` in `PROJECT-CONTEXT.md`. Rule migration, classification, `alwaysApply` hygiene, and deletion remain owned by `project-rules-cleanup`.

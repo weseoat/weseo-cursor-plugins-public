@@ -21,6 +21,7 @@ Communicate with the user in German throughout setup. Keep command names, file p
 | WP-CLI | Verify `--info`. | Install local `wp-cli.phar`, use global `wp`, or skip with reason. |
 | Cache flush | Document and execute once after WP-CLI is verified. | Block until WP-CLI is decided. |
 | Cursor guidance | Verify personal plugin guidance is loaded; document. | Walk through plugin verification, fall back to manual projection if SSH plugin guidance is unavailable. |
+| Project rules cleanup recommendation | `.cursor/rules` only contains the `.gitkeep` skeleton; record `project_rules_cleanup: not needed`. | Non-skeleton `.mdc` files are present; record `project_rules_cleanup: pending` and recommend the separate `project-rules-cleanup` Skill instead of cleaning up inline. |
 | MCP (WordPress + Figma) | Verify both servers under `Settings → Tools & MCP`. | Walk through credential creation, write `.cursor/mcp.json` only in the opened Cursor workspace as an untracked file, or record `pending: <reason>`. |
 | Safe temp path | Verify path exists outside public webroot. | Create `$HOME/.weseo-tmp` after confirmation. |
 | Frontend onboarding handoff | `frontend_onboarding: read`, `skipped (<reason>)`, or `pending` is recorded in `PROJECT-CONTEXT.md`. | Mandatory final step. Display the German handoff prompt, wait for an explicit answer, and record it before claiming setup complete. |
@@ -447,6 +448,46 @@ Verify whether the personal plugin guidance is loaded for this Remote-SSH worksp
 3. Wenn ja, dokumentiere in `PROJECT-CONTEXT.md`, dass die Plugin-Guidance aktiv ist und diese Workflow-Skills verfügbar sind; keine projektlokale Kopie nötig.
 4. Wenn die Plugin-Guidance im SSH-Kontext nicht verfügbar ist, schlage manuelle Projektion vor: Plugin-Inhalte werden lokal in `.cursor/rules/` und `.cursor/skills/` projiziert, aber nur als Workaround. Dokumentiere die Abweichung.
 5. Installiere niemals private Setup-Notizen, Dumps oder Credentials in `.cursor/`.
+
+## Cursor Rules Cleanup Walkthrough
+
+Setup-orientation never edits or deletes Rule files. When a project still carries non-skeleton `.mdc` files in `.cursor/rules`, recommend the separate `project-rules-cleanup` Skill from `wordpress-server-ops` as a follow-up.
+
+Detection during Step 7:
+
+```sh
+ls .cursor/rules 2>/dev/null | grep -E '\.mdc$' | head -n 50
+```
+
+Record the result in `PROJECT-CONTEXT.md`:
+
+| Detected | Record |
+|---|---|
+| Only `.gitkeep` (skeleton intact) | `project_rules_cleanup: not needed`. |
+| Any `.mdc` files (legacy SmartFlow or project-local) | `project_rules_cleanup: pending - nächster Schritt: project-rules-cleanup ausführen`. |
+| `Cursor Rules Cleanup Status` block already present in `PROJECT-CONTEXT.md` | `project_rules_cleanup: done <YYYY-MM-DD>`. Confirm the recorded date matches the latest cleanup run; if not, recommend running `project-rules-cleanup` again. |
+
+`project-rules-cleanup` is intentionally separate from `setup-orientation`. Setup remains responsible for first-run setup; cleanup remains responsible for Rule migration and hygiene. The cleanup Skill:
+
+- Audits `.cursor/rules`, `.cursor/skills`, and `PROJECT-CONTEXT.md` first; never edits or deletes anything before producing a bundled change plan.
+- Classifies each Rule as `legacy-smartflow-generic`, `legacy-smartflow-project-values`, `project-specific`, `third-party-or-custom`, or `suspicious-or-unsafe`.
+- Migrates clearly non-secret project values from legacy Rules into `PROJECT-CONTEXT.md`. Placeholders, conflicts, and possibly sensitive values are recorded as `pending: <reason> - nächster Schritt: <action>` and never moved automatically.
+- Warns when more than two Rules use `alwaysApply: true` and recommends `globs` or Skill triggers for workflow-, role-, technology-, or file-type-specific guidance.
+- Deletes only `legacy-smartflow-generic` Rules and `legacy-smartflow-project-values` Rules whose content has been fully migrated, and only after explicit confirmation per file.
+- Audits `.cursor/skills` read-only. Local Skills that overlap with plugin Skills are flagged in the change plan but never deleted by the cleanup Skill.
+- Records a `Cursor Rules Cleanup Status` block in `PROJECT-CONTEXT.md` with date, checked files, applied changes, and any remaining `pending` points.
+
+When recommending the Skill in chat, use this German prompt template:
+
+```md
+In `.cursor/rules` liegen noch <count> Rule-Dateien, die wahrscheinlich aus dem alten `weseo-smartflow-frontend-guide` stammen oder lokal kopiert wurden. Die drei Plugins (`wordpress-server-ops`, `wst-builder`, `frontend-design-qa`) decken den Großteil dieser Inhalte ab.
+
+Empfehlung: Skill `project-rules-cleanup` aus `wordpress-server-ops` separat aufrufen. Der Skill prüft die Rules, übernimmt eindeutige Projektwerte nach `PROJECT-CONTEXT.md`, weist auf zu viele `alwaysApply: true` Rules hin und löscht generische Legacy-Rules erst nach deiner Bestätigung. `.cursor/skills` wird nur read-only auditiert.
+
+Soll ich `project_rules_cleanup: pending` in `PROJECT-CONTEXT.md` notieren, damit der nächste Agent den Cleanup übernimmt?
+```
+
+Do not run `project-rules-cleanup` from inside the setup wizard. The user should invoke the cleanup Skill explicitly when they are ready for it.
 
 ## WordPress MCP Walkthrough
 

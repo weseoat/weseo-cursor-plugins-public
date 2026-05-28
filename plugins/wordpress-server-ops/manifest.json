@@ -2,8 +2,8 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "wordpress-server-ops",
   "displayName": "WordPress Server Ops Plugin",
-  "version": "0.4.4",
-  "responsibility": "Package reusable server-phase guidance for the WordPress Server Ops role in the co-installed WESEO WordPress/WST workflow: Remote-SSH setup, Project Context, server safety, WP-CLI/cache, media, content, and frontend onboarding.",
+  "version": "0.5.0",
+  "responsibility": "Package reusable server-phase guidance for the WordPress Server Ops role in the co-installed WESEO WordPress/WST workflow: Remote-SSH setup, Project Context, server safety, WP-CLI/cache, media, content, frontend onboarding, and project Cursor Rules cleanup for projects migrated from the older `weseo-smartflow-frontend-guide` setup.",
   "assumptions": [
     "The plugin is used from a Cursor workspace connected to a WordPress root or equivalent server-side project checkout.",
     "For the full WESEO WordPress/WST delivery workflow, this plugin is expected to be co-installed with wst-builder and frontend-design-qa.",
@@ -60,7 +60,13 @@
       "path": "skills/wp-media-import/SKILL.md",
       "source": "weseo-smartflow-frontend-guide/.cursor/skills/wp-media-import/SKILL.md",
       "description": "Import media through WP-CLI with reusable filename, metadata, verification, cache, and cleanup steps."
+    },
+    {
+      "name": "project-rules-cleanup",
+      "path": "skills/project-rules-cleanup/SKILL.md",
+      "source": "plugins/wordpress-server-ops/skills/project-rules-cleanup/SKILL.md",
+      "description": "Guided German wizard for cleaning up legacy `weseo-smartflow-frontend-guide` Cursor Rules and locally accumulated `.cursor/rules` in projects that now use the co-installed `wordpress-server-ops`, `wst-builder`, and `frontend-design-qa` plugins. Audits Rules first, classifies them, migrates clearly non-secret project values into `PROJECT-CONTEXT.md`, warns when more than two Rules use `alwaysApply: true`, and deletes generic legacy Rules only after explicit confirmation. `.cursor/skills` is audited read-only and never deleted by this Skill."
     }
   ],
-  "releaseNotes": "release-notes/0.4.4.md"
+  "releaseNotes": "release-notes/0.5.0.md"
 }

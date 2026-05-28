@@ -2,7 +2,7 @@
 
 Reusable server-phase guidance for safe Cursor Remote-SSH work in WESEO WordPress and WST projects.
 
-This plugin keeps WordPress-root work constrained and explicit. It covers the guided first-setup wizard, file boundaries, public webroot safety, WP-CLI/cache expectations, WordPress content editing, and media imports. Project-specific values live in the project-local `PROJECT-CONTEXT.md`; access values never do.
+This plugin keeps WordPress-root work constrained and explicit. It covers the guided first-setup wizard, file boundaries, public webroot safety, WP-CLI/cache expectations, WordPress content editing, media imports, and a guided cleanup for legacy Cursor Rules in projects that were initially set up from the older `weseo-smartflow-frontend-guide`. Project-specific values live in the project-local `PROJECT-CONTEXT.md`; access values never do.
 
 For the full WESEO WordPress/WST delivery workflow, install this plugin together with `wst-builder` and `frontend-design-qa`. WordPress Server Ops owns the server/setup phase: Remote-SSH orientation, Project Context, server-safety boundaries, WP-CLI/cache guidance, media import, content editing, and the frontend onboarding handoff that prepares later WST Builder and Frontend Design QA work.
 
@@ -52,6 +52,7 @@ The final context should contain:
 - Rule: `wordpress-content-editing`
 - Skill: `setup-orientation` (with `reference.md` and `frontend-onboarding.md`)
 - Skill: `wp-media-import`
+- Skill: `project-rules-cleanup`
 
 ## Setup Orientation
 
@@ -73,6 +74,22 @@ The wizard:
 - Finishes with a non-technical summary first, then technical completion details and any remaining `pending` next actions.
 
 Tracked examples use placeholders such as `<token>`, `<repo-host>`, `<repo-name>`, `<domain>`, `<user>`, `<app-password>`, `<figma-api-key>`, `<wp-root>`, and `<path-outside-webroot>`. Real tokens, application passwords, SSH keys, database dumps, and token-bearing URLs stay out of chat, `PROJECT-CONTEXT.md`, Git, commits, tracked files, diagnostics, screenshots, and public webroot artifacts.
+
+## Project Rules Cleanup
+
+`project-rules-cleanup` is a separate guided German wizard for projects that already exist and still carry an older `.cursor/rules` setup. Many of these projects were originally bootstrapped from `weseo-smartflow-frontend-guide`, which copied generic Rules and SmartFlow placeholders into the project repository. With the three plugins now installed, those Rules either duplicate plugin guidance or hold filled-in project values that should live in `PROJECT-CONTEXT.md` instead.
+
+The wizard:
+
+- Audits `.cursor/rules`, `.cursor/skills`, and `PROJECT-CONTEXT.md` first; it never edits or deletes anything before producing a bundled change plan.
+- Classifies each Rule as `legacy-smartflow-generic`, `legacy-smartflow-project-values`, `project-specific`, `third-party-or-custom`, or `suspicious-or-unsafe`.
+- Migrates clearly non-secret project values from legacy Rules into `PROJECT-CONTEXT.md`. Placeholders, conflicts, and possibly sensitive values are recorded as `pending: <reason> - nächster Schritt: <action>` and never moved automatically.
+- Warns when more than two Rules use `alwaysApply: true` and recommends `globs` or Skill triggers for workflow-, role-, technology-, or file-type-specific guidance.
+- Deletes only `legacy-smartflow-generic` Rules and `legacy-smartflow-project-values` Rules whose content has been fully migrated, and only after explicit confirmation. There is no automatic archive copy; deletion is opt-in per file.
+- Audits `.cursor/skills` read-only. Local Skills that are now redundant with plugin Skills (for example legacy `wst-new-fc-section`, local `wst-new-post-type`, local `wp-media-import`) are flagged in the change plan but never deleted by this Skill.
+- Records a short `Cursor Rules Cleanup Status` block in `PROJECT-CONTEXT.md` with date, checked files, applied changes, and any remaining `pending` points. There is no separate cleanup report file.
+
+`project-rules-cleanup` is a separate Skill from `setup-orientation`. The setup wizard remains responsible for first-run setup and only recommends `project-rules-cleanup` as a follow-up when it detects non-skeleton `.cursor/rules/*.mdc` files. Real tokens, application passwords, SSH keys, dumps, and token-bearing URLs stay out of chat, `PROJECT-CONTEXT.md`, Git, commits, tracked files, diagnostics, screenshots, and public webroot artifacts during cleanup just as they do during setup.
 
 ## Package Boundary Guard Rail
 
