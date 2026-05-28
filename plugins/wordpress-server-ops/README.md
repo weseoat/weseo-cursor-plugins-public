@@ -2,7 +2,7 @@
 
 Reusable server-phase guidance for safe Cursor Remote-SSH work in WESEO WordPress and WST projects.
 
-This plugin keeps WordPress-root work constrained and explicit. It covers the guided first-setup wizard, file boundaries, public webroot safety, WP-CLI/cache expectations, WordPress content editing, media imports, and a guided cleanup for legacy Cursor Rules in projects that were initially set up from the older `weseo-smartflow-frontend-guide`. Project-specific values live in the project-local `PROJECT-CONTEXT.md`; access values never do.
+This plugin keeps WordPress-root work constrained and explicit. It covers the guided first-setup wizard, file boundaries, public webroot safety, WP-CLI/cache expectations, WordPress content editing, media imports, a guided cleanup for legacy Cursor Rules in projects that were initially set up from the older `weseo-smartflow-frontend-guide`, and a guided authoring wizard for new project-local Cursor Rules. Project-specific values live in the project-local `PROJECT-CONTEXT.md`; access values never do.
 
 For the full WESEO WordPress/WST delivery workflow, install this plugin together with `wst-builder` and `frontend-design-qa`. WordPress Server Ops owns the server/setup phase: Remote-SSH orientation, Project Context, server-safety boundaries, WP-CLI/cache guidance, media import, content editing, and the frontend onboarding handoff that prepares later WST Builder and Frontend Design QA work.
 
@@ -53,6 +53,7 @@ The final context should contain:
 - Skill: `setup-orientation` (with `reference.md` and `frontend-onboarding.md`)
 - Skill: `wp-media-import`
 - Skill: `project-rules-cleanup`
+- Skill: `project-rule-authoring`
 
 ## Setup Orientation
 
@@ -90,6 +91,21 @@ The wizard:
 - Records a short `Cursor Rules Cleanup Status` block in `PROJECT-CONTEXT.md` with date, checked files, applied changes, and any remaining `pending` points. There is no separate cleanup report file.
 
 `project-rules-cleanup` is a separate Skill from `setup-orientation`. The setup wizard remains responsible for first-run setup and only recommends `project-rules-cleanup` as a follow-up when it detects non-skeleton `.cursor/rules/*.mdc` files. Real tokens, application passwords, SSH keys, dumps, and token-bearing URLs stay out of chat, `PROJECT-CONTEXT.md`, Git, commits, tracked files, diagnostics, screenshots, and public webroot artifacts during cleanup just as they do during setup.
+
+## Project Rule Authoring
+
+`project-rule-authoring` is a separate guided German wizard for projects that already finished setup and now want to add a new project-local Cursor Rule. It wraps the generic Cursor built-in `create-rule` flow with WESEO-specific decisions so that new `.cursor/rules/*.mdc` files do not duplicate plugin guidance or accumulate as `alwaysApply: true` clutter.
+
+The wizard:
+
+- Reads `.cursor/rules` and `PROJECT-CONTEXT.md` first; it never writes a Rule before producing a bundled change plan and getting explicit confirmation.
+- Runs a short grill, one question at a time with a recommended answer, covering purpose, trigger, scope, carrier choice, redundancy with plugin guidance, secret risk, and size.
+- Classifies the request into a carrier: `project-rule`, `project-context-value`, `project-skill`, `plugin-guidance-existing`, `plugin-guidance-gap`, or `suspicious-or-unsafe`. Only `project-rule` results in a new `.mdc`; other carriers route the content to `PROJECT-CONTEXT.md`, to a Skill proposal, or back to existing plugin guidance.
+- Applies an `alwaysApply` hygiene threshold: with two or more existing `alwaysApply: true` Rules, new Rules must use `alwaysApply: false` with concrete `globs` or be proposed as a Skill instead.
+- Validates the planned `.mdc` against a frontmatter and content checklist (`description`, `alwaysApply`, optional `globs`, body under 50 lines, no secrets, no project-context values, no duplicated plugin guidance) before writing.
+- Records an optional `Cursor Rules Authoring Log` entry in `PROJECT-CONTEXT.md` so later agents see which project-specific Rules exist and why.
+
+`project-rule-authoring` is independent from `setup-orientation` and `project-rules-cleanup`. Setup remains responsible for the `.cursor` skeleton and the Project Context contract; cleanup remains responsible for legacy Rule migration and hygiene; authoring is the gate every new Rule must pass. Real tokens, application passwords, SSH keys, dumps, and token-bearing URLs stay out of chat, `PROJECT-CONTEXT.md`, Git, commits, tracked files, diagnostics, screenshots, and public webroot artifacts during authoring just as they do during setup and cleanup.
 
 ## Package Boundary Guard Rail
 
