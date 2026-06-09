@@ -2,8 +2,8 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "wordpress-server-ops",
   "displayName": "WordPress Server Ops Plugin",
-  "version": "0.5.1",
-  "responsibility": "Package reusable server-phase guidance for the WordPress Server Ops role in the co-installed WESEO WordPress/WST workflow: Remote-SSH setup, Project Context, server safety, WP-CLI/cache, media, content, frontend onboarding, project Cursor Rules cleanup, and project Cursor Rule authoring for projects that use the co-installed `wordpress-server-ops`, `wst-builder`, and `frontend-design-qa` plugins.",
+  "version": "0.6.0",
+  "responsibility": "Package reusable server-phase guidance for the WordPress Server Ops role in the co-installed WESEO WordPress/WST workflow: Remote-SSH setup, Project Context, server safety, WP-CLI/cache, media, content, commit trailer convention, frontend onboarding, project Cursor Rules cleanup, and project Cursor Rule authoring for projects that use the co-installed `wordpress-server-ops`, `wst-builder`, and `frontend-design-qa` plugins.",
   "assumptions": [
     "The plugin is used from a Cursor workspace connected to a WordPress root or equivalent server-side project checkout.",
     "For the full WESEO WordPress/WST delivery workflow, this plugin is expected to be co-installed with wst-builder and frontend-design-qa.",
@@ -46,6 +46,12 @@
       "path": "rules/wordpress-content-editing.mdc",
       "source": "weseo-smartflow-frontend-guide/.cursor/rules/wordpress-content-editing.mdc",
       "description": "Guide safe WordPress REST and ACF Flexible Content updates without project-specific layout lists."
+    },
+    {
+      "name": "commit-trailer",
+      "path": "rules/commit-trailer.mdc",
+      "source": "weseo-smartflow-frontend-guide/.cursor/rules/commit-trailer.mdc",
+      "description": "Apply the SmartFlow commit trailer (`Made with: SmartFlow`) when creating commits. Migrated from the retired smartflow-tracer plugin."
     }
   ],
   "skills": [
@@ -74,5 +80,5 @@
       "description": "Guided German wizard for authoring a new project-local Cursor Rule in a WESEO WordPress/WST project. Wraps the generic Cursor `create-rule` flow with a short grill, a reuse check against the co-installed `wordpress-server-ops`, `wst-builder`, and `frontend-design-qa` plugins, a carrier decision between Rule, Skill, `PROJECT-CONTEXT.md`, and existing plugin guidance, and an `.mdc` frontmatter and `alwaysApply` hygiene validation step before any file is written."
     }
   ],
-  "releaseNotes": "release-notes/0.5.1.md"
+  "releaseNotes": "release-notes/0.6.0.md"
 }

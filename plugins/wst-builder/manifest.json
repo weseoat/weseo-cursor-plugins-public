@@ -34,7 +34,7 @@
     {
       "name": "grill-me",
       "path": "skills/grill-me/SKILL.md",
-      "source": ".agents/skills/grill-me/SKILL.md",
+      "source": "plugins/wst-builder/skills/grill-me/SKILL.md",
       "description": "Run the bundled WST Builder preflight interview before Section or CPT foundation work and produce the required handoff draft."
     },
     {

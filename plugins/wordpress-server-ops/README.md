@@ -50,6 +50,7 @@ The final context should contain:
 - Rule: `plugin-package-boundary`
 - Rule: `wp-cli-cache`
 - Rule: `wordpress-content-editing`
+- Rule: `commit-trailer`
 - Skill: `setup-orientation` (with `reference.md` and `frontend-onboarding.md`)
 - Skill: `wp-media-import`
 - Skill: `project-rules-cleanup`
@@ -106,6 +107,10 @@ The wizard:
 - Records an optional `Cursor Rules Authoring Log` entry in `PROJECT-CONTEXT.md` so later agents see which project-specific Rules exist and why.
 
 `project-rule-authoring` is independent from `setup-orientation` and `project-rules-cleanup`. Setup remains responsible for the `.cursor` skeleton and the Project Context contract; cleanup remains responsible for legacy Rule migration and hygiene; authoring is the gate every new Rule must pass. Real tokens, application passwords, SSH keys, dumps, and token-bearing URLs stay out of chat, `PROJECT-CONTEXT.md`, Git, commits, tracked files, diagnostics, screenshots, and public webroot artifacts during authoring just as they do during setup and cleanup.
+
+## Commit Trailer
+
+`commit-trailer` is an always-on Rule that preserves the SmartFlow commit convention: SmartFlow-authored commits use the trailer `Made with: SmartFlow`. Prefer `--trailer "Made with: SmartFlow"` when creating a commit, and replace any `Made-with: Cursor` trailer inserted by local tooling. The Rule never stores repository-specific hook paths, access details, or server assumptions. It was migrated here from the retired `smartflow-tracer` tracer plugin.
 
 ## Package Boundary Guard Rail
 
