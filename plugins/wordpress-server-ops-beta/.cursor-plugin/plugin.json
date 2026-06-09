@@ -1,0 +1,20 @@
+{
+  "name": "wordpress-server-ops-beta",
+  "version": "0.6.0",
+  "description": "WESEO WordPress Server Ops guidance for the co-installed WordPress/WST workflow with wst-builder and frontend-design-qa: safe Cursor Remote-SSH setup, PROJECT-CONTEXT.md, Section/CPT handoff storage, LEARNINGS.md status, WST stack verification, Bitbucket Git via hidden terminal prompt, tracked .cursor skeleton, required untracked WordPress and Figma MCP config, file boundaries, webroot safety, WP-CLI/cache use, content editing, media import, commit trailer convention, frontend onboarding, project Cursor Rules cleanup, and project Cursor Rule authoring with grill, reuse check, carrier decision, and .mdc hygiene validation. Beta channel: pre-release build for WESEO frontend beta testers; do not use in production.",
+  "author": {
+    "name": "WESEO"
+  },
+  "keywords": [
+    "weseo",
+    "wordpress",
+    "wst",
+    "remote-ssh",
+    "wp-cli",
+    "server-ops",
+    "rules-cleanup",
+    "rule-authoring",
+    "commit-trailer",
+    "beta"
+  ]
+}

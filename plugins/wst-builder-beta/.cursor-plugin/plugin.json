@@ -1,0 +1,16 @@
+{
+  "name": "wst-builder-beta",
+  "version": "0.1.3",
+  "description": "WESEO WST Builder workflows for the co-installed WordPress/WST workflow with wordpress-server-ops and frontend-design-qa: Section and Custom Post Type foundations, ACF/WST/CPT/WPGB guidance, bundled Section and CPT handoff templates, and pre-frontend handoff ownership before local implementation. Beta channel: pre-release build for WESEO frontend beta testers; do not use in production.",
+  "author": {
+    "name": "WESEO"
+  },
+  "keywords": [
+    "weseo",
+    "wordpress",
+    "wst",
+    "acf",
+    "wp-grid-builder",
+    "beta"
+  ]
+}
