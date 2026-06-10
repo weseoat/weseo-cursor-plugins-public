@@ -9,7 +9,7 @@
     "sectionIdentity",
     "wordpressAndWstReferences",
     "cssHooks",
-    "expectedVisualBehavior",
+    "visualQaTargets",
     "serverPhaseResponsibilities",
     "localFrontendResponsibilities",
     "qaNotes",
@@ -45,13 +45,15 @@
         "sectionName",
         "layoutName",
         "pageUrl",
-        "sourceDesignReference"
+        "designDesktop",
+        "designMobile"
       ],
       "properties": {
         "sectionName": { "type": "string", "minLength": 1 },
         "layoutName": { "type": "string", "minLength": 1 },
         "pageUrl": { "type": "string", "minLength": 1 },
-        "sourceDesignReference": { "type": "string", "minLength": 1 }
+        "designDesktop": { "type": "string", "minLength": 1 },
+        "designMobile": { "type": "string", "minLength": 1 }
       }
     },
     "wordpressAndWstReferences": {
@@ -94,22 +96,44 @@
         "selectorsToPreserve": { "type": "string", "minLength": 1 }
       }
     },
-    "expectedVisualBehavior": {
+    "visualQaTargets": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "desktopBehavior",
-        "tabletBehavior",
-        "mobileBehavior",
-        "contentVariations",
-        "interactionStates"
-      ],
+      "required": ["viewports", "rows"],
       "properties": {
-        "desktopBehavior": { "type": "string", "minLength": 1 },
-        "tabletBehavior": { "type": "string", "minLength": 1 },
-        "mobileBehavior": { "type": "string", "minLength": 1 },
-        "contentVariations": { "type": "string", "minLength": 1 },
-        "interactionStates": { "type": "string", "minLength": 1 }
+        "viewports": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["desktop", "tablet", "mobile"],
+          "properties": {
+            "desktop": { "type": "string", "minLength": 1 },
+            "tablet": { "type": "string", "minLength": 1 },
+            "mobile": { "type": "string", "minLength": 1 }
+          }
+        },
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["variant", "viewport", "expectation", "result"],
+            "properties": {
+              "variant": { "type": "string", "minLength": 1 },
+              "viewport": { "type": "string", "minLength": 1 },
+              "expectation": { "type": "string", "minLength": 1 },
+              "result": { "type": "string", "minLength": 1 }
+            }
+          },
+          "allOf": [
+            { "contains": { "type": "object", "properties": { "variant": { "const": "default" } }, "required": ["variant"] } },
+            { "contains": { "type": "object", "properties": { "variant": { "const": "long headline/copy" } }, "required": ["variant"] } },
+            { "contains": { "type": "object", "properties": { "variant": { "const": "optional field empty" } }, "required": ["variant"] } },
+            { "contains": { "type": "object", "properties": { "variant": { "const": "many repeats" } }, "required": ["variant"] } },
+            { "contains": { "type": "object", "properties": { "variant": { "const": "mobile stack" } }, "required": ["variant"] } },
+            { "contains": { "type": "object", "properties": { "variant": { "const": "interaction states" } }, "required": ["variant"] } }
+          ]
+        }
       }
     },
     "serverPhaseResponsibilities": {

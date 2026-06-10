@@ -251,6 +251,7 @@ New WST FC Section:
 - [ ] Document CSS hooks and CSS path in handoff (no CSS file is created over Remote-SSH)
 - [ ] Optionally create representative test content on the target page (in scope only)
 - [ ] Flush project caches (in scope only; explicit confirmation on live/unknown)
+- [ ] Fill the Visual QA Targets matrix (viewport mapping, all base variants answered or n/a, mobile rows sourced from Design mobile)
 - [ ] Update Section handoff with Frontend QA Brief and route to frontend-section-qa
 ```
 
@@ -342,7 +343,7 @@ The Section handoff is the live contract between server WST work and local Front
 
 - One new handoff per Section task: `<section-slug>-<work-type>-handoff.md` at the project-configured handoff storage location.
 - Commit and push the handoff immediately after it is created, so `frontend-section-qa` can pull it locally without waiting on a manual transfer.
-- Pass the original Figma/source link unchanged so `frontend-section-qa` can re-read the design.
+- Pass the original Figma/source links (desktop and mobile frame) unchanged so `frontend-section-qa` can re-read the design.
 - Update the handoff progressively during discovery, decisions, writes, and verification. After each meaningful update (Discovery and safety status, Discovery Sources, Frontend QA Brief, server verification outcome), commit and push the handoff so the local side sees the latest contract on its next `git pull`.
 - For remodels, fill `Protected Existing Artifacts`.
 - For visual-only, fill the minimal Visual-Only path of the template.
@@ -355,6 +356,15 @@ Cleanup is owned by `frontend-section-qa`:
 
 This Skill must include those completion instructions in the handoff so the cleanup is not forgotten.
 
+## Visual QA Targets in the handoff
+
+Before routing, fill the handoff's `Visual QA Targets` matrix. It replaces free-form expected-behavior prose and is the contract local QA verifies row by row:
+
+- Map the viewport roles (desktop/tablet/mobile) to the pixel widths from `PROJECT-CONTEXT.md`; keep `<unresolved: ...>` instead of inventing widths.
+- Answer every mandatory base variant (default, long headline/copy, optional field empty, many repeats, mobile stack, interaction states) with at least one expectation row or an explicit `n/a: <reason>`.
+- Follow the template's phrasing rules: each expectation is yes/no-checkable, names theme tokens where they define a value, and uses the stable selectors from CSS Hooks.
+- Source mobile rows from the `Design mobile` frame. When no mobile design exists, record `no-mobile-design: derived-from-desktop` in Section Identity so the local phase knows where interpretation latitude exists.
+
 ## Frontend QA Brief in the handoff
 
 When server work or visual-only routing is complete, write a compact `Frontend QA Brief` into the handoff so `frontend-section-qa` can start without re-asking server-side questions:
@@ -365,9 +375,9 @@ When server work or visual-only routing is complete, write a compact `Frontend Q
 - Use `frontend-section-qa` locally (not over Remote-SSH).
 - Target URL: <dev-or-staging-url>
 - Section selector: .wso-section-<section-slug>
-- Figma/source link: <figma-url-or-brief>
+- Figma/source links: <design-desktop-and-design-mobile>
 - CSS status: existing / new-needed-for-frontend / unknown / not-applicable
-- Required viewports and expected behavior: <summary>
+- Required viewports and expected behavior: see the Visual QA Targets matrix (all base variants answered or n/a)
 - Stable hooks to preserve: <selectors>
 - Server contract: do not change ACF/WST artifacts from the local phase. Report a server blocker in the handoff if a server-side discrepancy is found.
 - On completion: write a short permanent project note and remove this active handoff with `git rm`, commit, and push so both workspaces converge on the closed task.

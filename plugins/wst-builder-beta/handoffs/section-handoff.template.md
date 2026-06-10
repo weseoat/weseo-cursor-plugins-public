@@ -42,17 +42,19 @@ For visual-only Section work the handoff is intentionally minimal: no `Server wr
 | Section slug | `<section-slug>` |
 | Layout name | `<layout-name>` |
 | Page URL | `<dev-or-staging-url-with-section>` |
-| Source design/reference | `<figma-url-or-brief>` |
+| Design desktop | `<figma-desktop-frame-url-or-brief>` |
+| Design mobile | `<figma-mobile-frame-url>` or `no-mobile-design: derived-from-desktop` |
 | Source design status | `<figma-accessible/brief-only/blocked: reason>` |
 | Variants/states | `<single-variant-or-list-of-variants>` |
 
 ## Discovery Sources
 
-Record the evidence the server-side decisions are based on. Keep the original Figma link unchanged so `frontend-section-qa` can re-read the design locally and verify the implementation against it.
+Record the evidence the server-side decisions are based on. Keep the original Figma links unchanged so `frontend-section-qa` can re-read the design locally and verify the implementation against it. Most Sections have a dedicated mobile design frame; record it separately so mobile expectations are sourced from it instead of being derived from the desktop frame.
 
 | Field | Value |
 |-------|-------|
-| Original Figma/source link | `<figma-url-or-brief>` |
+| Original Figma/source link (desktop) | `<figma-desktop-frame-url-or-brief>` |
+| Original Figma/source link (mobile) | `<figma-mobile-frame-url>` or `no-mobile-design: derived-from-desktop` |
 | Test placement / target page | `<page-url-or-page-id>` |
 | Similar Section patterns inspected | `<section-files-layouts-urls-or-none-found>` |
 | WST/ACF rules applied | `acf-wst-patterns.mdc`, `<reference-or-additional-rules-if-used>` |
@@ -98,15 +100,38 @@ WST Builder records CSS hook expectations here. Final CSS or SCSS is implemented
 | CSS custom properties | `<variables-or-theme-tokens>` |
 | Selectors to preserve | `<selectors-that-template-or-js-relies-on>` |
 
-## Expected Visual Behavior
+## Visual QA Targets
 
-| Field | Value |
-|-------|-------|
-| Desktop behavior | `<desktop-layout-and-spacing>` |
-| Tablet behavior | `<tablet-layout-and-spacing>` |
-| Mobile behavior | `<mobile-layout-and-spacing>` |
-| Content variations | `<empty-fields-repeaters-long-copy-images>` |
-| Interaction states | `<hover-focus-active-or-none>` |
+This matrix is the single source of truth for the expected visual behavior. It replaces free-form behavior prose. One row = one verifiable expectation; each row is individually checked and answered in its `Result` cell during local frontend QA.
+
+Viewport roles map to project pixel values from `PROJECT-CONTEXT.md`. Do not invent widths; keep an explicit `<unresolved: ...>` placeholder until project context supplies them.
+
+| Viewport role | Check width |
+|---------------|-------------|
+| desktop | `<px-from-project-context>` |
+| tablet | `<px-from-project-context>` |
+| mobile | `<px-from-project-context>` |
+
+Phrasing rules for every expectation:
+
+1. Each expectation must be answerable as a yes/no question against the rendered page. Vague words such as "comfortable", "nice", or "enough spacing" are not allowed.
+2. Where a theme token or CSS custom property defines a value, name it (for example `gap = --section-gap-mobile`) instead of describing a vague size.
+3. Name elements through the stable selectors from the CSS Hooks section, not through visual descriptions like "the card on the left".
+
+The base variants below are mandatory. Every base variant keeps at least one expectation row or is marked `n/a: <reason>` (for example `n/a: Section has no image field`). Mobile expectations must be sourced from the `Design mobile` frame; when it is `no-mobile-design: derived-from-desktop`, say so in the expectation so the local phase knows where interpretation latitude exists. Add free extra rows for Section-specific cases.
+
+| Variant | Viewport | Expectation | Result |
+|---------|----------|-------------|--------|
+| default | desktop | `<expectation>` | `<pending/pass/fail: note>` |
+| default | mobile | `<expectation-from-design-mobile>` | `<pending/pass/fail: note>` |
+| long headline/copy | desktop | `<expectation-or-n/a: reason>` | `<pending/pass/fail: note>` |
+| long headline/copy | mobile | `<expectation-or-n/a: reason>` | `<pending/pass/fail: note>` |
+| optional field empty | desktop | `<expectation-or-n/a: reason>` | `<pending/pass/fail: note>` |
+| optional field empty | mobile | `<expectation-or-n/a: reason>` | `<pending/pass/fail: note>` |
+| many repeats | desktop | `<expectation-or-n/a: reason>` | `<pending/pass/fail: note>` |
+| many repeats | mobile | `<expectation-or-n/a: reason>` | `<pending/pass/fail: note>` |
+| mobile stack | mobile | `<stacking-order-and-gap-expectation>` | `<pending/pass/fail: note>` |
+| interaction states | `<viewport-or-all>` | `<hover-focus-active-expectation-or-n/a: reason>` | `<pending/pass/fail: note>` |
 
 ## Server Phase Responsibilities
 
@@ -126,6 +151,7 @@ WST Builder records CSS hook expectations here. Final CSS or SCSS is implemented
 - [ ] Create representative content on the target page only inside the approved server write scope.
 - [ ] Flush relevant caches only inside the approved server write scope; on `live` or `unknown`, with explicit confirmation.
 - [ ] Verify server-side function and existence only: page loads without PHP fatal/warning, Section markup present, primary class present, layout selectable in editor/ACF where checkable.
+- [ ] Fill the `Visual QA Targets` matrix: viewport mapping from project context, every base variant answered or marked `n/a: <reason>`, mobile rows sourced from `Design mobile`.
 - [ ] Write the `Frontend QA Brief` into this handoff and route to `frontend-section-qa`.
 
 ## Frontend QA Brief
@@ -135,23 +161,23 @@ Filled by `wst-section-workflow` before routing. `frontend-section-qa` treats th
 - Use `frontend-section-qa` locally in the Cursor workspace. Do not run it over Remote-SSH.
 - Target URL: `<dev-or-staging-url-with-section>`
 - Section selector: `.wso-section-<section-slug>`
-- Figma/source link: `<figma-url-or-brief>` (unchanged from Discovery Sources so local QA can re-read it)
+- Figma/source links: `<design-desktop-and-design-mobile>` (unchanged from Discovery Sources so local QA can re-read them)
 - CSS status: `<existing/new-needed-for-frontend/unknown/not-applicable>`
-- Required viewports and expected behavior: `<summary-of-desktop-tablet-mobile-and-interaction>`
+- Required viewports and expected behavior: see the `Visual QA Targets` matrix (viewport mapping plus one row per verifiable expectation). All base variants are answered or marked `n/a` before routing.
 - Stable hooks to preserve: `<selectors-from-css-hooks>`
 - Server contract: do not change server-side ACF/WST artifacts from the local phase. Report any server-side discrepancy back into this handoff as a server blocker.
 - On completion: write a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed, then remove this active handoff file with `git rm`, commit, and push so both workspaces converge on the closed task.
 
 ## Local Frontend Responsibilities
 
-- [ ] Re-read the original Figma/source link and confirm the design intent against the rendered page.
+- [ ] Re-read the original Figma/source links (desktop and mobile) and confirm the design intent against the rendered page. A `no-mobile-design` note means documented interpretation latitude for mobile, not a missing value.
 - [ ] Confirm Playwright MCP is ready in the local Cursor workspace, or run `frontend-design-qa` `setup-playwright-mcp` before browser QA starts.
 - [ ] Drive a Playwright MCP browser QA loop against the handoff Page URL across the required viewports.
 - [ ] Implement CSS/SCSS in the local Git repo.
 - [ ] Create or register the Section CSS file in tracked local source when `CSS status` is `new-needed-for-frontend`.
 - [ ] Use Chrome Local Overrides only as a temporary spike tool if needed.
 - [ ] Move final CSS changes into tracked files.
-- [ ] Run responsive checks against the handoff Page URL.
+- [ ] Verify every `Visual QA Targets` row at its viewport and write the per-row `Result` (`pass`/`fail: note`) back into the matrix.
 - [ ] Run the optional project-local Playwright regression command when a real harness exists, or document a skip reason.
 - [ ] If a server-side discrepancy is found, record it as a server blocker in this handoff instead of editing ACF/WST locally.
 - [ ] Commit and push handoff updates (discovery findings, QA notes, status fields) so the server-side workspace sees the latest contract on its next `git pull`.
@@ -164,10 +190,10 @@ Filled by `wst-section-workflow` before routing. `frontend-section-qa` treats th
 |-------|-------|
 | Browser QA target URL | `<dev-or-staging-url-with-section>` |
 | Local Playwright MCP status | `<ready/pending: reason-and-next-action>` |
-| Required viewports | `<desktop-tablet-mobile-sizes>` |
+| Required viewports | From the `Visual QA Targets` viewport mapping (`<unresolved: ...>` until project context supplies the widths) |
 | Browser access blockers | `<login-cookie-banner-ip-allowlist-self-signed-cert-or-none>` |
 | Screenshot policy | `<used-for-review/not-used>` |
-| Checks to run | `<visual-and-behavior-checks>` |
+| Checks to run | All rows of the `Visual QA Targets` matrix; per-row results live in the matrix `Result` column |
 | Project-local Playwright command | `<command-or-not-applicable>` |
 | Server verification result | `<page-loads-section-present-primary-class-present-layout-selectable-or-issue>` |
 | Cache state | `<cache-flushed-or-known-cache-state>` |

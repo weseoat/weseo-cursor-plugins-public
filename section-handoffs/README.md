@@ -33,10 +33,10 @@ scripts/
 Each handoff must record:
 
 - Handoff carrier: project, branch or PR, project-configured storage location, owner, preflight status, server phase status, local phase status.
-- Section identity: Section name, layout name, page URL, source design/reference.
+- Section identity: Section name, layout name, page URL, design desktop and design mobile references (or an explicit `no-mobile-design: derived-from-desktop` note).
 - WordPress and WST references: template file, CSS file, ACF section field group, Flexible Content field, Flexible Content layout, clone child field, generated field or layout keys, and content setup notes.
 - CSS hooks: primary section class, expected wrapper/classes, custom properties, and selectors the local phase should use.
-- Expected visual behavior: responsive behavior, states, content variations, and design constraints.
+- Visual QA targets: a viewport-role mapping plus a matrix with one row per verifiable expectation (variant, viewport, expectation, result), covering the mandatory base variants or marking them `n/a` with a reason.
 - QA notes: cache state, Playwright target URL, checks to run, and known risks.
 - Responsibility split: server-phase checklist and local frontend checklist.
 
