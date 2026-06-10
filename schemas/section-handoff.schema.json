@@ -6,11 +6,14 @@
   "additionalProperties": false,
   "required": [
     "handoffCarrier",
+    "workflowRouting",
     "sectionIdentity",
+    "discoverySources",
     "wordpressAndWstReferences",
     "cssHooks",
     "visualQaTargets",
     "serverPhaseResponsibilities",
+    "frontendQaBrief",
     "localFrontendResponsibilities",
     "qaNotes",
     "openQuestions"
@@ -22,20 +25,42 @@
       "required": [
         "project",
         "branchOrPr",
+        "handoffFilename",
         "handoffStorageLocation",
         "handoffOwner",
-        "preflightStatus",
         "serverPhaseStatus",
         "localFrontendPhaseStatus"
       ],
       "properties": {
         "project": { "type": "string", "minLength": 1 },
         "branchOrPr": { "type": "string", "minLength": 1 },
+        "handoffFilename": { "type": "string", "minLength": 1 },
         "handoffStorageLocation": { "type": "string", "minLength": 1 },
         "handoffOwner": { "type": "string", "minLength": 1 },
-        "preflightStatus": { "type": "string", "minLength": 1 },
         "serverPhaseStatus": { "type": "string", "minLength": 1 },
         "localFrontendPhaseStatus": { "type": "string", "minLength": 1 }
+      }
+    },
+    "workflowRouting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workType",
+        "environment",
+        "serverWriteScope",
+        "frontendRoute",
+        "discoveryAndSafetyStatus",
+        "liveOrUnknownWriteConfirmation",
+        "cssStatus"
+      ],
+      "properties": {
+        "workType": { "type": "string", "minLength": 1 },
+        "environment": { "type": "string", "minLength": 1 },
+        "serverWriteScope": { "type": "string", "minLength": 1 },
+        "frontendRoute": { "type": "string", "minLength": 1 },
+        "discoveryAndSafetyStatus": { "type": "string", "minLength": 1 },
+        "liveOrUnknownWriteConfirmation": { "type": "string", "minLength": 1 },
+        "cssStatus": { "type": "string", "minLength": 1 }
       }
     },
     "sectionIdentity": {
@@ -43,17 +68,47 @@
       "additionalProperties": false,
       "required": [
         "sectionName",
+        "sectionSlug",
         "layoutName",
         "pageUrl",
         "designDesktop",
-        "designMobile"
+        "designMobile",
+        "sourceDesignStatus",
+        "variantsStates"
       ],
       "properties": {
         "sectionName": { "type": "string", "minLength": 1 },
+        "sectionSlug": { "type": "string", "minLength": 1 },
         "layoutName": { "type": "string", "minLength": 1 },
         "pageUrl": { "type": "string", "minLength": 1 },
         "designDesktop": { "type": "string", "minLength": 1 },
-        "designMobile": { "type": "string", "minLength": 1 }
+        "designMobile": { "type": "string", "minLength": 1 },
+        "sourceDesignStatus": { "type": "string", "minLength": 1 },
+        "variantsStates": { "type": "string", "minLength": 1 }
+      }
+    },
+    "discoverySources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "originalFigmaSourceLinkDesktop",
+        "originalFigmaSourceLinkMobile",
+        "testPlacementTargetPage",
+        "similarSectionPatternsInspected",
+        "wstAcfRulesApplied",
+        "mediaLibraryLookup",
+        "projectLocalExamplesConsulted",
+        "assumptionsRecorded"
+      ],
+      "properties": {
+        "originalFigmaSourceLinkDesktop": { "type": "string", "minLength": 1 },
+        "originalFigmaSourceLinkMobile": { "type": "string", "minLength": 1 },
+        "testPlacementTargetPage": { "type": "string", "minLength": 1 },
+        "similarSectionPatternsInspected": { "type": "string", "minLength": 1 },
+        "wstAcfRulesApplied": { "type": "string", "minLength": 1 },
+        "mediaLibraryLookup": { "type": "string", "minLength": 1 },
+        "projectLocalExamplesConsulted": { "type": "string", "minLength": 1 },
+        "assumptionsRecorded": { "type": "string", "minLength": 1 }
       }
     },
     "wordpressAndWstReferences": {
@@ -78,6 +133,20 @@
         "acfCloneChildField": { "type": "string", "minLength": 1 },
         "acfFields": { "type": "string", "minLength": 1 },
         "contentSetupNotes": { "type": "string", "minLength": 1 }
+      }
+    },
+    "protectedExistingArtifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Filled for existing-section-remodel work types; values may be not-applicable otherwise.",
+      "properties": {
+        "existingLayoutName": { "type": "string", "minLength": 1 },
+        "existingLayoutKey": { "type": "string", "minLength": 1 },
+        "existingParentLayoutBinding": { "type": "string", "minLength": 1 },
+        "existingAcfFieldKeys": { "type": "string", "minLength": 1 },
+        "existingTemplatePath": { "type": "string", "minLength": 1 },
+        "existingCssPath": { "type": "string", "minLength": 1 },
+        "publicSelectorsToPreserve": { "type": "string", "minLength": 1 }
       }
     },
     "cssHooks": {
@@ -141,6 +210,11 @@
       "minItems": 1,
       "items": { "type": "string", "minLength": 1 }
     },
+    "frontendQaBrief": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
     "localFrontendResponsibilities": {
       "type": "array",
       "minItems": 1,
@@ -150,15 +224,27 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "playwrightTargetUrl",
+        "browserQaTargetUrl",
+        "localPlaywrightMcpStatus",
+        "requiredViewports",
+        "browserAccessBlockers",
+        "screenshotPolicy",
         "checksToRun",
+        "projectLocalPlaywrightCommand",
+        "serverVerificationResult",
         "cacheState",
         "knownRisks",
         "qaResult"
       ],
       "properties": {
-        "playwrightTargetUrl": { "type": "string", "minLength": 1 },
+        "browserQaTargetUrl": { "type": "string", "minLength": 1 },
+        "localPlaywrightMcpStatus": { "type": "string", "minLength": 1 },
+        "requiredViewports": { "type": "string", "minLength": 1 },
+        "browserAccessBlockers": { "type": "string", "minLength": 1 },
+        "screenshotPolicy": { "type": "string", "minLength": 1 },
         "checksToRun": { "type": "string", "minLength": 1 },
+        "projectLocalPlaywrightCommand": { "type": "string", "minLength": 1 },
+        "serverVerificationResult": { "type": "string", "minLength": 1 },
         "cacheState": { "type": "string", "minLength": 1 },
         "knownRisks": { "type": "string", "minLength": 1 },
         "qaResult": { "type": "string", "minLength": 1 }
