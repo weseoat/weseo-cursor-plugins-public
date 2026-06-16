@@ -42,6 +42,7 @@ For visual-only Section work the handoff is intentionally minimal: no `Server wr
 | Section slug | `<section-slug>` |
 | Layout name | `<layout-name>` |
 | Page URL | `<dev-or-staging-url-with-section>` |
+| Preview URLs | `<one-preview-url-per-variant>` or `n/a (no preview pages)` / `n/a (declined)` |
 | Design desktop | `<figma-desktop-frame-url-or-brief>` |
 | Design mobile | `<figma-mobile-frame-url>` or `no-mobile-design: derived-from-desktop` |
 | Source design status | `<figma-accessible/brief-only/blocked: reason>` |
@@ -151,6 +152,7 @@ The base variants below are mandatory. Every base variant keeps at least one exp
 - [ ] Create representative content on the target page only inside the approved server write scope.
 - [ ] Flush relevant caches only inside the approved server write scope; on `live` or `unknown`, with explicit confirmation.
 - [ ] Verify server-side function and existence only: page loads without PHP fatal/warning, Section markup present, primary class present, layout selectable in editor/ACF where checkable.
+- [ ] Offer to set up Section preview pages if the project has none (run `section-preview-harness` on yes; record `section-preview-pages: declined` on no). Record the preview URLs (or `n/a`) in `Section Identity`.
 - [ ] Fill the `Visual QA Targets` matrix: viewport mapping from project context, every base variant answered or marked `n/a: <reason>`, mobile rows sourced from `Design mobile`.
 - [ ] Write the `Frontend QA Brief` into this handoff and route to `frontend-section-qa`.
 
@@ -160,6 +162,7 @@ Filled by `wst-section-workflow` before routing. `frontend-section-qa` treats th
 
 - Use `frontend-section-qa` locally in the Cursor workspace. Do not run it over Remote-SSH.
 - Target URL: `<dev-or-staging-url-with-section>`
+- Preview URLs: `<one-preview-url-per-variant-as-first-browser-targets>` or `n/a (no preview pages)` / `n/a (declined)`
 - Section selector: `.wso-section-<section-slug>`
 - Figma/source links: `<design-desktop-and-design-mobile>` (unchanged from Discovery Sources so local QA can re-read them)
 - CSS status: `<existing/new-needed-for-frontend/unknown/not-applicable>`
@@ -172,6 +175,7 @@ Filled by `wst-section-workflow` before routing. `frontend-section-qa` treats th
 
 - [ ] Re-read the original Figma/source links (desktop and mobile) and confirm the design intent against the rendered page. A `no-mobile-design` note means documented interpretation latitude for mobile, not a missing value.
 - [ ] Confirm Playwright MCP is ready in the local Cursor workspace, or run `frontend-design-qa` `setup-playwright-mcp` before browser QA starts.
+- [ ] When preview URLs are listed, use them as the first browser targets (isolated Section, stable QA hooks), then verify on the real Page URL.
 - [ ] Drive a Playwright MCP browser QA loop against the handoff Page URL across the required viewports.
 - [ ] Implement CSS/SCSS in the local Git repo.
 - [ ] Create or register the Section CSS file in tracked local source when `CSS status` is `new-needed-for-frontend`.

@@ -33,6 +33,9 @@ Stop and confirm before:
 - Overwriting existing page content.
 - Creating new artifacts during an `existing-section-remodel` (new template file, ACF field group, Flexible Content layout, clone child field, or style loader entry) unless explicitly approved.
 - Making a structural ACF/FC decision that discovery cannot resolve.
+- Backend review of prefilled variant rows before fixtures are exported for the Section preview pages.
+- Replace-or-keep decision for existing catalog page entries before migrating preview variants there.
+- Test page deletion: only after the migration spot-check and explicit maintainer confirmation.
 - Writing any Section, template, ACF, or Flexible Content artifact inside the WST plugin folder `wp-content/plugins/weseo-smart-template-builder/`. Project-owned WST artifacts always live in the child theme under `wp-content/themes/<child-theme>/smart-template-builder/`. Treat the plugin folder as a hard off-limits target unless `PROJECT-CONTEXT.md` records an explicit project-source exception for that exact subpath.
 
 Always allowed regardless of environment:
@@ -54,7 +57,8 @@ CSS/SCSS file writes on the server, edits to generated CSS, and final visual QA 
 5. Announce a short Execution Plan before any write.
 6. Implement server-side WST/ACF/FC artifacts inside the approved scope.
 7. Verify server-side function and existence only.
-8. Update the Section handoff with the Frontend QA Brief and route to `frontend-section-qa`.
+8. Offer to set up Section preview pages if the project has none (see "Section preview pages"); use existing preview pages for variant checks and record the preview URLs.
+9. Update the Section handoff with the Frontend QA Brief and route to `frontend-section-qa`.
 
 ## Question budget
 
@@ -218,6 +222,41 @@ If a test placement / target page is not known from project context, ask once in
 - Foundation work (template, ACF, FC, clone child, registration) may still proceed inside scope.
 - Content writes that depend on a target page must be deferred and recorded as open in the handoff.
 
+## Section preview pages (offer, then use)
+
+Section preview pages render one Section in isolation under a stable URL (`/section-preview/<section>/<variant>`) from fixed JSON fixtures. They let the local frontend phase check a single Section quickly with stable QA hooks, instead of parsing a whole customer page (fewer tokens per check). The mechanism is the "preview harness" set up by the bundled `section-preview-harness` Skill. This is optional project-local infrastructure; never assume it exists.
+
+For every built Section (`new-section-foundation` and `existing-section-remodel`), resolve the preview-pages state from `PROJECT-CONTEXT.md`:
+
+1. Look for a preview-pages block (stable key such as `section-preview-pages`).
+2. If it is present and active, use the preview route for variant work (see the variant workflow below) and write the resulting preview URLs into the Section handoff.
+3. If it is absent and there is no `section-preview-pages: declined` marker, actively offer to set it up. Use plain words and explain the benefit, for example:
+
+   ```text
+   This project has no Section preview pages yet. I can set them up once: each
+   Section variant gets its own preview URL, so the frontend/QA phase can check
+   one Section in isolation and faster (fewer tokens than reading a full page).
+   Set this up now? (yes / no)
+   ```
+
+   - On `yes`: run the `section-preview-harness` Skill as a sub-flow. That setup is its own confirmation-gated step (it copies preview PHP into the child theme, adds a `require_once` to `theme-functions.php` only after explicit confirmation, flushes rewrites, and records the preview-pages block in `PROJECT-CONTEXT.md`). Then continue here and record the preview URLs in the handoff.
+   - On `no`: record `section-preview-pages: declined` in `PROJECT-CONTEXT.md` and set the handoff `Preview URLs` field to `n/a (declined)`. Do not ask again for this project on later Sections.
+4. If the preview-pages block is missing widths/values needed to build URLs, keep `Preview URLs: <unresolved: ...>` rather than inventing them.
+
+The offer is a recommendation, not a hard stop. A `no` (or an existing `declined` marker) never blocks the Section work; it only sets the handoff `Preview URLs` field to `n/a`.
+
+### Preview-pages-backed variant workflow (recommended for remodels with variants)
+
+When the preview pages are set up, route multi-variant work through them:
+
+1. After the server remodel is verified, create an unlinked test page and prefill one Flexible Content row per variant programmatically (`update_field` on the page FC field with expanded clone field names; real design content, media via `wp-media-import`).
+2. HARD STOP: the maintainer reviews the rows in the backend before fixtures are exported (content, images, variant assignment, line breaks).
+3. Export fixtures with the project's `_export-fixtures.php` (one fixture per row; validation against layout + expected variant). Never write fixture JSON by hand.
+4. Run structural preview QA per variant (HTTP 200, `data-preview-variant`, variant root class, expected content/image, body classes incl. brand palettes). Record results in the handoff.
+5. The Frontend QA Brief lists the preview URLs as first browser targets. Full-page QA on the test page stays mandatory (previews are nocache and hide cache/Delay-JS bug classes).
+
+Brand or palette variants that depend on page context (for example `body.brand-<slug>` from a company taxonomy) are verified through the fixture `body_class`. On the test page all rows render in the page's own palette, and that is expected.
+
 ## Execution Plan before writes
 
 Before performing server writes, output a short Execution Plan:
@@ -251,6 +290,7 @@ New WST FC Section:
 - [ ] Document CSS hooks and CSS path in handoff (no CSS file is created over Remote-SSH)
 - [ ] Optionally create representative test content on the target page (in scope only)
 - [ ] Flush project caches (in scope only; explicit confirmation on live/unknown)
+- [ ] Offer to set up Section preview pages if the project has none (run section-preview-harness on yes; record `declined` on no); record preview URLs or `n/a` in the handoff
 - [ ] Fill the Visual QA Targets matrix (viewport mapping, all base variants answered or n/a, mobile rows sourced from Design mobile)
 - [ ] Update Section handoff with Frontend QA Brief and route to frontend-section-qa
 ```
@@ -266,6 +306,7 @@ Do not place `acf_add_local_field()` snippets in `functions.php`; that file is f
 - Use the primary section class `.wso-section-<section-slug>`.
 - Include the project layout, section ID, and tabindex WST elements when present in nearby templates.
 - Keep custom markup inside WST row, wrap, column, and column attribute classes that match the project pattern.
+- For filled WYSIWYG title/subline fields, use `[wst_acf field='...' format_value='0']` to avoid `wpautop` wrapping `<p>` inside headings. `[wst_acf_wysiwyg]` returns empty in FC loop context, so do not use it for FC sub-fields. Treat installation-wide autop cleanup as its own work package, because existing sections may rely on the legacy markup in CSS.
 
 ### Flexible Content wiring
 
@@ -326,6 +367,20 @@ Pixel-perfect rendering, responsive layout, spacing, typography, colors, and int
 
 Record server verification results in the handoff under `QA Notes`.
 
+## Finalization: migrating preview variants to the canonical content page
+
+When QA has passed and the project keeps a customer-facing catalog page (for example "All Sections") plus a temporary test page that fed the preview fixtures, finish the run by migrating the variant rows there:
+
+1. Decision stop: replace or keep existing legacy entries of the Section on the catalog page? Delete the test page afterwards? Ask the maintainer.
+2. Snapshot the catalog page's full postmeta to a restore-capable file outside the webroot before any write.
+3. Migrate via one `update_field` call: existing rows loaded raw (`get_field(name, id, false)`) + new rows spliced in (append-only unless the maintainer chose replace). Expect minutes of runtime on big pages.
+4. Verify: meta diff vs snapshot (no unexpected keys), rendered section inventory before/after (counts per section type), variant order and contents, browser pre-interaction check on the cached page.
+5. Clean up stale native metas at reused row indexes (ACF FC rewrites do not delete foreign keys there; the ACFE blob stays clean but native-meta readers see leftovers). Dry-run the deletion list first.
+6. Re-point the fixture exporter config to the catalog page rows and re-export: byte-identical fixture `data` blocks prove migration fidelity.
+7. Delete the test page after maintainer confirmation; the catalog page is the canonical content source from then on. Update `PROJECT-CONTEXT.md` and the handoff.
+
+See `acf-wst-patterns-reference.md` for the postmeta, `update_field`, and stale-meta mechanics this migration relies on.
+
 ## Visual-only routing
 
 If `Work type` is `visual-only`:
@@ -374,12 +429,15 @@ When server work or visual-only routing is complete, write a compact `Frontend Q
 
 - Use `frontend-section-qa` locally (not over Remote-SSH).
 - Target URL: <dev-or-staging-url>
+- Preview URLs: <one preview URL per variant as first browser targets> or `n/a (no preview pages)` / `n/a (declined)`
 - Section selector: .wso-section-<section-slug>
 - Figma/source links: <design-desktop-and-design-mobile>
 - CSS status: existing / new-needed-for-frontend / unknown / not-applicable
 - Required viewports and expected behavior: see the Visual QA Targets matrix (all base variants answered or n/a)
 - Stable hooks to preserve: <selectors>
+- Behavior already solved server-side (for example suppressed wraps, raw titles): <list> so the frontend phase does not rebuild it in CSS.
 - Server contract: do not change ACF/WST artifacts from the local phase. Report a server blocker in the handoff if a server-side discrepancy is found.
+- Expect blocker re-routing: findings that need template or field changes come back to this workflow through the same handoff (documented evidence, expected markup, affected URLs). That is the normal path, not an exception.
 - On completion: write a short permanent project note and remove this active handoff with `git rm`, commit, and push so both workspaces converge on the closed task.
 ```
 
@@ -387,7 +445,7 @@ The Frontend QA Brief is a verifiable starting point, not a blind directive. `fr
 
 ## Package boundary
 
-When editing this Skill or related plugin files, follow [`../../rules/plugin-package-boundary.mdc`](../../rules/plugin-package-boundary.mdc). Required workflow files must be bundled inside the plugin package. References to `frontend-section-qa` and `wp-media-import` remain explicit external Skills.
+When editing this Skill or related plugin files, follow [`../../rules/plugin-package-boundary.mdc`](../../rules/plugin-package-boundary.mdc). Required workflow files must be bundled inside the plugin package. The `section-preview-harness` Skill is bundled inside this same plugin at [`../section-preview-harness/SKILL.md`](../section-preview-harness/SKILL.md). References to `frontend-section-qa` and `wp-media-import` remain explicit external Skills.
 
 See [`../../handoffs/section-handoff.template.md`](../../handoffs/section-handoff.template.md) for the bundled handoff template that this Skill fills.
 

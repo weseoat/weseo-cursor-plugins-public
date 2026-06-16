@@ -114,8 +114,8 @@ Read these before editing:
 - Target dev or staging URL.
 - Section slug, layout name, primary section class, wrapper classes, and selectors to preserve.
 - Template, WST, ACF, and CSS or SCSS file references.
-- Expected desktop, tablet, mobile, content variation, and interaction behavior.
-- Original Figma or source design reference.
+- The `Visual QA Targets` matrix: viewport mapping plus one row per verifiable expectation (variant, viewport, expectation, result).
+- Original Figma or source design references (desktop and mobile frame; `no-mobile-design: derived-from-desktop` means documented interpretation latitude for mobile).
 - Local Playwright MCP status from `PROJECT-CONTEXT.md` and the handoff, including any browser access blocker.
 - Project context for theme tokens, style loader, local build command, optional project-local Playwright command, viewport conventions, Git workflow, and branch or PR.
 
@@ -143,6 +143,7 @@ Frontend Section QA:
 - [ ] On delivery path `git-pull-required` or `unknown`, stop with implementation-pass-pending-deploy and wait for user confirmation
 - [ ] After user confirms server pull or deploy, verify that the new CSS rules are actually served before re-checking visuals
 - [ ] Re-run the Playwright MCP browser loop at desktop, tablet, and mobile viewports
+- [ ] Verify each Visual QA Targets row at its viewport and write the per-row Result (pass/fail: note) into the matrix
 - [ ] Run the optional project-local Playwright regression command when a real harness exists
 - [ ] Record stale-cache or server-output symptoms without running server commands
 - [ ] Stop and document any server, markup, ACF, or WST discrepancy as a server blocker; route to wst-section-workflow
@@ -158,7 +159,7 @@ Ask the start question and set `frontend work mode`:
 - If the user provides a handoff: `frontend work mode = handoff`.
 - If the user confirms visual-only and no handoff exists: `frontend work mode = visual-only-mini-handoff`.
 
-For `handoff` mode, confirm the handoff contains: Page URL, source design or reference, template file and CSS file, WST template and ACF references, primary section class and wrapper hooks, selectors that templates or tests rely on, expected visual behavior across breakpoints, storage location, local frontend responsibilities, QA notes, cache state, known risks, and open questions.
+For `handoff` mode, confirm the handoff contains: Page URL, source design references (desktop and mobile), template file and CSS file, WST template and ACF references, primary section class and wrapper hooks, selectors that templates or tests rely on, a filled `Visual QA Targets` matrix (all base variants answered or marked `n/a`), storage location, local frontend responsibilities, QA notes, cache state, known risks, and open questions. An older handoff may still carry the legacy `Expected Visual Behavior` prose table instead of the matrix; treat that as the contract but record the missing matrix as a known risk.
 
 For `visual-only-mini-handoff` mode, ensure the mini-handoff captures at minimum: target URL, Section selector or page anchor, original Figma or source link, CSS or SCSS target path or a discovery note, expected visual behavior, and a clear statement that no server-side ACF/WST/PHP changes are expected.
 
@@ -354,6 +355,7 @@ Treat this as a shape example. Use the project's test runner, environment variab
 
 Write QA notes back to the same handoff or mini-handoff that started the local phase. Include:
 
+- The per-row `Result` cells of the `Visual QA Targets` matrix (`pass` or `fail: note` per row). The aggregate QA result field carries only the overall status (for example `implementation pass, deployed verification pending`); a `fail` row names the broken expectation directly.
 - All status fields from Status Fields The Skill Maintains.
 - Playwright MCP browser QA findings: viewports checked, selectors confirmed, screenshots captured when applicable.
 - Injection proof outcome and any specificity adjustments.

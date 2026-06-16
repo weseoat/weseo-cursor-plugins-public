@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "wst-builder",
   "displayName": "WST Builder Plugin",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "responsibility": "Package reusable WESEO Smart Template Builder workflows for the WST Builder role in the co-installed WESEO WordPress/WST workflow: Section and CPT foundations, handoff templates, ACF/WST/CPT/WPGB invariants, and pre-frontend handoffs.",
   "assumptions": [
     "The plugin is used in a Cursor workspace that has access to a WordPress and WST project checkout.",
@@ -50,5 +50,5 @@
       "description": "Plan, classify, and execute server-side WST Custom Post Type work for new CPT foundations, existing-CPT remodels, or visual-only routing to Frontend Design QA, with a hardened preflight write-gate and the CPT handoff from handoffs/cpt-handoff.template.md."
     }
   ],
-  "releaseNotes": "release-notes/0.1.3.md"
+  "releaseNotes": "release-notes/0.2.0.md"
 }

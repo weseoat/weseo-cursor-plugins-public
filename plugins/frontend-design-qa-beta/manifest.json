@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "frontend-design-qa-beta",
   "displayName": "Frontend Design QA Plugin (Beta)",
-  "version": "0.3.0-beta.1",
+  "version": "0.4.0-beta.1",
   "responsibility": "Package reusable local frontend implementation guidance for the Frontend Design QA role in the co-installed WESEO WordPress/WST workflow: local Playwright MCP setup, Playwright MCP-driven browser QA, CSS/SCSS, Figma-to-code, Chrome Local Overrides spikes, responsive QA, optional project-local Playwright regression acceptance, and handoff QA writeback.",
   "assumptions": [
     "The plugin is used from a local Cursor workspace on the developer's own machine that contains or mirrors the project frontend source files.",
@@ -63,5 +63,5 @@
       "description": "Implement and verify local frontend presentation for WST CPT cards, archive or grid views, and optional single templates from a filled CPT foundation handoff using a Playwright MCP browser QA loop and optional project-local Playwright regression acceptance."
     }
   ],
-  "releaseNotes": "release-notes/0.3.0-beta.1.md"
+  "releaseNotes": "release-notes/0.4.0-beta.1.md"
 }

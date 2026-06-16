@@ -29,6 +29,8 @@ Do not invent real field keys, field post IDs, clone group keys, layout keys, pa
 - Layout names should follow the project pattern, usually `layout_<section_slug_with_underscores>`.
 - Section field groups should keep shared content, button, and layout fields as clones, with Section-specific fields added separately.
 - Cloned fields with `prefix_name: 1` change the saved meta key shape; account for that when reviewing shortcode field names.
+- Resolve the page Flexible Content field through the field group assigned to post type `page`, not by the bare name `flexible_content`; several fields share that name (page builder, flexblocks, multi-column).
+- Expanded clone field names are the storage and resolution truth: with `prefix_name=1`, a `title` field cloned through `content` into layout `intro` resolves and stores as `intro_content_title`. Programmatic writes and preview fixtures use the expanded names.
 
 ## WST Template Invariants
 
@@ -37,6 +39,15 @@ Do not invent real field keys, field post IDs, clone group keys, layout keys, pa
 - Use a stable primary Section class such as `.wso-section-<section-slug>`.
 - Keep WST row, wrap, column, and column-attribute classes consistent with nearby templates.
 - Register the template include with the matching layout name in the Flexible Content render block.
+- Output filled WYSIWYG title/subline fields with `[wst_acf field='...' format_value='0']` so `wpautop` does not wrap `<p>` inside headings. `[wst_acf_wysiwyg]` returns empty in Flexible Content loop context; do not use it for FC sub-fields.
+
+## Programmatic Writes And QA Invariants
+
+- Write Flexible Content programmatically with `update_field(<fc-field-key>, $rows, $post_id)` using expanded clone names. This keeps the ACFE performance blob consistent; direct `update_post_meta` or SQL writes do not update the blob, and hybrid reads prefer the blob.
+- A full Flexible Content rewrite does not delete foreign native metas at reused row indexes. After index-shifting rewrites, diff native metas per row against the expected field set and clean the strays (dry-run the deletion list first).
+- Never anchor structural QA checks on HTML comments; minifiers strip them from the served output. Use real tags or `data-` attributes, and scope checks to the target Section chunk because global template instances can render the same Section a second time.
+
+See `acf-wst-patterns-reference.md` for the `update_field` shape, the stale-meta caveat, the migration safety net, ACFE hybrid mode, autop details, virtual-route hooks, and QA fetch pitfalls.
 
 ## PHP Bootstrap Safety
 
