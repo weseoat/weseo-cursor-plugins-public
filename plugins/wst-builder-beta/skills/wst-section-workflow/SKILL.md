@@ -407,7 +407,7 @@ The Section handoff is the live contract between server WST work and local Front
 Cleanup is owned by `frontend-section-qa`:
 
 - After successful local frontend QA, it writes a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed.
-- It then removes the active handoff file with `git rm`, commits the removal, and pushes so the server-side workspace sees the closed task on its next `git pull`.
+- It then keeps the active handoff file in place until the page goes live; only after Go-Live does it remove the handoff with `git rm`, commit the removal, and push so the server-side workspace sees the closed task on its next `git pull`.
 
 This Skill must include those completion instructions in the handoff so the cleanup is not forgotten.
 
@@ -438,7 +438,7 @@ When server work or visual-only routing is complete, write a compact `Frontend Q
 - Behavior already solved server-side (for example suppressed wraps, raw titles): <list> so the frontend phase does not rebuild it in CSS.
 - Server contract: do not change ACF/WST artifacts from the local phase. Report a server blocker in the handoff if a server-side discrepancy is found.
 - Expect blocker re-routing: findings that need template or field changes come back to this workflow through the same handoff (documented evidence, expected markup, affected URLs). That is the normal path, not an exception.
-- On completion: write a short permanent project note and remove this active handoff with `git rm`, commit, and push so both workspaces converge on the closed task.
+- On completion: write a short permanent project note and keep this active handoff until the page goes live; remove it with `git rm`, commit, and push only after Go-Live so both workspaces converge on the closed task.
 ```
 
 The Frontend QA Brief is a verifiable starting point, not a blind directive. `frontend-section-qa` re-reads the Figma link and the rendered page locally, and may report contradictions back into the handoff instead of silently working around them.

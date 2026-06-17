@@ -4,7 +4,7 @@ Create one new handoff per Section task. Name the file `<section-slug>-<work-typ
 
 This handoff is the live contract between server-side WST Builder work (over Remote-SSH) and local Frontend Design QA (in the local Cursor workspace). Use it as the working document throughout the task, not as a one-shot preflight form. Do not let unresolved values block safe discovery; block only risky writes.
 
-The handoff folder is on the `.gitignore` allowlist that `setup-orientation` installs, so this file is tracked in Git. WST Builder commits and pushes the handoff after each meaningful update (initial creation, discovery findings, Frontend QA Brief), Frontend Design QA pulls it locally and commits and pushes QA updates back. Final removal at the end of the lifecycle is done with `git rm` plus a commit and push, so both workspaces see the closed task. Handoffs must not contain secrets, tokens, application passwords, SSH keys, token-bearing URLs, dumps, or full media inventories, because they travel through the shared repository.
+The handoff folder is on the `.gitignore` allowlist that `setup-orientation` installs, so this file is tracked in Git. WST Builder commits and pushes the handoff after each meaningful update (initial creation, discovery findings, Frontend QA Brief), Frontend Design QA pulls it locally and commits and pushes QA updates back. Final removal happens only after the page goes live (Go-Live), done with `git rm` plus a commit and push, so both workspaces see the closed task; until Go-Live the handoff stays in place so the context is preserved. Handoffs must not contain secrets, tokens, application passwords, SSH keys, token-bearing URLs, dumps, or full media inventories, because they travel through the shared repository.
 
 The template is shared across all Section work types: `new-section-foundation`, `existing-section-remodel`, and `visual-only`. The `Workflow Routing` section is filled as classification firms up and gates risky writes from then on.
 
@@ -169,7 +169,7 @@ Filled by `wst-section-workflow` before routing. `frontend-section-qa` treats th
 - Required viewports and expected behavior: see the `Visual QA Targets` matrix (viewport mapping plus one row per verifiable expectation). All base variants are answered or marked `n/a` before routing.
 - Stable hooks to preserve: `<selectors-from-css-hooks>`
 - Server contract: do not change server-side ACF/WST artifacts from the local phase. Report any server-side discrepancy back into this handoff as a server blocker.
-- On completion: write a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed, then remove this active handoff file with `git rm`, commit, and push so both workspaces converge on the closed task.
+- On completion: write a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed, and keep this active handoff file in place until the page goes live; remove it with `git rm`, commit, and push only after Go-Live so both workspaces converge on the closed task.
 
 ## Local Frontend Responsibilities
 
@@ -185,7 +185,7 @@ Filled by `wst-section-workflow` before routing. `frontend-section-qa` treats th
 - [ ] Run the optional project-local Playwright regression command when a real harness exists, or document a skip reason.
 - [ ] If a server-side discrepancy is found, record it as a server blocker in this handoff instead of editing ACF/WST locally.
 - [ ] Commit and push handoff updates (discovery findings, QA notes, status fields) so the server-side workspace sees the latest contract on its next `git pull`.
-- [ ] On successful completion, write a short permanent project note summarizing the Section, then remove this active handoff file with `git rm`, commit, and push so both workspaces converge on the closed task.
+- [ ] On successful completion, write a short permanent project note summarizing the Section, and keep this active handoff file until the page goes live; remove it with `git rm`, commit, and push only after Go-Live so both workspaces converge on the closed task.
 - [ ] Commit related local code changes on the same branch or PR according to project Git policy.
 
 ## QA Notes

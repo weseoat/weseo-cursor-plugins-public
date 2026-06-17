@@ -130,7 +130,7 @@ Server-Phase und lokale Frontend-Phase sind über Handoffs gekoppelt. Ein Handof
 - `wst-builder` produziert oder aktualisiert den Handoff am projekt-konfigurierten Ort, committet und pusht auf demselben Branch oder PR. Der Handoff nennt URL, Template-Datei (im Child Theme), ACF-Referenzen, CSS-Hooks, erwartetes Verhalten, Frontend-QA-Brief, QA-Hinweise und offene Punkte.
 - `frontend-design-qa` pullt vor der Arbeit, liest den Handoff als Kontrakt, schreibt die Status-Felder (`frontend work mode`, `proof mode`, `injection proof`, `delivery path`, `server pull/deploy`, `source-served verification`, `final status`) fortlaufend fort, committet und pusht zurück.
 - Mini-Handoff für visual-only ohne bestehenden Handoff: `frontend-section-qa` bzw. `cpt-frontend-qa` legt am gleichen projekt-konfigurierten Ablageort eine temporäre Datei wie `<slug>-visual-only-handoff.md` an, basierend auf demselben Template. Das Mini-Handoff dient als Arbeitsprotokoll und Übergabe, bis die Aufgabe abgeschlossen ist.
-- Abschluss-Lifecycle: nach erfolgreicher Source-Served-Verification werden offene Punkte geschlossen, QA-Notizen committed/gepusht, und ein nicht mehr benötigtes Mini-Handoff oder erledigtes Handoff per `git rm <pfad> && git commit && git push` entfernt. Damit verschwindet es konsistent in beiden Workspaces.
+- Abschluss-Lifecycle: nach erfolgreicher Source-Served-Verification werden offene Punkte geschlossen und QA-Notizen committed/gepusht. Im Beta-Channel bleibt das Handoff bis zum Go-Live der Seite erhalten, damit der Context nicht verloren geht; ein nicht mehr benötigtes Mini-Handoff oder erledigtes Handoff wird erst nach dem Go-Live per `git rm <pfad> && git commit && git push` entfernt. Damit verschwindet es danach konsistent in beiden Workspaces.
 
 ### 4. Editieren - nur im erlaubten Bereich
 
@@ -174,7 +174,7 @@ git push origin "$(git branch --show-current)"
 
 Commit-Keywords: `FEATURE`, `FIX`, `DEV`. Code und Commits auf Englisch.
 
-Niemals uncommittete Änderungen auf dem Server liegen lassen. Erledigte Mini-Handoffs oder abgeschlossene Handoffs werden per `git rm <pfad>` plus Commit und Push entfernt, damit sie konsistent in beiden Workspaces verschwinden.
+Niemals uncommittete Änderungen auf dem Server liegen lassen. Erledigte Mini-Handoffs oder abgeschlossene Handoffs bleiben bis zum Go-Live der Seite erhalten und werden erst nach dem Go-Live per `git rm <pfad>` plus Commit und Push entfernt, damit sie danach konsistent in beiden Workspaces verschwinden.
 
 ## Learnings dokumentieren
 
@@ -218,7 +218,7 @@ Wenn ein Learning dauerhaft und allgemein gültig ist, sollte es in eine Plugin-
 
 - Setup-Status und Projektfakten in `PROJECT-CONTEXT.md` führen.
 - Section- und CPT-Handoffs sind Git-tracked, liegen am projekt-konfigurierten Ablageort aus `PROJECT-CONTEXT.md` und werden über `commit` / `push` / `pull` zwischen Server- und lokalem Workspace synchronisiert; keine Handoffs in Plugin-Paketordner schreiben.
-- Visual-only Section- oder CPT-Arbeit ohne bestehenden Handoff → temporäres Mini-Handoff am selben projekt-konfigurierten Ablageort anlegen und nach Abschluss per `git rm` entfernen.
+- Visual-only Section- oder CPT-Arbeit ohne bestehenden Handoff → temporäres Mini-Handoff am selben projekt-konfigurierten Ablageort anlegen und bis zum Go-Live behalten, erst danach per `git rm` entfernen.
 - Drei Plugins, drei Phasen: `wordpress-server-ops` (Setup/Server), `wst-builder` (Server-WST-Workflow mit Safety-Stops), `frontend-design-qa` (lokales Frontend mit Injection-Proof und Source-Served-Verifikation).
 - Figma sowohl Remote (für Section/CPT-Vorbereitung) als auch lokal (für finale Umsetzung) nutzen.
 - Editieren nur im freigegebenen Theme-Bereich. WST-Templates leben immer im Child Theme unter `wp-content/themes/<child-theme>/smart-template-builder/`; der Plugin-Ordner `wp-content/plugins/weseo-smart-template-builder/` ist by default off-limits.
