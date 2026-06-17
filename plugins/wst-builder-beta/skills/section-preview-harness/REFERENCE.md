@@ -80,7 +80,9 @@ Symptom checklist: "renders fine but HTTP 404" -> `parse_query` missing; "no-ima
 
 - Values are stored natively AND in a compiled `_acf` blob per post; reads prefer the blob, fall back to native.
 - `update_field()` keeps both consistent. Direct `$wpdb`/`update_post_meta` writes do NOT update the blob - avoid them for content, or accept that the blob wins on read.
-- Field GROUP definitions are unaffected; add fields to DB groups via `acf_update_field()` targeting the group's post ID (`menu_order` on the field posts controls backend order; tabs are fields with empty names).
+- Field GROUP *definitions* are a separate, higher-risk surface from content. On WST/ACFE clone groups, changing a definition is dangerous: never write back `acf_get_fields()` output (it is an expanded, read-only view onto shared source field posts), never `acf_update_field()` a composite or clone-expanded field, reorder only the real child `menu_order` column via `$wpdb`, and run a snapshot, dry-run, and clone-integrity scan first. See `acf-wst-patterns-reference.md` "ACF Field Definition Safety (Clone Sources)".
+
+<!-- acf-safety-reviewed: field-value harness; definition writes routed to the clone-source-safe reference; no read-then-write-back idiom -->
 
 ## 8. WST output formatting (autop)
 

@@ -184,3 +184,95 @@ For cloned fields with `prefix_name: 1`, the clone name becomes part of the meta
 - `_flexible_content_<index>_<clone_name>_<field_name>`.
 
 Treat exact field names, clone names, and indexes as project-specific unless the current Section handoff or Project Context supplies them.
+
+## ACF Field Definition Safety (Clone Sources)
+
+<!-- acf-safety-reviewed: documents clone-source-safe field-definition writes; no read-then-write-back idiom -->
+
+WESEO Section and CPT groups clone shared source groups (for example `[TMPL] Inhalt`, `[TMPL] Button`, `[TMPL] Layout`). `acf_get_fields()` returns those clones expanded into their source fields, and each virtually expanded entry points at the shared source field post. Writing an expanded entry back with `acf_update_field()` mutates or destroys the shared source, which empties that clone in every Section that uses it. A single re-order loop has already caused site-wide loss of source field definitions. Treat `acf_get_fields()` and `acf_get_field()` as read-only.
+
+### Forbidden
+
+- The reorder-by-write-back loop: reading the field list, bumping `menu_order` on each entry, and writing it back. This is what deleted the shared source fields.
+- `acf_update_field()` on any entry whose `key` is a composite (`field_<clone>_field_<src>`) or that carries `_clone`, `__key`, or `__name`.
+- Bulk `menu_order` changes through the ACF API on a clone group.
+- Passing the `group_...` key string as `parent` (it silently becomes `parent=0`).
+
+### Safe: reorder real direct children only, only the `menu_order` column
+
+Use `$wpdb` on the real `acf-field` child posts of the group. Do not re-serialize fields and do not call `acf_update_field()`.
+
+```php
+global $wpdb;
+
+// Real direct children of the group (NOT acf_get_fields() expansion).
+$children = $wpdb->get_results( $wpdb->prepare(
+    "SELECT ID, post_name, post_excerpt, menu_order
+       FROM {$wpdb->posts}
+      WHERE post_type = 'acf-field' AND post_parent = %d
+      ORDER BY menu_order, ID",
+    $group_id
+) );
+
+// Only set the menu_order column for the chosen real children.
+$target = [ /* post_id => menu_order */ ];
+foreach ( $target as $post_id => $mo ) {
+    $wpdb->update( $wpdb->posts, [ 'menu_order' => $mo ], [ 'ID' => $post_id, 'post_type' => 'acf-field' ] );
+}
+
+clean_post_cache( $group_id );
+acf_get_store( 'fields' )->reset();
+```
+
+Treat any `post_name` that contains `_field_` (a composite/clone expansion) with extreme caution; prefer not to touch it.
+
+### Safe: add a field additively with its own key
+
+`acf_update_field()` is safe on your own new field with a fresh unique key and a numeric `parent`.
+
+```php
+acf_update_field([
+    'key'        => 'field_uniqueXXXXXXX',
+    'name'       => 'variant',
+    'label'      => 'Variante',
+    'type'       => 'select',
+    'parent'     => $group_id,   // numeric group post ID, never the group_... key string
+    'menu_order' => 0,
+    'choices'    => [ /* ... */ ],
+]);
+```
+
+Move existing real children with the `$wpdb` column update above, never through the expanded field list.
+
+### Mandatory preflight for any structural ACF write
+
+- Snapshot every `acf-field` post of the target group AND of all shared clone source groups to a file outside the webroot before writing.
+- Dry-run first (print what would change); apply only as a second, explicit run.
+- Idempotent: check `acf_get_field($key)` before creating; never run blind twice.
+- Prefer ACF admin or `acf_import_field_group()` with a complete definition over piecemeal field mutation.
+
+### Clone integrity scan (with local-store false-positive filter)
+
+After the write, find clone fields whose DB source group or field is missing, and filter out PHP-registered (local) groups to avoid dozens of false positives:
+
+```php
+global $wpdb;
+$clones = $wpdb->get_results(
+  "SELECT ID, post_name, post_content FROM {$wpdb->posts}
+    WHERE post_type='acf-field' AND post_content LIKE '%\"clone\"%'");
+foreach ($clones as $f) {
+  $s = maybe_unserialize($f->post_content);
+  if (($s['type'] ?? '') !== 'clone') continue;
+  foreach ((array)($s['clone'] ?? []) as $ref) {
+    $inDb = $wpdb->get_var($wpdb->prepare(
+      "SELECT COUNT(*) FROM {$wpdb->posts}
+        WHERE post_type IN ('acf-field','acf-field-group') AND post_name=%s", $ref));
+    // Local (PHP-registered) groups are valid even when absent from the DB.
+    $local = (function_exists('acf_is_local_field_group') && acf_is_local_field_group($ref))
+          || (function_exists('acf_is_local_field')       && acf_is_local_field($ref));
+    if (!$inDb && !$local) echo "BROKEN clone #{$f->ID} ({$f->post_name}) -> $ref\n";
+  }
+}
+```
+
+If a structural write does delete source fields, content is safe (postmeta is name-based); only the definitions are gone. Check the trash first (`post_name LIKE 'field_<key>%'`, WordPress appends `__trashed`), then reconstruct from surviving real composite clone copies (`field_<clone>_field_<src>`): strip `_clone/__key/__name/__label` and recreate the field with the original `__key`/`__name` and `parent` set to the source group.

@@ -50,6 +50,7 @@ The final context should contain:
 - Rule: `plugin-package-boundary`
 - Rule: `wp-cli-cache`
 - Rule: `wordpress-content-editing`
+- Rule: `programmatic-acf-db-writes`
 - Rule: `commit-trailer`
 - Skill: `setup-orientation` (with `reference.md` and `frontend-onboarding.md`)
 - Skill: `wp-media-import`

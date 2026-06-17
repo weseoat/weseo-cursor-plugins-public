@@ -32,6 +32,21 @@ Do not invent real field keys, field post IDs, clone group keys, layout keys, pa
 - Resolve the page Flexible Content field through the field group assigned to post type `page`, not by the bare name `flexible_content`; several fields share that name (page builder, flexblocks, multi-column).
 - Expanded clone field names are the storage and resolution truth: with `prefix_name=1`, a `title` field cloned through `content` into layout `intro` resolves and stores as `intro_content_title`. Programmatic writes and preview fixtures use the expanded names.
 
+## ACF Clone-Source Safety
+
+<!-- acf-safety-reviewed: documents clone-source-safe field-definition writes; no read-then-write-back idiom -->
+
+WESEO Section and CPT field groups are built from ACFE seamless clones (`type=clone`, `display=seamless`, `prefix_name=1`) of shared source groups (for example `[TMPL] Inhalt`, `[TMPL] Button`, `[TMPL] Layout`). A structural ACF write that looks harmless can silently delete those shared source fields and empty the clone in every Section at once. Treat these as hard invariants for any programmatic field-definition change:
+
+- `acf_get_fields()` and `acf_get_field()` are an expanded, read-only view, not an editable set of posts. For clone groups the expanded entries carry the post ID and key of the shared source field, so writing them back mutates the shared source.
+- Never iterate the field list and pass entries to `acf_update_field()`. The reorder-by-write-back loop (read the fields, bump `menu_order`, write each entry back) deletes shared source fields and is forbidden.
+- Never call `acf_update_field()` on any field whose `key` is a composite (`field_<clone>_field_<src>`) or that carries `_clone`, `__key`, or `__name`. Those are clone expansions, not your own posts.
+- Reorder only the real direct child `acf-field` posts of the group, and only the `menu_order` column, with `$wpdb`. Do not bulk-reorder a clone group through the ACF API.
+- `acf_update_field()` is safe only on your own newly created field with a fresh unique `key`. `parent` must be the numeric group post ID, never the `group_...` key string (a string parent silently becomes `parent=0`).
+- Any structural ACF write needs a snapshot outside the webroot, a dry-run before apply, idempotent existence checks (`acf_get_field($key)`), and a clone-integrity scan afterwards. Prefer ACF admin import (`acf_import_field_group()` with a full definition) over piecemeal programmatic field mutation.
+
+This safety boundary is about field *definitions*. Writing Flexible Content *values* with `update_field()` (see Programmatic Writes And QA Invariants) is a separate, safe operation. See `acf-wst-patterns-reference.md` "ACF Field Definition Safety (Clone Sources)" for the safe reorder, safe additive-field, snapshot, and clone-integrity-scan patterns.
+
 ## WST Template Invariants
 
 - Guard PHP templates with `if (! defined('ABSPATH')) exit;`.

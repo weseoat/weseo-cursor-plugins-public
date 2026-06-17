@@ -257,6 +257,21 @@ When the preview pages are set up, route multi-variant work through them:
 
 Brand or palette variants that depend on page context (for example `body.brand-<slug>` from a company taxonomy) are verified through the fixture `body_class`. On the test page all rows render in the page's own palette, and that is expected.
 
+## ACF structural write gate
+
+A `database/acf` write that changes field *definitions* (add, reorder, edit, or remove `acf-field` posts) on a WST/ACFE clone group can silently delete shared source fields and break the editor site-wide. This is a hard safety stop. Before any such write, satisfy `acf-wst-patterns.mdc` "ACF Clone-Source Safety":
+
+- `acf_get_fields()` / `acf_get_field()` are read-only here; never write their output back with `acf_update_field()`.
+- Reorder only the `menu_order` column of the group's real direct child posts via `$wpdb`; never bulk-reorder a clone group through the ACF API.
+- `acf_update_field()` only on your own new field with a fresh unique key and a numeric `parent` (the group post ID, not the `group_...` key string).
+- Snapshot all `acf-field` posts of the target group and of every shared clone source group to a file outside the webroot first.
+- Dry-run before apply; idempotent existence check (`acf_get_field($key)`) before creating.
+- After the write, run the clone-integrity scan (with the `acf_is_local_*` filter) and confirm the front end still renders.
+
+Writing Flexible Content *values* with `update_field()` on a page is a content write, not a field-definition write, and is not covered by this gate. See `acf-wst-patterns-reference.md` "ACF Field Definition Safety (Clone Sources)" for the safe patterns.
+
+<!-- acf-safety-reviewed: routes field-definition writes through the clone-source-safe rule; no read-then-write-back idiom -->
+
 ## Execution Plan before writes
 
 Before performing server writes, output a short Execution Plan:

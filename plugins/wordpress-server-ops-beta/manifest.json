@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "wordpress-server-ops-beta",
   "displayName": "WordPress Server Ops Plugin (Beta)",
-  "version": "0.6.1-beta.1",
+  "version": "0.6.1-beta.2",
   "responsibility": "Package reusable server-phase guidance for the WordPress Server Ops role in the co-installed WESEO WordPress/WST workflow: Remote-SSH setup, Project Context, server safety, WP-CLI/cache, media, content, commit trailer convention, frontend onboarding, project Cursor Rules cleanup, and project Cursor Rule authoring for projects that use the co-installed `wordpress-server-ops`, `wst-builder`, and `frontend-design-qa` plugins.",
   "assumptions": [
     "The plugin is used from a Cursor workspace connected to a WordPress root or equivalent server-side project checkout.",
@@ -48,6 +48,12 @@
       "description": "Guide safe WordPress REST and ACF Flexible Content updates without project-specific layout lists."
     },
     {
+      "name": "programmatic-acf-db-writes",
+      "path": "rules/programmatic-acf-db-writes.mdc",
+      "source": "plugins/wordpress-server-ops/rules/programmatic-acf-db-writes.mdc",
+      "description": "Prevent programmatic ACF field-definition writes and direct database writes from deleting shared ACF clone source fields: treat field-list reads as read-only, require snapshot, dry-run, idempotency, and rollback, and route WST/ACFE clone specifics to the wst-builder acf-wst-patterns Rule."
+    },
+    {
       "name": "commit-trailer",
       "path": "rules/commit-trailer.mdc",
       "source": "weseo-smartflow-frontend-guide/.cursor/rules/commit-trailer.mdc",
@@ -80,5 +86,5 @@
       "description": "Guided German wizard for authoring a new project-local Cursor Rule in a WESEO WordPress/WST project. Wraps the generic Cursor `create-rule` flow with a short grill, a reuse check against the co-installed `wordpress-server-ops`, `wst-builder`, and `frontend-design-qa` plugins, a carrier decision between Rule, Skill, `PROJECT-CONTEXT.md`, and existing plugin guidance, and an `.mdc` frontmatter and `alwaysApply` hygiene validation step before any file is written."
     }
   ],
-  "releaseNotes": "release-notes/0.6.1-beta.1.md"
+  "releaseNotes": "release-notes/0.6.1-beta.2.md"
 }

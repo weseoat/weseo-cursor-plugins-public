@@ -26,6 +26,21 @@ Preserve existing registered post type, rewrite behavior, taxonomy names, ACF fi
 WST Builder may document CSS paths, stable classes, hooks, and expected behavior in the handoff.
 WST Builder must not create or edit final CPT CSS/SCSS over Remote-SSH. Missing CSS entry points are recorded as local frontend work for `cpt-frontend-qa`.
 
+## ACF structural write gate
+
+A `database/acf` write that changes field *definitions* (add, reorder, edit, or remove `acf-field` posts) on a CPT ACF field group, or on any WST/ACFE clone group it touches, can silently delete shared source fields and break the editor site-wide. This is a hard stop in addition to the rules above. Before any such write, satisfy `acf-wst-patterns.mdc` "ACF Clone-Source Safety":
+
+- `acf_get_fields()` / `acf_get_field()` are read-only here; never write their output back with `acf_update_field()`.
+- Reorder only the `menu_order` column of the group's real direct child posts via `$wpdb`; never bulk-reorder a clone group through the ACF API.
+- `acf_update_field()` only on your own new field with a fresh unique key and a numeric `parent` (the group post ID, not the `group_...` key string).
+- Snapshot all `acf-field` posts of the target group and of every shared clone source group to a file outside the webroot first.
+- Dry-run before apply; idempotent existence check (`acf_get_field($key)`) before creating.
+- After the write, run the clone-integrity scan (with the `acf_is_local_*` filter) and confirm the CPT edit screen and front end still render.
+
+See `acf-wst-patterns-reference.md` "ACF Field Definition Safety (Clone Sources)" for the safe reorder, additive-field, snapshot, and scan patterns.
+
+<!-- acf-safety-reviewed: routes field-definition writes through the clone-source-safe rule; no read-then-write-back idiom -->
+
 ## Quick Start
 
 1. Classify the request into a `Work type`.
