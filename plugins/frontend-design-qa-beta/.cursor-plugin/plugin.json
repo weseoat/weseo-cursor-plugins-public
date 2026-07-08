@@ -1,6 +1,6 @@
 {
   "name": "frontend-design-qa-beta",
-  "version": "0.4.0-beta.2",
+  "version": "0.4.0",
   "description": "WESEO Frontend Design QA guidance for the co-installed WordPress/WST workflow with wordpress-server-ops and wst-builder: local Playwright MCP setup and browser-driven QA, local CSS/SCSS implementation, Figma-to-code translation, Chrome Local Overrides spikes, responsive QA, optional project-local Playwright regression acceptance, cache/server escalation notes, and handoff QA writeback. Beta channel: pre-release build for WESEO frontend beta testers; do not use in production.",
   "author": {
     "name": "WESEO"

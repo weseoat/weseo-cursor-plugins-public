@@ -189,6 +189,8 @@ Treat exact field names, clone names, and indexes as project-specific unless the
 
 <!-- acf-safety-reviewed: documents clone-source-safe field-definition writes; no read-then-write-back idiom -->
 
+This section is about field *definitions*. Writing Flexible Content *values* is covered separately under "Programmatic Writes (update_field) And Migration".
+
 WESEO Section and CPT groups clone shared source groups (for example `[TMPL] Inhalt`, `[TMPL] Button`, `[TMPL] Layout`). `acf_get_fields()` returns those clones expanded into their source fields, and each virtually expanded entry points at the shared source field post. Writing an expanded entry back with `acf_update_field()` mutates or destroys the shared source, which empties that clone in every Section that uses it. A single re-order loop has already caused site-wide loss of source field definitions. Treat `acf_get_fields()` and `acf_get_field()` as read-only.
 
 ### Forbidden
@@ -276,3 +278,57 @@ foreach ($clones as $f) {
 ```
 
 If a structural write does delete source fields, content is safe (postmeta is name-based); only the definitions are gone. Check the trash first (`post_name LIKE 'field_<key>%'`, WordPress appends `__trashed`), then reconstruct from surviving real composite clone copies (`field_<clone>_field_<src>`): strip `_clone/__key/__name/__label` and recreate the field with the original `__key`/`__name` and `parent` set to the source group.
+
+## Resolving The Page Flexible Content Field
+
+`acf_get_field('flexible_content')` by name is ambiguous: WST installs carry several fields named `flexible_content` (page builder, flexblocks, multi-column). Resolve through the field group assigned to post type `page` so the field matches what real pages render against:
+
+```php
+foreach (acf_get_field_groups(array('post_type' => 'page')) as $group) {
+    foreach ((array) acf_get_fields($group) as $field) {
+        if ($field['type'] === 'flexible_content' && $field['name'] === 'flexible_content') {
+            return $field;
+        }
+    }
+}
+```
+
+## Programmatic Writes (update_field) And Migration
+
+- `update_field('<fc-field-key>', $rows, $post_id)` with rows keyed by expanded clone names writes the exact native meta shape of a backend-saved page and keeps the ACFE performance blob (`_acf`) consistent. Direct `update_post_meta` or `$wpdb` writes do not update the blob, and hybrid reads prefer the blob.
+- Doubly-nested clone fields (for example `image_img_align_alternative_img_align` chains) are silently ignored by `update_field`. Omit them and let ACF defaults apply at render time.
+- A full Flexible Content rewrite does not delete foreign native metas at reused row indexes; leftovers from the previous occupant remain. The ACFE blob stays clean (rendering is correct), but native-meta readers (export/QA tooling) see the leftovers. After index-shifting rewrites, diff native metas per row against the expected field set and delete strays (dry-run first).
+- Append-only migration safety net for a big Flexible Content page:
+  1. Snapshot the full postmeta to a restore-capable file outside the webroot.
+  2. Load existing rows raw (`get_field($name, $id, false)`), splice in the new rows, and call `update_field` once.
+  3. Verify: meta diff vs snapshot (classify changes, zero unexpected keys), rendered section inventory before/after (counts per section type), variant order, and a browser pre-interaction check on the cached page.
+  4. Fidelity proof: re-export preview fixtures from the migrated page; the fixture `data` blocks must be byte-identical.
+
+## ACFE Performance Mode (hybrid)
+
+- Values are stored natively and in a compiled `_acf` blob per post; reads prefer the blob and fall back to native.
+- `update_field()` keeps both consistent. Avoid direct `$wpdb`/`update_post_meta` for content, or accept that the blob wins on read.
+- Field group *definitions* are a separate, higher-risk surface from content. On WST/ACFE clone groups, changing a definition is dangerous: never write back `acf_get_fields()` output, never `acf_update_field()` a composite or clone-expanded field, reorder only the real child `menu_order` column via `$wpdb`, and run a snapshot, dry-run, and clone-integrity scan first. See "ACF Field Definition Safety (Clone Sources)".
+
+## Output Formatting (autop)
+
+- `[wst_acf]` on a filled WYSIWYG field applies ACF formatting including `wpautop`, which wraps `<p>` inside headings/sublines and breaks markup contracts.
+- Render the raw value with `[wst_acf field='...' format_value='0']`: editor paragraph breaks collapse, `<br>` (Shift+Enter) survives, which is fine for headlines.
+- `[wst_acf_wysiwyg]` returns empty inside Flexible Content loop context (both DB and local meta); do not use it for FC sub-fields.
+- Treat installation-wide autop cleanup as its own work package: existing sections may have CSS built around the legacy markup.
+
+## Virtual Routes Alongside WST
+
+A virtual rewrite route with no posts behaves like the blog index, which WST 404s when the post archive is disabled. Three hooks are mandatory for a working virtual route:
+
+- `parse_query`: set `is_home = false` for the route, or WST's archive redirect 404s a valid request while it still renders a body.
+- `pre_get_posts`: set `post__in = [0]` and `no_found_rows = true`, or the first latest post becomes the global `$post` and leaks its title/thumbnail through `[wst_post_title]`/`[wst_post_thumbnail]` fallbacks.
+- `pre_handle_404`: return `true` for valid requests so generic 404 handling does not override the route.
+
+The bundled `section-preview-harness` Skill ships a full, proven implementation of these hooks.
+
+## QA Verification Pitfalls
+
+- HTML minifiers strip comments from the served output; never anchor structural checks on `<!-- ... -->` markers. Use real end tags (`</section>`) or `data-` attribute anchors.
+- Global template instances can render a second copy of a Section outside the main content area (for example reference-popup clones). Scope every check to the target Section chunk.
+- CLI PHP may have `allow_url_fopen=0`; use curl for QA fetches. Lazy regex quantifiers across megabyte-sized HTML can blow the PCRE backtrack limit and silently return no-match, so window with `strpos` before applying a regex.

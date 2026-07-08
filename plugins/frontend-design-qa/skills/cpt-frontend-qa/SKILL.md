@@ -152,7 +152,7 @@ CPT Frontend QA:
 - [ ] Stop and document any server, markup, CPT, taxonomy, ACF, WST, or WPGB discrepancy as a server blocker; route to wst-new-post-type or wst-section-workflow
 - [ ] Update the handoff QA notes and status fields
 - [ ] Commit code and handoff updates on the same branch or PR
-- [ ] On full completion, write a short permanent project note and delete the active handoff or mini-handoff with `git rm`
+- [ ] On full completion, write a short permanent project note and keep the active handoff or mini-handoff in place until the page goes live (no `git rm` on QA pass; remove only after Go-Live)
 ```
 
 ## 1. Confirm The Work Mode
@@ -414,7 +414,7 @@ Before finishing:
 - Include Playwright MCP browser QA findings, injection proof per surface, source-served verification, and the optional project-local Playwright regression result or a clear skip note.
 - Commit code and handoff updates on the same branch or PR according to project Git policy.
 
-On full completion, write a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed, then remove the active handoff or mini-handoff with `git rm`. Commit and push the removal together with the final code changes, or as the closing commit when the code was already committed, so the server-side workspace sees the closed task on its next `git pull`. While `final status = implementation-pass-pending-deploy`, keep the handoff or mini-handoff in place until the source-served verification pass closes the loop.
+On full completion, write a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed, and keep the active handoff or mini-handoff in place so the context is preserved. Do not `git rm` the handoff on a `final-source-served-pass`; remove it with `git rm` only once the page has gone live (Go-Live). Commit and push that removal together with the code changes that close the task, or as the closing commit when the code was already committed, so the server-side workspace sees the closed task on its next `git pull`. While `final status = implementation-pass-pending-deploy`, the handoff or mini-handoff also stays in place until the source-served verification pass closes the loop.
 
 Do not push, deploy, edit server-side CPT setup, or change release flow unless the maintainer explicitly asks for it.
 
@@ -430,4 +430,4 @@ A developer is asked to adjust a `Resources` CPT card grid:
 6. It writes final CSS into the tracked CPT CSS file and detects `delivery path = git-pull-required`.
 7. It stops with `implementation pass; waiting for server pull/deploy`, asks the user to pull on the server, and waits.
 8. The user confirms the pull; the Skill checks that the new rules are served, then runs desktop, tablet, and mobile viewport checks for card count, long taxonomy labels, and missing image fallbacks.
-9. It sets `final status = final-source-served-pass`, writes a short project note, and deletes the active CPT handoff with `git rm`.
+9. It sets `final status = final-source-served-pass`, writes a short project note, and keeps the active CPT handoff in place until the page goes live (removal with `git rm` happens only at Go-Live).

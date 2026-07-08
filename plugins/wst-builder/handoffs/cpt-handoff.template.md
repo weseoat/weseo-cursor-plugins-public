@@ -4,7 +4,7 @@ Create one new CPT handoff per CPT task. Name the file `<cpt-slug>-<work-type>-h
 
 This handoff is the live contract between server-side WST Builder work (over Remote-SSH) and local Frontend Design QA (in the local Cursor workspace). Use it as the working document throughout the task, not as a one-shot preflight form. Do not let unresolved values block safe discovery; block only risky writes.
 
-The CPT handoff folder is on the `.gitignore` allowlist that `setup-orientation` installs, so this file is tracked in Git. WST Builder commits and pushes the handoff after each meaningful update (initial creation, discovery findings, Frontend QA Brief), Frontend Design QA pulls it locally and commits and pushes QA updates back. Final removal at the end of the lifecycle is done with `git rm` plus a commit and push, so both workspaces see the closed task. Handoffs must not contain secrets, tokens, application passwords, SSH keys, token-bearing URLs, dumps, or full media inventories, because they travel through the shared repository.
+The CPT handoff folder is on the `.gitignore` allowlist that `setup-orientation` installs, so this file is tracked in Git. WST Builder commits and pushes the handoff after each meaningful update (initial creation, discovery findings, Frontend QA Brief), Frontend Design QA pulls it locally and commits and pushes QA updates back. Final removal happens only after the page goes live (Go-Live), done with `git rm` plus a commit and push, so both workspaces see the closed task; until Go-Live the handoff stays in place so the context is preserved. Handoffs must not contain secrets, tokens, application passwords, SSH keys, token-bearing URLs, dumps, or full media inventories, because they travel through the shared repository.
 
 The template is shared across all CPT work types: `new-cpt-foundation`, `existing-cpt-remodel`, and `visual-only`. The `Workflow Routing` section is filled as classification firms up and gates risky writes from then on.
 
@@ -178,7 +178,7 @@ Filled by `wst-new-post-type` before routing to local frontend QA. `cpt-frontend
 - Stable hooks to preserve: `<selectors-from-templates-css-hooks>`
 - Server contract: do not change server-side CPT, taxonomy, ACF, WPGB, or WST artifacts from the local phase. Report any server-side discrepancy back into this handoff as a server blocker.
 - Verification model: `cpt-frontend-qa` proves planned rules through CSS injection against the real WordPress pages before writing tracked CSS, and only records a final QA pass after the change is actually served by the target URL.
-- On completion: write a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed, then remove this active handoff file with `git rm`, commit, and push so both workspaces converge on the closed task once the source-served verification has passed.
+- On completion: write a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed, and keep this active handoff file in place until the page goes live; remove it with `git rm`, commit, and push only after Go-Live so both workspaces converge on the closed task.
 
 ## Local Frontend Responsibilities
 
@@ -197,7 +197,7 @@ Filled by `wst-new-post-type` before routing to local frontend QA. `cpt-frontend
 - [ ] Run the optional project-local Playwright regression command when a real harness exists, or document a skip reason.
 - [ ] Stop and document any server, markup, CPT, taxonomy, ACF, WST, or WPGB discrepancy as a server blocker; route back to `wst-new-post-type` or `wst-section-workflow` instead of editing server-side artifacts locally.
 - [ ] Commit and push handoff updates (discovery findings, QA notes, status fields) so the server-side workspace sees the latest contract on its next `git pull`.
-- [ ] On successful completion, write a short permanent project note summarizing the CPT frontend result, then remove this active handoff file with `git rm`, commit, and push so both workspaces converge on the closed task.
+- [ ] On successful completion, write a short permanent project note summarizing the CPT frontend result, and keep this active handoff file until the page goes live; remove it with `git rm`, commit, and push only after Go-Live so both workspaces converge on the closed task.
 - [ ] Commit related local code changes on the same branch or PR according to project Git policy.
 
 ## QA Notes

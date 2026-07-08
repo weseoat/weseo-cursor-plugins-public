@@ -4,7 +4,7 @@ Create one new handoff per Section task. Name the file `<section-slug>-<work-typ
 
 This handoff is the live contract between server-side WST Builder work (over Remote-SSH) and local Frontend Design QA (in the local Cursor workspace). Use it as the working document throughout the task, not as a one-shot preflight form. Do not let unresolved values block safe discovery; block only risky writes.
 
-The handoff folder is on the `.gitignore` allowlist that `setup-orientation` installs, so this file is tracked in Git. WST Builder commits and pushes the handoff after each meaningful update (initial creation, discovery findings, Frontend QA Brief), Frontend Design QA pulls it locally and commits and pushes QA updates back. Final removal at the end of the lifecycle is done with `git rm` plus a commit and push, so both workspaces see the closed task. Handoffs must not contain secrets, tokens, application passwords, SSH keys, token-bearing URLs, dumps, or full media inventories, because they travel through the shared repository.
+The handoff folder is on the `.gitignore` allowlist that `setup-orientation` installs, so this file is tracked in Git. WST Builder commits and pushes the handoff after each meaningful update (initial creation, discovery findings, Frontend QA Brief), Frontend Design QA pulls it locally and commits and pushes QA updates back. Final removal happens only after the page goes live (Go-Live), done with `git rm` plus a commit and push, so both workspaces see the closed task; until Go-Live the handoff stays in place so the context is preserved. Handoffs must not contain secrets, tokens, application passwords, SSH keys, token-bearing URLs, dumps, or full media inventories, because they travel through the shared repository.
 
 The template is shared across all Section work types: `new-section-foundation`, `existing-section-remodel`, and `visual-only`. The `Workflow Routing` section is filled as classification firms up and gates risky writes from then on.
 
@@ -42,6 +42,7 @@ For visual-only Section work the handoff is intentionally minimal: no `Server wr
 | Section slug | `<section-slug>` |
 | Layout name | `<layout-name>` |
 | Page URL | `<dev-or-staging-url-with-section>` |
+| Preview URLs | `<one-preview-url-per-variant>` or `n/a (no preview pages)` / `n/a (declined)` |
 | Design desktop | `<figma-desktop-frame-url-or-brief>` |
 | Design mobile | `<figma-mobile-frame-url>` or `no-mobile-design: derived-from-desktop` |
 | Source design status | `<figma-accessible/brief-only/blocked: reason>` |
@@ -151,6 +152,7 @@ The base variants below are mandatory. Every base variant keeps at least one exp
 - [ ] Create representative content on the target page only inside the approved server write scope.
 - [ ] Flush relevant caches only inside the approved server write scope; on `live` or `unknown`, with explicit confirmation.
 - [ ] Verify server-side function and existence only: page loads without PHP fatal/warning, Section markup present, primary class present, layout selectable in editor/ACF where checkable.
+- [ ] Offer to set up Section preview pages if the project has none (run `section-preview-harness` on yes; record `section-preview-pages: declined` on no). Record the preview URLs (or `n/a`) in `Section Identity`.
 - [ ] Fill the `Visual QA Targets` matrix: viewport mapping from project context, every base variant answered or marked `n/a: <reason>`, mobile rows sourced from `Design mobile`.
 - [ ] Write the `Frontend QA Brief` into this handoff and route to `frontend-section-qa`.
 
@@ -160,18 +162,20 @@ Filled by `wst-section-workflow` before routing. `frontend-section-qa` treats th
 
 - Use `frontend-section-qa` locally in the Cursor workspace. Do not run it over Remote-SSH.
 - Target URL: `<dev-or-staging-url-with-section>`
+- Preview URLs: `<one-preview-url-per-variant-as-first-browser-targets>` or `n/a (no preview pages)` / `n/a (declined)`
 - Section selector: `.wso-section-<section-slug>`
 - Figma/source links: `<design-desktop-and-design-mobile>` (unchanged from Discovery Sources so local QA can re-read them)
 - CSS status: `<existing/new-needed-for-frontend/unknown/not-applicable>`
 - Required viewports and expected behavior: see the `Visual QA Targets` matrix (viewport mapping plus one row per verifiable expectation). All base variants are answered or marked `n/a` before routing.
 - Stable hooks to preserve: `<selectors-from-css-hooks>`
 - Server contract: do not change server-side ACF/WST artifacts from the local phase. Report any server-side discrepancy back into this handoff as a server blocker.
-- On completion: write a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed, then remove this active handoff file with `git rm`, commit, and push so both workspaces converge on the closed task.
+- On completion: write a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed, and keep this active handoff file in place until the page goes live; remove it with `git rm`, commit, and push only after Go-Live so both workspaces converge on the closed task.
 
 ## Local Frontend Responsibilities
 
 - [ ] Re-read the original Figma/source links (desktop and mobile) and confirm the design intent against the rendered page. A `no-mobile-design` note means documented interpretation latitude for mobile, not a missing value.
 - [ ] Confirm Playwright MCP is ready in the local Cursor workspace, or run `frontend-design-qa` `setup-playwright-mcp` before browser QA starts.
+- [ ] When preview URLs are listed, use them as the first browser targets (isolated Section, stable QA hooks), then verify on the real Page URL.
 - [ ] Drive a Playwright MCP browser QA loop against the handoff Page URL across the required viewports.
 - [ ] Implement CSS/SCSS in the local Git repo.
 - [ ] Create or register the Section CSS file in tracked local source when `CSS status` is `new-needed-for-frontend`.
@@ -181,7 +185,7 @@ Filled by `wst-section-workflow` before routing. `frontend-section-qa` treats th
 - [ ] Run the optional project-local Playwright regression command when a real harness exists, or document a skip reason.
 - [ ] If a server-side discrepancy is found, record it as a server blocker in this handoff instead of editing ACF/WST locally.
 - [ ] Commit and push handoff updates (discovery findings, QA notes, status fields) so the server-side workspace sees the latest contract on its next `git pull`.
-- [ ] On successful completion, write a short permanent project note summarizing the Section, then remove this active handoff file with `git rm`, commit, and push so both workspaces converge on the closed task.
+- [ ] On successful completion, write a short permanent project note summarizing the Section, and keep this active handoff file until the page goes live; remove it with `git rm`, commit, and push only after Go-Live so both workspaces converge on the closed task.
 - [ ] Commit related local code changes on the same branch or PR according to project Git policy.
 
 ## QA Notes

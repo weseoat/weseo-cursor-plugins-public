@@ -112,6 +112,7 @@ Read these before editing:
 
 - Section handoff or mini-handoff path, storage location, and current status fields.
 - Target dev or staging URL.
+- Preview URLs (one per variant) when the handoff lists them, or `n/a (no preview pages)` / `n/a (declined)`. When present, they are the first browser targets.
 - Section slug, layout name, primary section class, wrapper classes, and selectors to preserve.
 - Template, WST, ACF, and CSS or SCSS file references.
 - The `Visual QA Targets` matrix: viewport mapping plus one row per verifiable expectation (variant, viewport, expectation, result).
@@ -136,6 +137,7 @@ Frontend Section QA:
 - [ ] Confirm browser access to the target URL, or stop and ask for login/access
 - [ ] Re-read the Figma or source design when a link is available
 - [ ] Inspect existing Section and theme CSS or SCSS patterns
+- [ ] When the handoff lists preview URLs, use them as the first browser targets, then verify on the real page
 - [ ] Drive a Playwright MCP browser QA loop and capture real DOM, matched and computed styles
 - [ ] Run a CSS-injection proof of the planned rules against the real target URL through Playwright MCP only
 - [ ] Implement final CSS or SCSS in tracked local files when the injection proof passes
@@ -149,7 +151,7 @@ Frontend Section QA:
 - [ ] Stop and document any server, markup, ACF, or WST discrepancy as a server blocker; route to wst-section-workflow
 - [ ] Update the handoff QA notes and status fields
 - [ ] Commit code and handoff updates on the same branch or PR
-- [ ] On full completion, write a short permanent project note and delete the active handoff or mini-handoff with `git rm`
+- [ ] On full completion, write a short permanent project note and keep the active handoff or mini-handoff in place until the page goes live (no `git rm` on QA pass; remove only after Go-Live)
 ```
 
 ## 1. Confirm The Work Mode
@@ -279,6 +281,13 @@ Do not continue source-served verification before the user actually confirms bac
 
 Only after the user confirms `server pull/deploy = user-confirmed`, run the source-served verification pass against the target URL. Source-served verification is only valid through Playwright MCP; Cursor Browser, manual inspection, and screenshots do not satisfy it.
 
+### Cached-page reality check (mandatory before the final pass)
+
+Preview pages are nocache by design and therefore hide two bug classes that only exist on real pages: stale page cache and delayed JS (for example WP Rocket Delay-JS). Before any final pass on the real page:
+
+1. Load the real page fresh and measure BEFORE any interaction (pre-interaction state). Theme JS that sets custom properties like `--vh` may not have run yet, so full-height rules need CSS fallbacks (`var(--vh, 1svh)`), and the pre-interaction measurement is the proof.
+2. If the served page is stale, stop visual evaluation, record the symptom, and request the server-side cache flush (the `PROJECT-CONTEXT.md` command). Cache flushing on the server is not part of the local phase.
+
 - Navigate to the target URL with a fresh Playwright MCP load.
 - Confirm that the new CSS file or rules are actually present in the served stylesheets, for example by inspecting the loaded stylesheet content, a known new selector, or computed styles without injection.
 - If the new rules are not served, set `server pull/deploy = not-reflected`, document the symptom (deploy not reflected, cache stale, wrong file delivered, theme override late), and stop visual evaluation. Route cache flush, WP-CLI, deployment, or server repair back to WordPress Server Ops or the project's `PROJECT-CONTEXT.md` cache guidance.
@@ -314,9 +323,25 @@ If browser QA shows that the problem is not solvable in CSS, hard stop.
 - Route back to `wst-section-workflow`.
 - Ask the user for OK before another skill or server workflow is started from this context.
 
+When QA reveals a defect that CSS cannot legitimately fix (broken markup contracts, template output, field formatting), do not absorb it silently into CSS workarounds:
+
+1. Implement at most a clearly marked interim shim that stays inert once the markup is fixed, and document it as interim.
+2. Record the blocker in the handoff with evidence (URL, selector, observed DOM, expected DOM) and route it to `wst-section-workflow`.
+3. Keep the frontend phase result honest: a pass "via interim shim" is documented as exactly that until the server fix lands.
+
+This re-routing is the normal workflow path, not an escalation.
+
 ## 11. Playwright MCP Browser QA Loop
 
 Playwright MCP is the primary browser-driving mechanism for Section QA. After the preflight confirms `playwright_mcp: ready` and browser access works, run a focused loop against the target URL.
+
+### Preview pages first
+
+When the handoff lists Section preview-page URLs (`/section-preview/<section>/<variant>`, the preview harness from `wst-builder`), use them as the first browser targets: isolated DOM, fixed fixture data, and stable QA hooks (`#primary[data-preview-section][data-preview-variant]`, body class `wso-section-preview`, fixture-driven `brand-*` body classes for palette variants). Iterate variant CSS there (injection-proof), then verify on the real page.
+
+Scope every check to the target Section's chunk: WST projects can render a second global instance of the same Section outside `#primary` (for example reference-popup clones). Never anchor checks on HTML comments; minifiers strip them from the served output, so use real tags or data attributes.
+
+If the handoff records `Preview URLs: n/a (no preview pages)` or `n/a (declined)`, skip this and target the real page directly. Do not set up preview pages from the local phase; that is `wst-builder` server work.
 
 Core loop:
 
@@ -385,7 +410,7 @@ Before finishing:
 - Include Playwright MCP browser QA findings, injection proof, source-served verification, and the optional project-local Playwright regression result or a clear skip note.
 - Commit code and handoff changes on the same branch or PR according to project Git policy.
 
-On full completion, write a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed, then remove the active handoff or mini-handoff with `git rm`. Commit and push the removal together with the final code changes, or as the closing commit when the code was already committed, so the server-side workspace sees the closed task on its next `git pull`. While `final status = implementation-pass-pending-deploy`, keep the handoff or mini-handoff in place until the source-served verification pass closes the loop.
+On full completion, write a short permanent project note (for example in `LEARNINGS.md` or the project's context doc) summarizing what was built or changed, and keep the active handoff or mini-handoff in place so the context is preserved. Do not `git rm` the handoff on a `final-source-served-pass`; remove it with `git rm` only once the page has gone live (Go-Live). Commit and push that removal together with the code changes that close the task, or as the closing commit when the code was already committed, so the server-side workspace sees the closed task on its next `git pull`. While `final status = implementation-pass-pending-deploy`, the handoff or mini-handoff also stays in place until the source-served verification pass closes the loop.
 
 Do not push, deploy, or change release flow unless the project context or maintainer explicitly asks for it.
 
@@ -401,4 +426,4 @@ A developer is asked to adjust spacing in the `Feature Cards` Section:
 6. It writes final CSS into the tracked Section CSS file and detects `delivery path = git-pull-required`.
 7. It stops with `implementation pass; waiting for server pull/deploy`, asks the user to pull on the server, and waits.
 8. The user confirms the pull; the Skill checks that the new rules are served, then runs desktop, tablet, and mobile viewport checks.
-9. It sets `final status = final-source-served-pass`, writes a short note to the project's notes file, and deletes the active handoff with `git rm`.
+9. It sets `final status = final-source-served-pass`, writes a short note to the project's notes file, and keeps the active handoff in place until the page goes live (removal with `git rm` happens only at Go-Live).

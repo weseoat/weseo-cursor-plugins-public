@@ -50,6 +50,9 @@ Before using the Skill, fill or locate these project-local values:
 - Skill: `grill-me`
 - Skill: `wst-section-workflow` (formerly `wst-new-fc-section`)
 - Reference: `wst-section-workflow/reference.md`
+- Skill: `section-preview-harness` (project-local Section preview pages)
+- Reference: `section-preview-harness/REFERENCE.md`
+- Reference implementation: `section-preview-harness/reference-implementation/` (PHP copied into the child theme per project)
 - Template: `handoffs/section-handoff.template.md`
 - Template: `handoffs/cpt-handoff.template.md`
 - Skill: `wst-new-post-type`
