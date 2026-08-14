@@ -42,9 +42,9 @@ Playwright MCP is the only accepted browser authority for DOM and computed-style
 
 1. Read `PROJECT-CONTEXT.md` and the work record for the `playwright_mcp` status. If a project runs parallel Playwright servers, follow the `playwright-browser-claim` Rule before touching a browser.
 2. If the status is `ready` and a quick navigation to the target URL works, continue.
-3. If the status is missing, `pending`, or broken, run the Playwright MCP step of the bundled `setup-local-project` Skill (Step 9) as the setup/repair target. Do not improvise a workaround here.
+3. If the status is missing, `pending`, or broken, run the Playwright MCP step of the bundled `setup-local-project` Skill (Step 10) as the setup/repair target. Do not improvise a workaround here.
 4. Run a Capability Probe: `browser_navigate` to the target URL once, then `browser_evaluate` reading `location.href`, `document.title`, and a known Section selector. Record each tool result (`ok`, `failed: <short reason>`, `not-tested`) in the work record.
-5. If the whole MCP server is down or both `browser_navigate` and `browser_evaluate` fail: hard stop. Set `browser access: blocked: playwright-mcp-unavailable` and `final status: blocked`, record the symptom, route to `setup-local-project` Step 9.
+5. If the whole MCP server is down or both `browser_navigate` and `browser_evaluate` fail: hard stop. Set `browser access: blocked: playwright-mcp-unavailable` and `final status: blocked`, record the symptom, route to `setup-local-project` Step 10.
 6. If only individual tools are broken but `browser_evaluate` reaches the target URL, enter Degraded Mode.
 7. If a content-level blocker gates the page (login wall, cookie banner, IP allowlist, certificate, headless restriction) although Playwright MCP works, record it and treat browser access as a hard precondition for final CSS writes. The user may share throwaway session logins for Playwright/CDP; never write credentials, cookies, tokens, or session details into the work record or any tracked file.
 
@@ -60,7 +60,7 @@ When a single tool is defective (for example `browser_navigate` throwing `TypeEr
 - Navigate through `browser_evaluate` (`location.assign(...)` plus a load/readiness check). DOM, selector, and computed-style reads through `browser_evaluate` are sufficient evidence.
 - Inject CSS through `browser_evaluate` (a `<style>` element, `CSSStyleSheet.insertRule`, or `document.adoptedStyleSheets`) and read computed styles back.
 - For the served check, fetch the stylesheet URL from the page context (`fetch(...).then(r => r.text())`) and search for the new selector, plus a computed-style spot check.
-- Record `pass-degraded` for passes produced this way, document the broken tool, observed error, fallback path, and next repair action, and route the defect to `setup-local-project` Step 9 for a real fix in the next session — even when the user accepts Degraded Mode for the current task.
+- Record `pass-degraded` for passes produced this way, document the broken tool, observed error, fallback path, and next repair action, and route the defect to `setup-local-project` Step 10 for a real fix in the next session — even when the user accepts Degraded Mode for the current task.
 
 If `browser_evaluate` itself is broken, leave Degraded Mode and apply the hard stop from the preflight.
 

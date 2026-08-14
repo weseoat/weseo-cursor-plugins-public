@@ -110,7 +110,7 @@ If the old repository tracks the theme and docs, commit the export-stage changes
 
 ### 2.1 Build The Local Foundation
 
-Run the bundled `setup-local-project` Skill first if the local workspace does not exist yet: fork clone at wp-content level, folder named exactly after the server hostname, `.env` with the application password, REST test, read-only FTP user, Playwright MCP. Defer its git-installer and bridge steps if they would deploy before the theme state is imported — the first deploy should deliver the migrated theme.
+Run the bundled `setup-local-project` Skill first if the local workspace does not exist yet: fork clone at wp-content level, folder named exactly after the server hostname, `.env` with the application password, REST test, read-only FTP user, Playwright MCP, Atlassian MCP, Figma MCP. Defer its git-installer and bridge steps if they would deploy before the theme state is imported — the first deploy should deliver the migrated theme.
 
 ### 2.2 Import The Theme State And The Docs
 
@@ -124,14 +124,14 @@ Create the new `PROJECT-CONTEXT.md` from the old one plus the inventory:
 
 - Carry over: project name, URLs, child theme path, WST source path, WPGB IDs, key page IDs, quirks, brand facts.
 - Remove the SSH-era fields: Remote-SSH host and workspace facts, WP-CLI command shapes, server cache-flush commands, server temp paths, the two-workspace handoff storage contract, WP Pusher as deploy path.
-- Add the SmartFlow fields: working branch and deploy branch, deploy path `weseo-git-installer` with the child theme target directory, bridge base URL and version (after 2.4), credential environment variable names, FTP read facts, `playwright_mcp` status, `docs/` layer location.
+- Add the SmartFlow fields: working branch and deploy branch, deploy path `weseo-git-installer` with the child theme target directory, bridge base URL and version (after 2.4), credential environment variable names, FTP read facts, `playwright_mcp` status, `atlassian_mcp` status, `figma_mcp` status, `git_installer_guide`, `docs/` layer location.
 
 ### 2.4 WP Pusher Teardown And git-installer Build-Up
 
 Order matters: the two deploy mechanisms must never race on the same theme directory.
 
 1. **Disconnect WP Pusher first.** The user unlinks the theme's push-to-deploy in the WP Pusher admin so pushes stop triggering it. Do not uninstall yet — keep a fallback until the new chain is verified.
-2. **Configure `weseo-git-installer`** per `setup-local-project` Step 5: new repository URL, deploy branch, target directory `./wp-content/themes/<child-theme>/`, Bitbucket registration, deployed-commit contract.
+2. **Configure `weseo-git-installer`** per `setup-local-project` Step 6: search Confluence for the current git-installer guide, then apply repository URL, deploy branch, target directory `./wp-content/themes/<child-theme>/`, Bitbucket registration, deployed-commit contract.
 3. **Install the status bridge** through the bundled `install-status-bridge` Skill if not yet present in the imported theme.
 4. **Commit and hand over.** Commit the imported theme state, docs, and `PROJECT-CONTEXT.md` with the trailer `Made with: SmartFlow`. Hard stop; the user pushes; the git installer performs the first deploy.
 5. **Verify over the bridge** per the `status-bridge` Rule: `bridge_version` matches the bundled template and `deployed_commit` equals the local `git rev-parse HEAD`, with the bounded retry and abort budget. Never record the migration as done while the hashes differ.

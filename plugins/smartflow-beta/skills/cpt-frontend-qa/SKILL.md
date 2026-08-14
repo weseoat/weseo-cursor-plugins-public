@@ -39,9 +39,9 @@ The contract is the CPT work record in the project docs layer (default `docs/pos
 Identical rules to `frontend-section-qa`, applied to the CPT display URL and — when public detail pages exist — a representative single URL:
 
 1. Read `PROJECT-CONTEXT.md` and the work record for the `playwright_mcp` status; follow the `playwright-browser-claim` Rule when parallel Playwright servers run.
-2. Setup or repair goes to the Playwright MCP step of the bundled `setup-local-project` Skill (Step 9), never improvised here.
+2. Setup or repair goes to the Playwright MCP step of the bundled `setup-local-project` Skill (Step 10), never improvised here.
 3. Run the Capability Probe against the display URL (and the single URL when applicable): `browser_navigate` once, then `browser_evaluate` reading `location.href`, `document.title`, a known card selector, and a known grid or single selector. Record per-tool results in the work record.
-4. Whole server down or both navigate and evaluate broken: hard stop, `browser access: blocked: playwright-mcp-unavailable`, `final status: blocked`, route to `setup-local-project` Step 9.
+4. Whole server down or both navigate and evaluate broken: hard stop, `browser access: blocked: playwright-mcp-unavailable`, `final status: blocked`, route to `setup-local-project` Step 10.
 5. Single-tool defects with a working `browser_evaluate`: Degraded Mode — evaluate-based navigation, DOM/computed-style reads, CSS injection, and stylesheet fetch for the served check, recorded as `pass-degraded` with the defect, fallback path, and next repair action documented.
 6. Content-level blockers (login, cookie consent, allowlist): record them and treat browser access as a hard precondition for final CSS writes. Throwaway session logins may be used through Playwright/CDP only; never write credentials into the work record or any tracked file.
 
