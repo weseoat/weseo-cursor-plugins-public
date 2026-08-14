@@ -24,19 +24,14 @@
       "description": "WESEO server-phase guidance for safe Cursor Remote-SSH work in WordPress and WST projects."
     },
     {
-      "name": "wst-builder-beta",
-      "source": "wst-builder-beta",
-      "description": "Beta channel of wst-builder. Pre-release build for WESEO frontend beta testers; opt in only to test upcoming changes, not for production work."
+      "name": "smartflow",
+      "source": "smartflow",
+      "description": "The complete WESEO WordPress/WST workflow in one plugin: server-side WST Section and CPT foundations, local frontend CSS, and Playwright QA. Successor to the wst-builder, frontend-design-qa, and wordpress-server-ops plugins; uninstall all legacy packages before installing."
     },
     {
-      "name": "frontend-design-qa-beta",
-      "source": "frontend-design-qa-beta",
-      "description": "Beta channel of frontend-design-qa. Pre-release build for WESEO frontend beta testers; opt in only to test upcoming changes, not for production work."
-    },
-    {
-      "name": "wordpress-server-ops-beta",
-      "source": "wordpress-server-ops-beta",
-      "description": "Beta channel of wordpress-server-ops. Pre-release build for WESEO frontend beta testers; opt in only to test upcoming changes, not for production work."
+      "name": "smartflow-beta",
+      "source": "smartflow-beta",
+      "description": "Beta channel of smartflow. Pre-release build for WESEO frontend beta testers; opt in only to test upcoming changes, not for production work. Uninstall all legacy packages before installing."
     }
   ]
 }

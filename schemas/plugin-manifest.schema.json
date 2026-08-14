@@ -54,6 +54,18 @@
         "$ref": "#/$defs/includedContent"
       }
     },
+    "agents": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/includedContent"
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/includedContent"
+      }
+    },
     "releaseNotes": {
       "type": "string",
       "minLength": 1

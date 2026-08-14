@@ -1,0 +1,16 @@
+---
+description: Author WordPress taxonomies the WESEO way — English wso_tax_ machine names, German labels allowed, CPT UI managed registration. Apply whenever creating, naming, or registering a taxonomy.
+alwaysApply: true
+---
+
+# WordPress Taxonomies
+
+Use this Rule when creating, naming, or registering a taxonomy in a WESEO WordPress/WST project.
+
+- **Machine name in English, never German.** Use the existing `wso_tax_*` prefix convention and reference the taxonomies already in the install for naming and option shape (non-normative examples: `wso_tax_company`, `wso_tax_references`, `wso_tax_team`). A "Betrieb" taxonomy is `wso_tax_company`, not `betrieb`.
+- **Register via CPT UI**, not via `register_taxonomy()` in theme code. Clients and colleagues must be able to manage taxonomies and attach them to further post types through the GUI without a developer. CPT UI stores them in the `cptui_taxonomies` option.
+- The SmartFlow workspace has no direct server shell: prepare the exact machine name, slugs, labels, attached post types, and fixed terms in the project `docs/` layer and hand them to the user for the CPT UI entry, unless the project documents an approved programmatic route.
+- **Labels may be German** (e.g. "Betriebe" / "Betrieb"), matching the other taxonomies. Only the machine name and slugs stay English/ASCII.
+- **Code only for what CPT UI cannot do** (e.g. a `body_class` filter). Such snippets go to `theme-functions.php`, which requires explicit prior user confirmation per the `file-edit-boundary` Rule.
+- Document any slug that a stylesheet depends on (e.g. `.brand-<slug>`, see the `wordpress-brand-tokens` Rule).
+- After a taxonomy registration or rewrite-relevant change is live, flush permalinks through the status bridge (`POST /flush-permalinks`) and verify the affected URLs respond without a 404.

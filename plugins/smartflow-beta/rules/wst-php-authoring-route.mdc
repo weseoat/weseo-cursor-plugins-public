@@ -1,0 +1,22 @@
+---
+description: Route child-theme PHP authoring through the WST workflows and the wst-shortcode-implementer subagent
+globs:
+  - "**/themes/**/*.php"
+alwaysApply: false
+---
+
+# WST PHP Authoring Route
+
+For PHP changes in the child theme (`themes/<child-theme>/`):
+
+1. Use the relevant WST workflow first (`wst-section-workflow` for Sections, `wst-new-post-type` for CPT foundations).
+2. Delegate the PHP write phase to the `wst-shortcode-implementer` subagent. Main-chat, general-purpose, explore, and shell agents may inspect and plan, but must not write these PHP files themselves.
+3. Presentation and template output must compose the existing WST shortcodes and follow the nearest verified WST precedent. Do not replace WST templates with freely authored PHP/HTML rendering.
+4. PHP infrastructure such as preview harnesses, adapters, resolvers, registration helpers, and PHP ACF field groups may require normal PHP. It is still routed through the WST workflow and implementer; do not force shortcode syntax where the file is not a render template.
+5. If `wst-shortcode-implementer` is unavailable or the task cannot be classified safely, stop and ask instead of implementing directly.
+
+Exceptions:
+
+- `theme-functions.php` follows the `file-edit-boundary` Rule and requires explicit prior user confirmation for the exact change.
+- The status-bridge managed block in `js-snippets.php` is edited only through the `install-status-bridge` Skill; other `js-snippets.php` content follows the project workflow and is not required to contain WST shortcodes.
+- `functions.php` is forbidden for agent edits.

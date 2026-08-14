@@ -1,0 +1,32 @@
+---
+description: Guard rail for keeping SmartFlow self-contained and project-safe
+globs:
+  - "**/manifest.json"
+  - "**/README.md"
+  - "**/skills/**/*.md"
+  - "**/rules/**/*.mdc"
+  - "**/agents/**/*.md"
+  - "**/commands/**/*.md"
+  - "**/release-notes/**/*.md"
+alwaysApply: false
+---
+
+# SmartFlow Plugin Package Boundary
+
+Use this Rule when writing or reviewing reusable SmartFlow plugin content.
+
+The plugin package must be self-contained for consumers who only receive the `smartflow` plugin folder. A required workflow, safety, QA, documentation, or onboarding step must not depend on files elsewhere in this development repository.
+
+## Required Checks
+
+- Every required Skill, Rule, Agent, Command, reference, script, checklist, or workflow contract named by the plugin must exist inside the plugin package, which is `plugins/smartflow` in this development repository, or be explicitly marked as an optional external dependency.
+- Default SmartFlow workflows must not require `.agents`, `.cursor/plugins/cache`, `weseo-smartflow-frontend-guide`, `Tests/`, `.scratch`, repository-local scripts, or any other development-only path.
+- If a workflow says "run `<skill-name>`", that Skill must be bundled in `plugins/smartflow/skills/<skill-name>/SKILL.md` unless the workflow clearly says the Skill is optional and external.
+- If a workflow routes to a named subagent, that Agent definition must be bundled under `plugins/smartflow/agents/` unless the workflow clearly says the Agent is optional and external.
+- `PROJECT-CONTEXT.md` and the project `docs/` layer are project-local artifacts created or updated in the opened project checkout. Do not reference a plugin-local copy unless this package actually bundles that file.
+- Reusable guidance must not include real client IDs, server paths, URLs, credentials, token-bearing examples, repository names, WordPress roots, cache commands, editable path exceptions, ACF keys, field post IDs, WP Grid Builder IDs, or access values.
+- Secret-handling guidance stays with project context: real access values must never be copied into reusable plugin content, tracked files, chat, diagnostics, screenshots, or public webroot artifacts.
+- The plugin README, manifest, release notes, rules, skills, agents, and commands must agree on the bundled content list.
+- Manifest `source` fields and archive references are development provenance only. Runtime `path` fields and required workflow references must point to bundled plugin content.
+
+Stop and fix the package before shipping if a required workflow path points outside the plugin folder without being marked optional or project-local, or if reusable guidance contains project-only values.

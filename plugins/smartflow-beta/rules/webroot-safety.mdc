@@ -1,0 +1,38 @@
+---
+description: Keep non-source artifacts out of the deployed child theme path in a wp-content-level SmartFlow repository
+alwaysApply: true
+---
+
+# Webroot Safety
+
+Use this Rule when creating any file in a SmartFlow WordPress/WST workspace.
+
+The workspace root is the wp-content level of the project checkout and is never served by the web server. Only the child theme subdirectory (`themes/<child-theme>/`, recorded in `PROJECT-CONTEXT.md`) is delivered to the server by the project deploy path. Everything inside that deploy path becomes web-accessible once deployed; everything outside it never reaches the server.
+
+## The Deploy Path Boundary
+
+- Repo-level areas such as `docs/`, `.cursor/`, `.env`, `tmp/`, and project documentation stay at the repository root. They are structurally safe because the deploy path never includes them.
+- Any file created inside the deploy path must be theme source that is meant to be served.
+
+## Do Not Create These In The Deploy Path
+
+| Pattern | Reason |
+|---|---|
+| `*.sql`, `backup*`, `dump*`, `export*` | Database dumps and exports expose site data. |
+| `*.bak`, `*.old`, `*~`, `*.swp`, `*.tmp` | Editor and backup artifacts are not source files. |
+| `*.log` | Logs may expose internal data. |
+| `*.sh` and other operational scripts | Operational scripts should not live in the served tree. |
+| `*.env`, `*.env.*` | Environment files stay at the repository root (see the `secrets` Rule). |
+| Working notes, QA screenshots, diff images, reports | Belong in the project `docs/` layer or a temp location. |
+| `tmp/`, `node_modules/`, transcripts, scratch directories | Not theme source. |
+
+## Temporary Artifacts
+
+Place temporary scripts, exports, and scratch notes outside the deploy path: repo-level `tmp/` or the OS temp directory. Delete them as soon as they are no longer needed. If a task is interrupted, report any remaining temporary artifacts before continuing work.
+
+## Before Creating Any File Inside The Deploy Path
+
+1. Check whether the file is theme source that should be served after deploy.
+2. Check whether the path is allowed by the `file-edit-boundary` Rule and project context.
+3. If the file is temporary or documentation, place it outside the deploy path.
+4. If unsure, ask before creating it.

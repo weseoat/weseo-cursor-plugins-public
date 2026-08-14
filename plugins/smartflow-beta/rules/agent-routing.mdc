@@ -1,0 +1,67 @@
+---
+description: Route SmartFlow WST/CPT package work to the five bundled subagents — delegation table, pinned model routing with availability check, orchestrator/handoff practices, and the fixed return contract
+alwaysApply: false
+---
+
+# Agent Routing
+
+Use this Rule when delegating SmartFlow WST/CPT package work to subagents. The five agent definitions ship with this plugin; the two implementers are thin runners around the bundled Skills.
+
+## Roles And Delegation
+
+| Agent | Role | Delegates into | Write scope |
+|---|---|---|---|
+| `cpt-codebase-analyst` | read-only inventory: reference baseline, layout profile, precedence, minimal file scope, evidenced route + baseline delta; runtime facts over the status bridge | — (readonly) | none |
+| `cpt-figma-analyst` | package surface index mapped against the reference baseline (deviations only by default); full raw specs + PNG exports only for `pixel-parity` or complex components | — | package index, needed surface/component specs, explicitly required reference PNGs (docs layer) |
+| `wst-shortcode-implementer` | thin runner: exactly one assigned foundation or section task | `wst-new-post-type` (once per package) or `wst-section-workflow` (one per flexible section) | project-owned WST templates/partials + PHP ACF field groups + the work record the Skill owns |
+| `wpgb-specialist` | WPGB grid/card config from the baseline precedent (minimal diff), config math, runtime contract, route-back fixes | — | WPGB config apply-spec via the status bridge readback (or a project-validated write route); card CSS only with explicit file assignment in the manifest |
+| `cpt-visual-implementer` | thin runner: exactly one assigned surface | `frontend-section-qa` (flexible WST sections) or `cpt-frontend-qa` (cards, grids, archives, fixed segments, singles) | assigned CSS/SCSS file group + its work-record section |
+
+## Model Routing
+
+| Agent | Model |
+|---|---|
+| `cpt-codebase-analyst` | `composer-2.5-fast` (readonly) |
+| `cpt-figma-analyst` | `gpt-5.6-sol-medium` |
+| `wst-shortcode-implementer` | `composer-2.5-fast` |
+| `wpgb-specialist` | `claude-sonnet-5-thinking-medium` |
+| `cpt-visual-implementer` | `composer-2.5-fast` |
+
+Before the first spawn of a run, the main chat re-checks that each pinned slug is available on the account in use. A missing model or Max-Mode availability is reported to the user and never silently replaced by another model. Premium escalation happens only after one evidenced gate conflict, decided by the main chat.
+
+## Shared Rules
+
+- Maximum two agent levels: main chat -> leaf agent. Leaf agents never spawn further subagents. A full context window is a `handoff` back to the main chat, not a nested spawn.
+- Exactly one write owner per artifact or file group, assigned via the package manifest.
+- Implementation semantics live in the bundled SmartFlow Skills; the runners load and follow them instead of restating their rules.
+- Subagents never commit or push; the main chat commits and hands over per the `deploy-and-branches` Rule.
+- No agent runs as a background agent by default.
+- Every agent ends with the fixed return format (STATUS, EVIDENCE, OWN CHANGES, GATES, OPEN DECISION, NEXT OWNER) defined in its agent file. `STATUS` may be `handoff` when the leaf must stop because its context is filling.
+
+The agents install with the plugin; the main chat invokes them by name (`/cpt-codebase-analyst` etc.) or lets Cursor route by description.
+
+## Orchestration
+
+The main chat is the orchestrator. It plans, spawns, stores handoffs, and integrates. It does not do the leaf's large file reads or long tool chains in its own context.
+
+1. **Decompose with measure.** Split only when the work has more than one write owner or a real dependency chain. For each leaf task record: goal and success criterion, affected area, dependencies. Skip splitting when one leaf is enough.
+2. **Self-contained prompts.** Every spawn includes the full assigned task, the relevant package context, worker constraints from this Rule and `deploy-and-branches`, and — on resume — the last handoff. The leaf does not see the parent chat or earlier user messages.
+3. **Parallel only when independent.** Launch disjoint write artifacts in one message. Tasks that touch the same files or build on each other's results run sequential. When in doubt, sequential.
+4. **Context-full continuation.** If a leaf's context is filling (long session, large file dumps, an upcoming context summary), it finishes the current step cleanly — no half edit, no command without a result — and returns `STATUS: handoff` plus the schema below. The main chat writes that return unchanged (short metadata header only) to `tmp/<task-slug>/handoff-<agent>-<nn>.md` and respawns the **same** agent type with that file. Leaves never continue themselves by spawning.
+5. **Stall stop.** If a handoff shows no progress versus the previous one, or a single leaf task has more than 3 handoff resumes, stop and ask the user. Do not restart the same assignment endlessly.
+6. **Secrets.** Never copy credential values into worker prompts or handoff files. Name the environment variables only (`secrets` Rule) and point at the repo-root `.env`.
+7. **Integrate.** After every leaf reports `done` (or the visual-implementer equivalent), check that the parts fit: no overlapping file edits, no contradictory work-record fields. Then the main chat commits and hands over.
+
+Handoff files stay in repo-level `tmp/` (outside the deploy path, not committed) until the user asks to delete them.
+
+## Handoff Schema
+
+A `handoff` must be fully self-contained — the next leaf knows neither the user message nor the parent transcript:
+
+- **Task and goal** — the leaf assignment, its place in the package, and the success criterion ("done when …").
+- **Current state** — what is already done, which files or records changed (concrete paths), committed vs uncommitted.
+- **Tried — worked** — approaches, commands, and facts that helped.
+- **Tried — failed** — failed approaches with the error or reason, so they are not repeated.
+- **Facts** — paths, IDs, API behaviour, project quirks needed to continue.
+- **Next steps** — remaining to-dos in order.
+- **Constraints** — off-limits paths, no commit/push, deploy-and-branches, assigned write scope.

@@ -1,0 +1,39 @@
+---
+description: Require the full QA viewport ladder with deliberate tablet-band styling before any final frontend Section or CPT QA pass
+globs:
+  - "**/styles/**/*.css"
+  - "**/styles/**/*.scss"
+alwaysApply: false
+---
+
+# Frontend QA — Viewport Ladder And Tablet Band
+
+Use this Rule in every Section or CPT styling and QA pass. Read the concrete rung values, rem bands, and theme breakpoints from `PROJECT-CONTEXT.md` ("Breakpoints & QA-Viewports" or equivalent); the ladder below is the standard WESEO Astra shape and applies unless the project documents different values.
+
+## Required QA Viewport Ladder (check ALL rungs in every styling/QA pass)
+
+| px | Why this rung exists |
+|---|---|
+| 1920 | Desktop design anchor — **Figma matrix, ±2px** where frames exist |
+| 1440 | Mid-desktop container/rem interpolation |
+| 1024 | Inside the desktop rem band |
+| 991 | Tablet band top — reduced rem basis plus mobile typography tokens |
+| 921 | Common Astra header/burger/tabs/accordion breakpoint |
+| 767 | Mobile band top |
+| 575 | Extra-small boundary |
+| 375 | Mobile design anchor — **Figma matrix, ±2px** where frames exist |
+
+- 1920 and 375 are the Figma-matrix anchors; intermediate rungs are **"no broken layout, deliberate styling"** checks (no Figma frame needed).
+- **991 execution caveat (Playwright MCP only):** at exactly 991px some Playwright browsers report a fractional devicePixelRatio, so neither `max-width: 991px` nor `min-width: 992px` matches. Keep the 991 row in the matrix — verify it at **990** in that environment. Real devices at 991px are unaffected.
+
+## Tablet Band 768–991px (The Known Trap)
+
+In the common WESEO Astra setup, 768–991 is a distinct rem band (reduced rem basis) while typography already uses the mobile scale (`max-width: 991px`); layouts inherited via `min-width: 768px` silently render desktop geometry at a shrunken rem basis.
+
+1. **No final pass** (injection proof or bridge-verified served check) while ladder rows are missing or deferred as "fluid transitional" / "optional spot-check" — the tablet rungs (991, 921) especially.
+2. **Red flags demanding dedicated band rules:** fixed rem flex-bases or column widths inherited from desktop; gaps designed at desktop rem oversized against the shrunken columns; line measure below roughly 300px; computed font-size below roughly 14px.
+3. **No Figma tablet frame is normal here.** Style the band deliberately — scoped custom-property overrides in a `(min-width: 768px) and (max-width: 991px)` or `max-width: 991px` block — and record the judgment calls in the work record.
+
+## Incident (Why This Rule Exists)
+
+Several Sections once shipped a "final pass" without tablet rows: fixed-flex columns squeezed to roughly 213–291px with roughly 93px gaps, a split variant at roughly 235px line measure, and option labels at roughly 10px. All were fixed in a dedicated tablet-band pass after the fact; this ladder makes that rework unnecessary.

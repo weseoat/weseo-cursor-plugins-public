@@ -1,0 +1,37 @@
+---
+description: Author ACF field definitions as PHP field groups in the child theme; structural ACF database writes are forbidden
+globs:
+  - "**/smart-template-builder/acf/**/*.php"
+alwaysApply: false
+---
+
+# ACF PHP Field Groups
+
+Use this Rule when creating or changing any ACF field definition: Section field groups, Flexible Content layouts, CPT field groups, or shared `[TMPL]` clone-source groups.
+
+## Definitions Live In PHP
+
+- All ACF field definitions are PHP registrations under `themes/<child-theme>/smart-template-builder/acf/field-groups/` (served as `wp-content/themes/<child-theme>/smart-template-builder/acf/field-groups/`).
+- One file per field group; register with `acf_add_local_field_group()` on the `acf/init` hook through the project's field-group loader.
+- The Page-Builder Flexible Content container and all of its layouts are registered in PHP together. ACF cannot add PHP-registered fields to a Flexible Content field created in the admin, so mixing origins is not viable: each project performs a one-time migration of the admin-created Flexible Content group plus the shared TMPL groups into PHP before new PHP-only Sections are added.
+
+## Keys And Names
+
+- Every group, field, and layout carries a stable explicit key (`group_<unique>`, `field_<unique>`); generate a fresh unique key for every new definition.
+- Never reuse an existing key for a different field, and never rename a saved field's `name` or `key` casually — stored content references both. Treat key or name changes as data migrations requiring an explicit user decision.
+- Shared TMPL groups are PHP-registered as well; clone fields reference the shared group keys.
+
+## No Structural Database Writes
+
+Field definitions are code, not database records. The legacy hazard where a looped field-definition write-back destroyed shared clone-source definitions site-wide is structurally gone — and stays gone:
+
+- Never create, update, reorder, or delete `acf-field` or `acf-field-group` posts programmatically: no `acf_update_field()` on definitions, no direct `$wpdb` writes to field-definition posts, no import scripts against the database.
+- Definition changes happen only by editing the PHP files, committing, handing over for push, and verifying the deploy over the status bridge.
+- Editing page or post *values* through the ACF content API is a separate concern and is not restricted by this Rule.
+
+## Admin And Verification
+
+- PHP-registered groups are not editable in the ACF admin; the admin is a read surface for definitions. Content values are still edited in the admin as usual.
+- After a bridge-verified deploy: confirm that `GET /status` lists the expected ACF field groups with PHP origin, that the layout appears in the editor, that field values save and load, and that the frontend renders the Section.
+
+This Rule never stores project field keys, group keys, layout keys, or field post IDs. Concrete keys live in the project repository and its `docs/` layer.

@@ -1,0 +1,25 @@
+{
+  "$schema": "../../schemas/plugin-manifest.schema.json",
+  "name": "smartflow",
+  "displayName": "SmartFlow",
+  "version": "0.1.0",
+  "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
+  "assumptions": [
+    "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
+    "Installing smartflow (or smartflow-beta) replaces all six legacy packages: wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins. The plugin must not run next to any legacy package, and smartflow and smartflow-beta must never run together.",
+    "Project-specific CPT names, URL slugs, ACF keys, WPGB IDs, WordPress paths, URLs, credentials placeholders, and learned quirks live in the project-local PROJECT-CONTEXT.md and the project docs/ layer, never in reusable plugin content.",
+    "The agent never pushes: it commits and hands over to the user, who pushes to the remote; deployment reaches the server through the project deploy path and is verified over the project status bridge before QA continues."
+  ],
+  "rules": [
+    {
+      "name": "plugin-package-boundary",
+      "path": "rules/plugin-package-boundary.mdc",
+      "source": "plugins/smartflow/rules/plugin-package-boundary.mdc",
+      "description": "Keep required SmartFlow workflows self-contained inside the plugin package and prevent development-only path dependencies."
+    }
+  ],
+  "skills": [],
+  "agents": [],
+  "commands": [],
+  "releaseNotes": "release-notes/0.1.0.md"
+}

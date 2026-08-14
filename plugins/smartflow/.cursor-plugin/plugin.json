@@ -1,0 +1,17 @@
+{
+  "name": "smartflow",
+  "version": "0.1.0",
+  "description": "WESEO SmartFlow: the complete WordPress/WST workflow in one plugin, from server-side WST Section and Custom Post Type foundations to local frontend CSS and Playwright QA. Successor to the wst-builder, frontend-design-qa, and wordpress-server-ops plugins; do not run it next to any of them.",
+  "author": {
+    "name": "WESEO"
+  },
+  "keywords": [
+    "weseo",
+    "smartflow",
+    "wordpress",
+    "wst",
+    "acf",
+    "frontend",
+    "qa"
+  ]
+}

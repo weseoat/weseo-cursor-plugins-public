@@ -1,0 +1,51 @@
+---
+description: SmartFlow deploy flow and branch discipline — the agent commits and hands over, never pushes; deploys are bundled and bridge-verified
+alwaysApply: true
+---
+
+# Deploy And Branches
+
+Use this Rule for every git operation and every change that must reach the WordPress server in a SmartFlow workspace.
+
+## Delivery Chain
+
+Repository (wp-content level, private remote) -> local commit -> hard stop and hand-over -> the user pushes -> the project deploy path delivers only the child theme subdirectory -> the status bridge confirms the deployed commit -> served QA.
+
+`docs/`, `.cursor/`, `.env`, `tmp/`, and other repo-level files never reach the server.
+
+## The Agent Never Pushes
+
+- No `git push`, no remote branch creation or deletion, no force operations, no remote tags, under any circumstances.
+- After committing server-relevant work: hard stop. Hand over with the commit hash and a short statement of what the deploy will deliver. The user pushes; the deploy path delivers the child theme.
+- After the user reports pushing, verify the deploy over the status bridge (`deployed_commit` against local `git rev-parse HEAD`) with the bounded retry and abort budget from the `status-bridge` Rule. Never record a served or final QA pass while the hashes differ.
+
+## Bundle Deploy Phases
+
+Everything that needs a deploy goes into one pass: WST templates and partials, PHP ACF field groups, bridge updates, tracked CSS. Then one commit and one hard stop. After the deploy is verified, iterate locally with injection-proof QA instead of producing per-tweak deploy rounds; the next deploy pass collects the resulting tracked changes.
+
+## Branches
+
+- Work on the branch recorded in `PROJECT-CONTEXT.md`; stay on the default working branch unless told otherwise.
+- Do not create, switch, merge, or rebase branches without an explicit user instruction.
+- Never rewrite published history.
+
+## Protected Branches
+
+`main`, `master`, and `trunk` are write-protected for the agent. In many projects, servers deploy these branches automatically — any write there is effectively a deploy and belongs to the user alone.
+
+Forbidden on `main`/`master`/`trunk`, in addition to the global push ban:
+
+- `git commit` (no commits directly on these branches)
+- `git merge` (nothing gets merged into these branches)
+- `git revert` (reversals only through the user's own workflow after an explicit user request)
+
+Read operations (`git log`, `git diff`, `git show`, checkout for inspection) stay allowed. Commits on the recorded working branch are the normal flow. If `PROJECT-CONTEXT.md` records `main`, `master`, or `trunk` as the working branch, stop and have the user resolve the contradiction before committing anything.
+
+## Subagents
+
+When delegating to subagents, put these prohibitions explicitly into the worker prompt. No worker prompt may allow a push or a merge into `main`, `master`, or `trunk`, or force one indirectly through verification requirements (for example a served or bridge-verified check that only the user's push can satisfy). Deploy steps end for every agent with "committed on the working branch, hand-over to the user".
+
+## Commits
+
+- Commit when a work step is complete and consistent; keep commits cohesive instead of committing fragments.
+- Apply the SmartFlow commit trailer per the `commit-trailer` Rule.

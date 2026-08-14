@@ -1,0 +1,77 @@
+---
+description: Use the SmartFlow status bridge (wso/v1) for deploy verification, cache flush, and permalink flush, with a mandatory version comparison before every bridge use
+alwaysApply: false
+---
+
+# Status Bridge
+
+Use this Rule whenever server state of a WESEO WordPress/WST project is read or mutated through the SmartFlow status bridge: deploy verification, cache flush, permalink flush, or reading ACF/WPGB/cache state. The bridge replaces the legacy WP-CLI cache-flush path.
+
+The bridge is a managed block in the child theme's `js-snippets.php`, installed and updated only through the `install-status-bridge` Skill. It serves the REST namespace `wso/v1`:
+
+| Route | Method | Purpose |
+|---|---|---|
+| `/wp-json/wso/v1/status` | GET | `bridge_version`, `deployed_commit`, ACF field groups, WPGB grids, cache state |
+| `/wp-json/wso/v1/flush-cache` | POST | Object cache plus detected page cache plugins |
+| `/wp-json/wso/v1/flush-permalinks` | POST | Soft rewrite-rules flush |
+
+## Required Project Values
+
+Read from `PROJECT-CONTEXT.md` before any bridge call:
+
+- Bridge base URL: `<site-url>/wp-json/wso/v1/`.
+- Credential environment variable names (for example `WSO_BRIDGE_USER`, `WSO_BRIDGE_APP_PASSWORD`).
+
+## Authentication
+
+Every route requires an authenticated user with `manage_options`. Authenticate with a WordPress application password passed exclusively through environment variables:
+
+```sh
+curl -sS -u "$WSO_BRIDGE_USER:$WSO_BRIDGE_APP_PASSWORD" "<site-url>/wp-json/wso/v1/status"
+```
+
+Never place the credentials in tracked files, chat, reusable plugin content, diagnostics, or screenshots.
+
+## Mandatory Version Comparison Before Every Use
+
+Do not trust any bridge response, flush, or served page until this check passes. It runs at the start of every work session that uses the bridge and again after every deploy.
+
+1. Call `GET /status` before any other bridge call.
+2. Compare `bridge_version` with `WSO_BRIDGE_VERSION` in the bundled template `skills/install-status-bridge/reference/js-snippets-status-bridge.php`. On any mismatch: stop all bridge usage, run the `install-status-bridge` Skill to update the managed block, commit, and hand over to the user for push and deploy. Do not work around an outdated bridge.
+3. When the bridge is used to verify a deploy, compare `deployed_commit` with the local `git rev-parse HEAD`. Equal hashes (or the served hash being the abbreviation of the local one) mean the deploy landed; QA against served pages may proceed.
+
+### Retry And Abort Budget
+
+The agent never pushes; after a commit it hands over and the user pushes. When `deployed_commit` does not yet match after the user reports pushing:
+
+- Re-check `GET /status` at most 3 times with a short wait between checks.
+- If the hashes still differ, abort with a clear message stating the local hash, the served hash (or `null`), and the most likely causes: push not done, deploy not run, deploy path not writing `.wso-deployed-commit`.
+- Never poll in an endless loop, and never continue QA or record a source-served verification while the hashes differ. Until they match, results stay `implementation pass, deployed verification pending`.
+
+A `deployed_commit` of `null` means the deploy path does not write the commit file; route to the `install-status-bridge` Skill (Step 4) instead of retrying.
+
+## Cache Flush
+
+After content, template, ACF, or media changes on the server, flush through the bridge instead of WP-CLI:
+
+```sh
+curl -sS -X POST -u "$WSO_BRIDGE_USER:$WSO_BRIDGE_APP_PASSWORD" "<site-url>/wp-json/wso/v1/flush-cache"
+```
+
+Verify the `flushed` list in the response. The status route reports `last_cache_flush` for cross-checking.
+
+## Permalink Flush
+
+After registering or changing CPTs, taxonomies, or rewrite-relevant settings:
+
+```sh
+curl -sS -X POST -u "$WSO_BRIDGE_USER:$WSO_BRIDGE_APP_PASSWORD" "<site-url>/wp-json/wso/v1/flush-permalinks"
+```
+
+Then verify the affected URL responds without a 404.
+
+## Failure Handling
+
+- 404 on `wso/v1` routes: the bridge is not installed, the deploy has not delivered it, or the REST API is blocked. Route to the `install-status-bridge` Skill; do not fall back to editing server files directly.
+- 401 or 403: credentials or the `manage_options` capability are wrong. Ask the user to re-issue the application password; never guess credentials.
+- Other errors: record the response body in the work notes and stop the affected operation instead of retrying blindly.

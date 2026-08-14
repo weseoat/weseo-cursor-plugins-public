@@ -1,0 +1,18 @@
+---
+description: Enforce brand-token usage instead of hardcoded brand colors when editing WESEO theme frontend CSS or WST templates
+globs:
+  - "**/themes/**/*.css"
+  - "**/themes/**/*.scss"
+  - "**/themes/**/*.php"
+alwaysApply: false
+---
+
+# Brand Tokens
+
+Use this Rule when editing theme frontend styles or WST templates in a WESEO project that defines brand tokens.
+
+- Check the existing brand tokens before adding colors. Read the actual token names from the project's token file (commonly `styles/var.css`) and `PROJECT-CONTEXT.md`; a common WESEO shape is `--brand-light`, `--brand-dark`, `--color-text`, plus accent and link tokens.
+- Do not hardcode brand- or company-specific colors in Section, CPT, or component CSS. Map Figma colors to the project tokens instead.
+- In multi-brand projects, keep the per-brand palettes centralized in the token file via `.brand-<slug>` blocks keyed to the `<body>` class emitted from the project's company taxonomy (e.g. `wso_tax_company`).
+- Use the dark brand token for accessible text, links, and accents on light surfaces. Use the light brand token for decorative accents, light surfaces, or accents on dark surfaces.
+- When a new company taxonomy term is added, add the matching `.brand-<slug>` token block in the token file before styling against that brand.
