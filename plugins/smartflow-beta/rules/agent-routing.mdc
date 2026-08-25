@@ -1,11 +1,11 @@
 ---
-description: Route SmartFlow WST/CPT package work to the five bundled subagents — delegation table, pinned model routing with availability check, orchestrator/handoff practices, and the fixed return contract
+description: Route SmartFlow WST/CPT package work and Jira batch ticket work to the six bundled subagents — delegation table, pinned model routing with availability check, orchestrator/handoff practices, and the fixed return contract
 alwaysApply: false
 ---
 
 # Agent Routing
 
-Use this Rule when delegating SmartFlow WST/CPT package work to subagents. The five agent definitions ship with this plugin; the two implementers are thin runners around the bundled Skills.
+Use this Rule when delegating SmartFlow WST/CPT package work or Jira batch ticket work to subagents. The six agent definitions ship with this plugin; the three implementers/runners are thin runners around the bundled Skills.
 
 ## Roles And Delegation
 
@@ -16,6 +16,7 @@ Use this Rule when delegating SmartFlow WST/CPT package work to subagents. The f
 | `wst-shortcode-implementer` | thin runner: exactly one assigned foundation or section task | `wst-new-post-type` (once per package) or `wst-section-workflow` (one per flexible section) | project-owned WST templates/partials + ACF JSON field groups + the work record the Skill owns |
 | `wpgb-specialist` | WPGB grid/card config from the baseline precedent (minimal diff), config math, runtime contract, route-back fixes | — | WPGB config apply-spec via the status bridge readback (or a project-validated write route); card CSS only with explicit file assignment in the manifest |
 | `cpt-visual-implementer` | thin runner: exactly one assigned surface | `frontend-section-qa` (flexible WST sections) or `cpt-frontend-qa` (cards, grids, archives, fixed segments, singles) | assigned CSS/SCSS file group + its work-record section |
+| `jira-ticket-runner` | thin runner: exactly one Jira subtask classified as direct-fix by the `jira-batch-workflow` orchestrator | `jira-ticket-workflow` (steps 3–5) | assigned file group inside the child theme (+ style-loader entry only if assigned); never commits, Jira writes, or WPGB config |
 
 ## Model Routing
 
@@ -26,6 +27,7 @@ Use this Rule when delegating SmartFlow WST/CPT package work to subagents. The f
 | `wst-shortcode-implementer` | `composer-2.5-fast` |
 | `wpgb-specialist` | `claude-sonnet-5-thinking-medium` |
 | `cpt-visual-implementer` | `composer-2.5-fast` |
+| `jira-ticket-runner` | `composer-2.5-fast` |
 
 Before the first spawn of a run, the main chat re-checks that each pinned slug is available on the account in use. A missing model or Max-Mode availability is reported to the user and never silently replaced by another model. Premium escalation happens only after one evidenced gate conflict, decided by the main chat.
 
@@ -35,7 +37,7 @@ Before the first spawn of a run, the main chat re-checks that each pinned slug i
 - Exactly one write owner per artifact or file group, assigned via the package manifest.
 - Implementation semantics live in the bundled SmartFlow Skills; the runners load and follow them instead of restating their rules.
 - Subagents never commit or push; the main chat commits and hands over per the `deploy-and-branches` Rule.
-- No agent runs as a background agent by default.
+- No agent runs as a background agent by default. Exception: `jira-batch-workflow` launches its `jira-ticket-runner` leaves in the background by design so the main chat stays responsive for feedback relay.
 - Every agent ends with the fixed return format (STATUS, EVIDENCE, OWN CHANGES, GATES, OPEN DECISION, NEXT OWNER) defined in its agent file. `STATUS` may be `handoff` when the leaf must stop because its context is filling.
 
 The agents install with the plugin; the main chat invokes them by name (`/cpt-codebase-analyst` etc.) or lets Cursor route by description.

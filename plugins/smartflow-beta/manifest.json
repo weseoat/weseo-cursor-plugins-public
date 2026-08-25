@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "smartflow-beta",
   "displayName": "SmartFlow (Beta)",
-  "version": "0.8.0-beta.1",
+  "version": "0.9.0-beta.1",
   "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
   "assumptions": [
     "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
@@ -123,7 +123,7 @@
       "name": "agent-routing",
       "path": "rules/agent-routing.mdc",
       "source": "Tests/agents/README.md",
-      "description": "Route SmartFlow WST/CPT package work to the five bundled subagents: delegation table with write scopes, pinned model routing with the pre-spawn availability check (missing models reported, never silently substituted), orchestrator/handoff practices adapted from rekursiv (self-contained prompts, context-full continuation via STATUS handoff, stall stop), and the shared fixed return contract."
+      "description": "Route SmartFlow WST/CPT package work and Jira batch ticket work to the six bundled subagents: delegation table with write scopes, pinned model routing with the pre-spawn availability check (missing models reported, never silently substituted), orchestrator/handoff practices adapted from rekursiv (self-contained prompts, context-full continuation via STATUS handoff, stall stop), and the shared fixed return contract."
     }
   ],
   "skills": [
@@ -234,6 +234,24 @@
       "path": "skills/headline-filling/SKILL.md",
       "source": "cursor.zip skills/headline-befuellung (Tobias Uhl), Confluence page 1871085606",
       "description": "Rules for filling title and subtitle fields in WST Flexible Content blocks: the Format field sets the semantic HTML tag, the Style field sets the wso- look class, heading levels are never skipped, exactly one h1 per page, and design looks that would violate the hierarchy are solved through Style, never by bending the Format."
+    },
+    {
+      "name": "figma-page-builder",
+      "path": "skills/figma-page-builder/SKILL.md",
+      "source": "Tests/skills/figma-page-builder/SKILL.md",
+      "description": "Build or remodel a WordPress/WST page from a Figma page frame by reusing the project's existing Flexible Content Sections, WPGB surfaces, media, and global elements: parallel Figma/codebase discovery, a binding ordered page map with surface classification (global, existing-wst, existing-wpgb, content-only, structural-gap), REST content population per the content Skill with backup and fingerprint guard, bridge cache flush, and structural plus visual acceptance. Owns page composition, not Section development."
+    },
+    {
+      "name": "jira-ticket-workflow",
+      "path": "skills/jira-ticket-workflow/SKILL.md",
+      "source": "Tests/skills/jira-ticket-workflow/SKILL.md",
+      "description": "Process a single WESEO Jira ticket (WP-key) end to end in the local SmartFlow workspace: Atlassian MCP intake with the mandatory screenshot rule (jira_get_issue_images, never blind visual diagnosis), triage/routing to the bundled Skills and subagents, minimal child-theme fix, Playwright injection-proof verification with honest proof-mode reporting, German report with approval gate, then one commit per ticket (never push) and a German Jira solution comment. Jira site URL and project key come from PROJECT-CONTEXT.md."
+    },
+    {
+      "name": "jira-batch-workflow",
+      "path": "skills/jira-batch-workflow/SKILL.md",
+      "source": "Tests/skills/jira-batch-workflow/SKILL.md",
+      "description": "Orchestrate a batch of open Jira subtasks (default 10) of one parent task: JQL intake over statusCategory To Do only, screenshot-based triage, untracked statusboard under .cursor/jira-batch/, up to three parallel background jira-ticket-runner leaves with file-disjoint write ownership and chain serialization, feedback relay via resume, automatic serialized per-ticket commits (never push), final batch review, and Jira solution comments after the user closes the review. Router and closer only; per-ticket semantics stay in jira-ticket-workflow."
     }
   ],
   "agents": [
@@ -266,8 +284,14 @@
       "path": "agents/cpt-visual-implementer.md",
       "source": "Tests/agents/cpt-visual-implementer.md",
       "description": "Thin runner for exactly one assigned CPT-package surface via the bundled frontend-section-qa or cpt-frontend-qa Skill, writing only the assigned CSS/SCSS file group and its work-record section, with bridge-verified served checks as the only final pass."
+    },
+    {
+      "name": "jira-ticket-runner",
+      "path": "agents/jira-ticket-runner.md",
+      "source": "Tests/agents/jira-ticket-runner.md",
+      "description": "Thin local leaf runner for exactly one Jira subtask classified as direct-fix by the jira-batch-workflow orchestrator: executes steps 3-5 of the bundled jira-ticket-workflow Skill inside its assigned file group with Playwright injection-proof verification and the fixed return format; never commits, pushes, writes to Jira, or spawns agents."
     }
   ],
   "commands": [],
-  "releaseNotes": "release-notes/0.8.0-beta.1.md"
+  "releaseNotes": "release-notes/0.9.0-beta.1.md"
 }
