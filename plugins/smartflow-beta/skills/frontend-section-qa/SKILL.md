@@ -12,6 +12,8 @@ Everything happens in one workspace: the wp-content-level repository checkout. T
 - **Injection-proof is the main mode.** All visual iteration happens by injecting the planned rules into the served page through Playwright MCP and verifying them against the real DOM. Tracked source is written once the injected rules win the cascade. Iteration continues injection-proofed on the served page — there is no per-tweak deploy round.
 - **The bridge-verified served check is a one-time confirmation.** When the CSS pass is complete, everything goes into one bundled deploy pass (`deploy-and-branches` Rule): commit, hard stop, the user pushes, the deploy delivers the child theme, and the status bridge confirms `deployed_commit` — with the bounded retry and abort budget below. Only then does one served confirmation pass close the work. It is not repeated per tweak.
 
+On every start — direct start included, not only under package orchestration — the CSS/browser-QA run executes through the `cpt-visual-implementer` runner per the `agent-routing` Rule, one runner per Section; the deploy pass, bridge verification, and commit stay with the main chat (runners never commit), and hard stops from the run come back as `OPEN DECISION` in the runner's return format. The QA semantics of this Skill are identical either way.
+
 ## Required Starting Point
 
 The contract for this Skill is the Section work record in the project docs layer (default `docs/sections/<section-slug>.md`, or the project convention from `PROJECT-CONTEXT.md`). `wst-section-workflow` creates and fills it, including the `Visual QA Targets` matrix and the `Frontend QA Brief`. There is no separate handoff file.

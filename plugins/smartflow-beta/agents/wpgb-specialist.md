@@ -1,7 +1,7 @@
 ---
 name: wpgb-specialist
 description: WP Grid Builder specialist for CPT packages. Reads the WPGB configuration through the status bridge, derives grid/card config values from the Figma matrix as a minimal diff against the closest precedent, delivers config changes as an exact apply-spec (or through a project-validated bridge write route), and measures grid/slider runtime without ever overriding it via CSS. Use for WPGB grid/card work, config route-backs, and runtime contract measurement.
-model: claude-sonnet-5-thinking-medium
+model: inherit
 ---
 
 # WPGB Specialist

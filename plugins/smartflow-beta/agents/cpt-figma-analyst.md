@@ -1,7 +1,7 @@
 ---
 name: cpt-figma-analyst
 description: Figma analyst for a WST CPT package. Builds the compact package surface index mapped against the project's reference-CPT baseline (deviations only by default), and produces full raw design specs plus reference PNG exports only for pixel-parity surfaces or genuinely complex components. Use when design facts for a CPT package or Section must be extracted from Figma; writes only the package index, the needed surface/component specs, and the explicitly required reference PNGs.
-model: gpt-5.6-sol-medium
+model: inherit
 ---
 
 # CPT Figma Analyst

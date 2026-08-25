@@ -97,6 +97,14 @@ New-to-the-project shortcode forms go through the four-source proof of the `wst-
 - [ ] Accessibility: meaningful aria-label on icon-only or overlay links
 ```
 
+## Orchestration Routing
+
+Under orchestration, per the `agent-routing` Rule:
+
+- Card-template PHP writes execute through the `wst-shortcode-implementer` runner (consistent with the `wst-php-authoring-route` Rule).
+- WPGB grid/card configuration belongs to the `wpgb-specialist`.
+- Card CSS stays with `cpt-frontend-qa`, whose run executes through its `cpt-visual-implementer` runner.
+
 ## Related
 
 - `wst-shortcodes` Skill — catalog snapshot, four-source proof, and the open `{{post.id}}` vs `{{post_id}}` validation

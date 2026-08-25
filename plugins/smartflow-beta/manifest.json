@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "smartflow-beta",
   "displayName": "SmartFlow (Beta)",
-  "version": "0.9.0-beta.1",
+  "version": "0.10.0-beta.1",
   "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
   "assumptions": [
     "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
@@ -123,7 +123,7 @@
       "name": "agent-routing",
       "path": "rules/agent-routing.mdc",
       "source": "Tests/agents/README.md",
-      "description": "Route SmartFlow WST/CPT package work and Jira batch ticket work to the six bundled subagents: delegation table with write scopes, pinned model routing with the pre-spawn availability check (missing models reported, never silently substituted), orchestrator/handoff practices adapted from rekursiv (self-contained prompts, context-full continuation via STATUS handoff, stall stop), and the shared fixed return contract."
+      "description": "Route SmartFlow WST/CPT package work, Jira batch ticket work, grid-cards write routing, and generic worker orchestration to the six bundled subagents: delegation table with write scopes, recommended-model routing with dynamic pinning at spawn (agent files ship model: inherit, so spawns never fail on a missing model; available recommended slugs are passed at spawn, deviations reported in one sentence, never silently substituted), the deliberately-not-routed scope, the runner as the standard execution vehicle for the four runner-backed Skills even on direct starts, orchestrator/handoff practices adapted from rekursiv (self-contained prompts, context-full continuation via STATUS handoff, stall stop), and the shared fixed return contract."
     }
   ],
   "skills": [
@@ -155,13 +155,13 @@
       "name": "wst-section-workflow",
       "path": "skills/wst-section-workflow/SKILL.md",
       "source": "plugins/wst-builder-beta/skills/wst-section-workflow/SKILL.md",
-      "description": "Single entry point for WST Flexible Content Section work in the local workspace: classification (new foundation, remodel, visual-only), pattern discovery with the four-source proof, Section templates plus ACF Local JSON field groups and Flexible Content wiring as tracked source, one bundled deploy pass with pull-before-deploy, commit-and-hand-over stop, bridge-verified served verification, and the human sync click for field-definition changes, Section preview pages offer, and the Section work record in the project docs layer that routes to frontend-section-qa."
+      "description": "Single entry point for WST Flexible Content Section work in the local workspace: classification (new foundation, remodel, visual-only), pattern discovery with the four-source proof, Section templates plus ACF Local JSON field groups and Flexible Content wiring as tracked source, one bundled deploy pass with pull-before-deploy, commit-and-hand-over stop, bridge-verified served verification, and the human sync click for field-definition changes, Section preview pages offer, and the Section work record in the project docs layer that routes to frontend-section-qa. On every start — direct start included — the main chat orchestrates (classification, pattern-discovery decision, work record, hard stops) while the execution run of template and ACF JSON writes runs through the wst-shortcode-implementer runner per the agent-routing Rule."
     },
     {
       "name": "wst-new-post-type",
       "path": "skills/wst-new-post-type/SKILL.md",
       "source": "plugins/wst-builder-beta/skills/wst-new-post-type/SKILL.md",
-      "description": "Single entry point for WST Custom Post Type work in the local workspace: preflight as write gate, three delivery paths (tracked source for templates and ACF Local JSON field groups over the bundled deploy pass plus the human sync; CPT UI, taxonomy, and WPGB apply-specs for the user; bridge flushes), remodel protections, and the CPT work record in the project docs layer that routes to cpt-frontend-qa."
+      "description": "Single entry point for WST Custom Post Type work in the local workspace: preflight as write gate, three delivery paths (tracked source for templates and ACF Local JSON field groups over the bundled deploy pass plus the human sync; CPT UI, taxonomy, and WPGB apply-specs for the user; bridge flushes), remodel protections, and the CPT work record in the project docs layer that routes to cpt-frontend-qa. On every start — direct start included — the main chat orchestrates (classification, preflight, work record, hard stops) while the foundation execution run runs through the wst-shortcode-implementer runner and WPGB work through the wpgb-specialist, per the agent-routing Rule."
     },
     {
       "name": "section-preview-harness",
@@ -179,13 +179,13 @@
       "name": "frontend-section-qa",
       "path": "skills/frontend-section-qa/SKILL.md",
       "source": "plugins/frontend-design-qa-beta/skills/frontend-section-qa/SKILL.md",
-      "description": "Frontend CSS/SCSS pass for a WST Section from the Section work record in the project docs layer: Playwright MCP browser QA loop with Capability Probe and Degraded Mode, injection-proofed iteration against the served page as the main mode, tracked CSS writes, the Visual QA Targets writeback, one bundled deploy pass with hard stop, bridge verification of deployed_commit with a bounded retry and abort budget, and the one-time served check that closes the work."
+      "description": "Frontend CSS/SCSS pass for a WST Section from the Section work record in the project docs layer: Playwright MCP browser QA loop with Capability Probe and Degraded Mode, injection-proofed iteration against the served page as the main mode, tracked CSS writes, the Visual QA Targets writeback, one bundled deploy pass with hard stop, bridge verification of deployed_commit with a bounded retry and abort budget, and the one-time served check that closes the work. On every start — direct start included — the CSS/browser-QA run executes through the cpt-visual-implementer runner per the agent-routing Rule; deploy pass, bridge verification, and commit stay with the main chat."
     },
     {
       "name": "cpt-frontend-qa",
       "path": "skills/cpt-frontend-qa/SKILL.md",
       "source": "plugins/frontend-design-qa-beta/skills/cpt-frontend-qa/SKILL.md",
-      "description": "Frontend CSS/SCSS pass for a WST Custom Post Type from the CPT work record in the project docs layer: per-surface injection-proofed iteration (card, archive/grid, carousel/filter, WPGB output, optional single) as the main mode, the Playwright MCP browser QA loop, one bundled deploy pass with hard stop, bridge verification of deployed_commit with a bounded retry and abort budget, and the one-time served check on the display and single URLs."
+      "description": "Frontend CSS/SCSS pass for a WST Custom Post Type from the CPT work record in the project docs layer: per-surface injection-proofed iteration (card, archive/grid, carousel/filter, WPGB output, optional single) as the main mode, the Playwright MCP browser QA loop, one bundled deploy pass with hard stop, bridge verification of deployed_commit with a bounded retry and abort budget, and the one-time served check on the display and single URLs. On every start — direct start included — the CSS/browser-QA run executes through the cpt-visual-implementer runner per the agent-routing Rule, one runner per surface; deploy pass, bridge verification, and commit stay with the main chat."
     },
     {
       "name": "wp-media-import",
@@ -203,7 +203,7 @@
       "name": "auto-docs",
       "path": "skills/auto-docs/SKILL.md",
       "source": "Confluence Skill-Einreichungen: [Skill] auto-docs, page 1853227009 (Tobias Uhl)",
-      "description": "Generate and maintain the project documentation under docs/ at the repository root (sections, elements, post-types, field-groups, coding-standard) as LLM-readable German Markdown through worker subagents, with a git-based delta check, PHP field-group documentation (legacy JSON-export script as fallback), README indexes, and hard protection of the work-record sections including the Visual QA Targets matrix. The docs layer absorbs the legacy handoff files."
+      "description": "Generate and maintain the project documentation under docs/ at the repository root (sections, elements, post-types, field-groups, coding-standard) as LLM-readable German Markdown through worker subagents, with a git-based delta check, PHP field-group documentation (legacy JSON-export script as fallback), README indexes, and hard protection of the work-record sections including the Visual QA Targets matrix; worker spawning follows the shared orchestration practices of the agent-routing Rule while the workers stay generic subagents. The docs layer absorbs the legacy handoff files."
     },
     {
       "name": "cpt-docs",
@@ -215,7 +215,7 @@
       "name": "grid-cards",
       "path": "skills/grid-cards/SKILL.md",
       "source": "cursor.zip skills/grid-cards (Tobias Uhl), Confluence page 1871085606",
-      "description": "Author WST grid-card templates for WP Grid Builder under smart-template-builder/post-types/<resource>/cards/ in the child theme. Core rule: every wst_ shortcode that reads a field from the database needs id='{{post_id}}'; carries the open {{post.id}} vs {{post_id}} catalog validation, the nesting cross-reference, and the wso- markup conventions."
+      "description": "Author WST grid-card templates for WP Grid Builder under smart-template-builder/post-types/<resource>/cards/ in the child theme. Core rule: every wst_ shortcode that reads a field from the database needs id='{{post_id}}'; carries the open {{post.id}} vs {{post_id}} catalog validation, the nesting cross-reference, and the wso- markup conventions. Under orchestration, card-template PHP writes route through the wst-shortcode-implementer, WPGB grid/card configuration to the wpgb-specialist, and card CSS stays with cpt-frontend-qa, per the agent-routing Rule."
     },
     {
       "name": "wst-nested-shortcodes",
@@ -251,7 +251,7 @@
       "name": "jira-batch-workflow",
       "path": "skills/jira-batch-workflow/SKILL.md",
       "source": "Tests/skills/jira-batch-workflow/SKILL.md",
-      "description": "Orchestrate a batch of open Jira subtasks (default 10) of one parent task: JQL intake over statusCategory To Do only, screenshot-based triage, untracked statusboard under .cursor/jira-batch/, up to three parallel background jira-ticket-runner leaves with file-disjoint write ownership and chain serialization, feedback relay via resume, automatic serialized per-ticket commits (never push), final batch review, and Jira solution comments after the user closes the review. Router and closer only; per-ticket semantics stay in jira-ticket-workflow."
+      "description": "Orchestrate a batch of open Jira subtasks (default 10) of one parent task: JQL intake over statusCategory To Do only, screenshot-based triage, untracked statusboard under .cursor/jira-batch/, up to three parallel background jira-ticket-runner leaves with file-disjoint write ownership and chain serialization, feedback relay via resume, automatic serialized per-ticket commits (never push), final batch review, and Jira solution comments after the user closes the review. Router and closer only; per-ticket semantics stay in jira-ticket-workflow, while model routing, the fixed return contract, and the handoff schema come from the agent-routing Rule."
     }
   ],
   "agents": [
@@ -293,5 +293,5 @@
     }
   ],
   "commands": [],
-  "releaseNotes": "release-notes/0.9.0-beta.1.md"
+  "releaseNotes": "release-notes/0.10.0-beta.1.md"
 }

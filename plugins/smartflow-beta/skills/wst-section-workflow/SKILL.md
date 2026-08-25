@@ -11,7 +11,7 @@ Everything happens in one workspace: the wp-content-level repository checkout. T
 
 The Skill is a productive implementation workflow with safety stops, not a preflight write gate. Reads and discovery are always allowed. Repository writes proceed when scope is clear and safe; the workflow stops and asks only at concrete risk points.
 
-This Skill does not own Section CSS or SCSS. It documents CSS paths, stable classes, hooks, and measurable visual expectations in the work record; CSS implementation belongs to `frontend-section-qa`. When work runs under the package orchestration, one Section run is executed through the `wst-shortcode-implementer` runner per the `agent-routing` and `wst-php-authoring-route` Rules; this Skill's semantics are identical either way.
+This Skill does not own Section CSS or SCSS. It documents CSS paths, stable classes, hooks, and measurable visual expectations in the work record; CSS implementation belongs to `frontend-section-qa`. On every start — direct start included, not only under package orchestration — the main chat acts as the orchestrator: classification, the pattern-discovery decision, work-record creation, and all hard stops stay in the main chat, while the execution run (template and ACF JSON writes) is executed through the `wst-shortcode-implementer` runner per the `agent-routing` and `wst-php-authoring-route` Rules. Hard stops that surface inside the run come back to the main chat as `OPEN DECISION` in the runner's return format; this Skill's semantics are identical either way.
 
 ## Skill character
 
@@ -116,7 +116,7 @@ If the work type changes during discovery or implementation:
 - Explain why the previous classification no longer fits.
 - Propose the new classification and the new write scope.
 - Wait for explicit confirmation.
-- Update the work record. Under package orchestration, reclassification is a hard stop for the main chat, not for the runner.
+- Update the work record. Because the execution run is delegated on every start, reclassification is a hard stop for the main chat, not for the runner; the runner surfaces it as `OPEN DECISION`.
 
 ## Pattern discovery and WST language safety
 
@@ -302,7 +302,7 @@ Allowed:
 - Set stable, predictable hook classes in the template markup.
 - Record `CSS status` (`existing`, `new-needed-for-frontend`, `unknown`, `not-applicable`).
 
-Not allowed: creating or editing Section CSS/SCSS files, editing generated CSS, final responsive QA, pixel-level visual checks, or hover/focus styling. Those belong to `frontend-section-qa` (and under package orchestration to the `cpt-visual-implementer` runner), which works in the same repository on tracked CSS source: injection-proof iteration first, served pass only after a bridge-verified deploy.
+Not allowed: creating or editing Section CSS/SCSS files, editing generated CSS, final responsive QA, pixel-level visual checks, or hover/focus styling. Those belong to `frontend-section-qa` (whose CSS/QA run executes through the `cpt-visual-implementer` runner on every start), which works in the same repository on tracked CSS source: injection-proof iteration first, served pass only after a bridge-verified deploy.
 
 When a new CSS file or style loader entry is needed, record it under `CSS status = new-needed-for-frontend` so the frontend pass creates or registers it in tracked source.
 

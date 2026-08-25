@@ -93,6 +93,7 @@ Legacy fallbacks — when the project has no `acf-json/` yet: legacy PHP field g
 ### 5. LLM Generation Through Worker Subagents
 
 - **One subtask per element** (each Section, element, CPT, coding-standard language separately). Launch independent subtasks in parallel. Worker reports go to the project's gitignored scratch space (default `tmp/auto-docs/`), not into `docs/`.
+- Worker spawning follows the shared orchestration practices of the `agent-routing` Rule (self-contained prompts, parallel launches only for disjoint write targets, standing prohibitions in every worker prompt, stall stop); the workers themselves stay generic subagents, not one of the six bundled agent definitions.
 - **Even a single element** runs through a worker, so the main context stays small.
 - The main agent reads no source files itself — only file lists, frontmatter, and worker reports.
 

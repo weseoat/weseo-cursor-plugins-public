@@ -1,11 +1,11 @@
 ---
-description: Route SmartFlow WST/CPT package work and Jira batch ticket work to the six bundled subagents — delegation table, pinned model routing with availability check, orchestrator/handoff practices, and the fixed return contract
+description: Route SmartFlow WST/CPT package work and Jira batch ticket work to the six bundled subagents — delegation table, recommended-model routing with dynamic pinning at spawn, orchestrator/handoff practices, and the fixed return contract
 alwaysApply: false
 ---
 
 # Agent Routing
 
-Use this Rule when delegating SmartFlow WST/CPT package work or Jira batch ticket work to subagents. The six agent definitions ship with this plugin; the three implementers/runners are thin runners around the bundled Skills.
+Use this Rule when delegating SmartFlow WST/CPT package work or Jira batch ticket work to subagents, when routing `grid-cards` work to its write owners, and when orchestrating generic worker subagents (for example in `auto-docs`). The six agent definitions ship with this plugin; the three implementers/runners are thin runners around the bundled Skills.
 
 ## Roles And Delegation
 
@@ -18,9 +18,15 @@ Use this Rule when delegating SmartFlow WST/CPT package work or Jira batch ticke
 | `cpt-visual-implementer` | thin runner: exactly one assigned surface | `frontend-section-qa` (flexible WST sections) or `cpt-frontend-qa` (cards, grids, archives, fixed segments, singles) | assigned CSS/SCSS file group + its work-record section |
 | `jira-ticket-runner` | thin runner: exactly one Jira subtask classified as direct-fix by the `jira-batch-workflow` orchestrator | `jira-ticket-workflow` (steps 3–5) | assigned file group inside the child theme (+ style-loader entry only if assigned); never commits, Jira writes, or WPGB config |
 
+## Deliberately Not Routed
+
+`content`, `wp-media-import`, the setup and migration wizards (`setup-local-project`, `setup-acf-local-json`, `migrate-ssh-to-local`, `install-status-bridge`, `section-preview-harness`), and the pure reference Skills (`wst-shortcodes`, `smarttags`, `wst-nested-shortcodes`, `headline-filling`) deliberately run in the main chat: no bundled agent matches their work, they contain interactive hard stops, or they are lookup material rather than execution runs. This scope decision is intentional, not a gap.
+
 ## Model Routing
 
-| Agent | Model |
+All six agent files ship with `model: inherit`, so a spawn never fails because a model is unavailable: by default every agent runs on the main chat's model. The table below lists the **recommended** model per agent, applied through dynamic pinning at spawn time:
+
+| Agent | Recommended model |
 |---|---|
 | `cpt-codebase-analyst` | `composer-2.5-fast` (readonly) |
 | `cpt-figma-analyst` | `gpt-5.6-sol-medium` |
@@ -29,7 +35,7 @@ Use this Rule when delegating SmartFlow WST/CPT package work or Jira batch ticke
 | `cpt-visual-implementer` | `composer-2.5-fast` |
 | `jira-ticket-runner` | `composer-2.5-fast` |
 
-Before the first spawn of a run, the main chat re-checks that each pinned slug is available on the account in use. A missing model or Max-Mode availability is reported to the user and never silently replaced by another model. Premium escalation happens only after one evidenced gate conflict, decided by the main chat.
+Before the first spawn of a run, the main chat checks whether the recommended slug is available on the account in use. Available: pass the slug at spawn. Not available: spawn with `inherit` and report the deviation transparently in one sentence — no blocker, no silent substitution by a third model. For the two demanding agents (`wpgb-specialist`, `cpt-figma-analyst`), if only a clearly weaker model is available, the main chat says so before the spawn. Premium escalation happens only after one evidenced gate conflict, decided by the main chat.
 
 ## Shared Rules
 
@@ -46,7 +52,7 @@ The agents install with the plugin; the main chat invokes them by name (`/cpt-co
 
 The main chat is the orchestrator. It plans, spawns, stores handoffs, and integrates. It does not do the leaf's large file reads or long tool chains in its own context.
 
-1. **Decompose with measure.** Split only when the work has more than one write owner or a real dependency chain. For each leaf task record: goal and success criterion, affected area, dependencies. Skip splitting when one leaf is enough.
+1. **Decompose with measure.** Split only when the work has more than one write owner or a real dependency chain. For each leaf task record: goal and success criterion, affected area, dependencies. Skip splitting when one leaf is enough. For the four runner-backed Skills (`wst-section-workflow`, `wst-new-post-type`, `frontend-section-qa`, `cpt-frontend-qa`) the runner is the standard execution vehicle even on a direct start with a single leaf: "one leaf is enough" then means one runner, not no runner.
 2. **Self-contained prompts.** Every spawn includes the full assigned task, the relevant package context, worker constraints from this Rule and `deploy-and-branches`, and — on resume — the last handoff. The leaf does not see the parent chat or earlier user messages.
 3. **Parallel only when independent.** Launch disjoint write artifacts in one message. Tasks that touch the same files or build on each other's results run sequential. When in doubt, sequential.
 4. **Context-full continuation.** If a leaf's context is filling (long session, large file dumps, an upcoming context summary), it finishes the current step cleanly — no half edit, no command without a result — and returns `STATUS: handoff` plus the schema below. The main chat writes that return unchanged (short metadata header only) to `tmp/<task-slug>/handoff-<agent>-<nn>.md` and respawns the **same** agent type with that file. Leaves never continue themselves by spawning.

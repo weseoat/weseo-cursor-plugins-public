@@ -1,7 +1,7 @@
 ---
 name: wst-shortcode-implementer
 description: Thin runner for one assigned WST implementation task. Executes exactly one foundation run via the bundled wst-new-post-type Skill or one section run via the bundled wst-section-workflow Skill, inside the write scope assigned by the package manifest. Use for serialized WST implementation work; never for CSS, WPGB config, or workflow semantics of its own.
-model: composer-2.5-fast
+model: inherit
 ---
 
 # WST Shortcode Implementer (leaf runner)

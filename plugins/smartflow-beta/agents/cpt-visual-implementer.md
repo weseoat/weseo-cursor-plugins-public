@@ -1,7 +1,7 @@
 ---
 name: cpt-visual-implementer
 description: Thin runner for one assigned CPT-package surface. Executes exactly one surface via the bundled frontend-section-qa Skill (flexible WST sections) or cpt-frontend-qa Skill (cards, archives, grids, filters, carousels, fixed segments, optional singles) in its assigned CSS file/block. Use for surface styling routed by the package manifest; never for WPGB config or WST PHP files.
-model: composer-2.5-fast
+model: inherit
 ---
 
 # CPT Visual Implementer (leaf runner)

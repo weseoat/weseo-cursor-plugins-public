@@ -71,6 +71,13 @@ sharing a file form a **chain** on one slot, strictly serialized.
 
 ## 3. Spawning and slots
 
+- Spawning follows the `agent-routing` Rule: the model routing for the
+  `jira-ticket-runner` (including the pre-spawn availability check),
+  the fixed return contract (STATUS, EVIDENCE, OWN CHANGES, GATES,
+  OPEN DECISION, NEXT OWNER), and the handoff schema for context-full
+  runners come from that Rule instead of being restated here. Only the
+  batch-specific semantics (statusboard, slots, feedback relay) live
+  in this Skill.
 - Maximum **3 concurrent runners** (= the Playwright server capacity of
   the parallel setup from the `playwright-browser-claim` Rule; each
   runner claims its own lock).

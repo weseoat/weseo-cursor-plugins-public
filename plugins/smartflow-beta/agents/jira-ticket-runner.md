@@ -1,7 +1,7 @@
 ---
 name: jira-ticket-runner
 description: Thin local leaf runner for exactly one Jira subtask classified as direct-fix by the jira-batch-workflow orchestrator. Executes steps 3-5 of the bundled jira-ticket-workflow Skill (diagnosis, minimal local fix, Playwright injection-proof verification) inside its assigned file group and returns a report. Never commits, never pushes, never writes to Jira, never spawns agents. Use only when spawned from the batch orchestrator with a ticket key and write scope.
-model: composer-2.5-fast
+model: inherit
 ---
 
 # Jira Ticket Runner (leaf runner)
