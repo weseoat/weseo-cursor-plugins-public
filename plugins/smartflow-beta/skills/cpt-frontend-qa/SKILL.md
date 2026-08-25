@@ -5,7 +5,7 @@ description: Implement and verify frontend presentation for a WST Custom Post Ty
 
 # CPT Frontend QA
 
-This Skill owns the frontend CSS/SCSS pass for a WST CPT: cards, archive/grid presentation, carousel/filter behavior, WP Grid Builder frontend output, optional single templates, the Playwright MCP browser QA loop, injection-proofed iteration, the Visual QA Targets writeback, and the closing deploy pass with the one-time bridge-verified served check. It does not own CPT registration, taxonomies, PHP ACF field groups, WPGB grid/card foundation, WST templates, WordPress content, or the status bridge.
+This Skill owns the frontend CSS/SCSS pass for a WST CPT: cards, archive/grid presentation, carousel/filter behavior, WP Grid Builder frontend output, optional single templates, the Playwright MCP browser QA loop, injection-proofed iteration, the Visual QA Targets writeback, and the closing deploy pass with the one-time bridge-verified served check. It does not own CPT registration, taxonomies, ACF JSON field groups, WPGB grid/card foundation, WST templates, WordPress content, or the status bridge.
 
 Everything happens in one workspace: the wp-content-level repository checkout. The remote WordPress serves the last deployed commit; local CSS edits never appear on the target URL by saving. The two proof modes have a fixed relationship:
 

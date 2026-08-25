@@ -5,7 +5,7 @@ description: Implement and verify frontend Section CSS/SCSS in the local SmartFl
 
 # Frontend Section QA
 
-This Skill owns the frontend CSS/SCSS pass for a WST Section: the Playwright MCP browser QA loop, injection-proofed iteration against the real served page, tracked CSS/SCSS writes, the Visual QA Targets writeback, and the closing deploy pass with the one-time bridge-verified served check. It does not own WST templates, PHP ACF field groups, Flexible Content wiring, WordPress content, WP Grid Builder setup, or the status bridge itself.
+This Skill owns the frontend CSS/SCSS pass for a WST Section: the Playwright MCP browser QA loop, injection-proofed iteration against the real served page, tracked CSS/SCSS writes, the Visual QA Targets writeback, and the closing deploy pass with the one-time bridge-verified served check. It does not own WST templates, ACF JSON field groups, Flexible Content wiring, WordPress content, WP Grid Builder setup, or the status bridge itself.
 
 Everything happens in one workspace: the wp-content-level repository checkout. The remote WordPress serves the last deployed commit; local CSS edits never appear on the target URL by saving. That is why this Skill works in two proof modes with a fixed relationship:
 

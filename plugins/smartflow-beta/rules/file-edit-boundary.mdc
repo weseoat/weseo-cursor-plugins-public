@@ -10,7 +10,8 @@ The workspace root is the wp-content level of the project checkout. Server files
 ## Default Editable Areas
 
 - The active child theme, `themes/<child-theme>/` (commonly `themes/astra-child/`), including:
-  - the project-owned WST source under `themes/<child-theme>/smart-template-builder/` — Section templates, CPT card templates, archive/grid integration files, optional single templates, `flexible-content.php` registrations, and the PHP ACF field groups under `smart-template-builder/acf/field-groups/`;
+  - the project-owned WST source under `themes/<child-theme>/smart-template-builder/` — Section templates, CPT card templates, archive/grid integration files, optional single templates, and `flexible-content.php` registrations;
+  - the ACF Local JSON field definitions under `themes/<child-theme>/acf-json/` (per the `acf-local-json` Rule: pull-before-deploy, `modified` bump, human-confirmed sync);
   - theme styles and the style loader.
 - The repo-level project documentation layer (`docs/`) and `PROJECT-CONTEXT.md`.
 - `.cursor/` workspace configuration and the tracked `.env` (secret values only per the `secrets` Rule).

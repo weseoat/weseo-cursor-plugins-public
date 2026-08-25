@@ -26,7 +26,7 @@ WST layouts are built from chained seamless clones with `prefix_name=1`. A field
 
 Two ways to derive a layout's expanded structure in the SmartFlow workspace (no server shell):
 
-- **From the PHP field-group sources.** In SmartFlow projects all field definitions live as code under `smart-template-builder/acf/field-groups/` (per the `acf-php-field-groups` Rule). Walk the clone chain in the PHP registrations: layout clone name + clone-group field names, prefixed per `prefix_name=1` level.
+- **From the ACF JSON sources.** In SmartFlow projects all project-owned field definitions live as tracked JSON under `themes/<child-theme>/acf-json/` (per the `acf-local-json` Rule). Walk the clone chain in the JSON group files: layout clone name + clone-group field names, prefixed per `prefix_name=1` level.
 - **From an existing page row.** Fetch the export route for a page that already renders the layout (`GET /wp-json/wso-preview/v1/export/<section>?source_page=<id>`); the returned `data` keys are the expanded names as stored in postmeta (`flexible_content_{i}_{expanded_name}`).
 
 ## 3. Resolving the Flexible Content field
@@ -80,7 +80,7 @@ The SmartFlow workspace has no server shell, so content writes happen in the adm
 
 - Values are stored natively AND in a compiled `_acf` blob per post; reads prefer the blob, fall back to native.
 - `update_field()` keeps both consistent. Direct `$wpdb`/`update_post_meta` writes do NOT update the blob - avoid them for content, or accept that the blob wins on read.
-- Field group *definitions* are a separate surface entirely: in SmartFlow projects they are PHP registrations per the `acf-php-field-groups` Rule, and structural ACF database writes (creating, editing, reordering, or deleting `acf-field`/`acf-field-group` posts) are forbidden without exception. Definition changes are file edits plus a bridge-verified deploy.
+- Field group *definitions* are a separate surface entirely: in SmartFlow projects they are Local JSON files per the `acf-local-json` Rule, and structural ACF database writes (creating, editing, reordering, or deleting `acf-field`/`acf-field-group` posts) are forbidden without exception. Definition changes are file edits plus a bridge-verified deploy plus the human sync in the admin.
 
 ## 8. WST output formatting (autop)
 

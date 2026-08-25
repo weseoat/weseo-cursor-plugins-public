@@ -67,7 +67,7 @@ Protection (always on): preview requests are allowed only for logged-in users or
 
 Critical rules:
 
-- `data` keys are the **expanded** clone field names of the layout (`intro_content_title`, not `title`). WST layouts use seamless clones with `prefix_name=1`; the expanded names are what is stored in postmeta and what `get_sub_field()` resolves. Derive them from the PHP field-group sources under `smart-template-builder/acf/field-groups/` (definitions are code in SmartFlow projects) or from an existing page row over the export route. See `REFERENCE.md`.
+- `data` keys are the **expanded** clone field names of the layout (`intro_content_title`, not `title`). WST layouts use seamless clones with `prefix_name=1`; the expanded names are what is stored in postmeta and what `get_sub_field()` resolves. Derive them from the ACF JSON sources under `themes/<child-theme>/acf-json/` (definitions are tracked files in SmartFlow projects, `acf-local-json` Rule) or from an existing page row over the export route. See `REFERENCE.md`.
 - Repeaters are nested arrays of row objects (update-field shape), not flat count+index keys.
 - `body_class` carries page-level context the Section depends on (for example a `brand-<slug>` palette from a company taxonomy). The harness appends it to `<body>` plus the stable `wso-section-preview` QA hook.
 - Fixture content is fake or exported demo content. Never customer secrets.

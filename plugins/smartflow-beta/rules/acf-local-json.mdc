@@ -1,0 +1,49 @@
+---
+description: Author ACF field definitions as Local JSON files in the child theme's acf-json/ directory with human-confirmed sync; structural ACF database writes are forbidden
+globs:
+  - "**/acf-json/**/*.json"
+alwaysApply: false
+---
+
+# ACF Local JSON
+
+Use this Rule when creating or changing any ACF field definition: Section field groups, the Flexible Content container and its layouts, CPT field groups, or shared `[TMPL]` clone-source groups. It replaces the retired PHP field-group model (`acf-php-field-groups`).
+
+## The Local JSON Model
+
+- All project-owned ACF field definitions live as **one JSON file per group** under `themes/<child-theme>/acf-json/` (inside the deploy path). ACF detects the folder automatically — no `functions.php` or `theme-functions.php` wiring is needed or allowed.
+- The model keeps the admin editable and gives agents a tracked write path:
+  - **Admin → Repo:** a colleague saves a group in the admin → ACF/ACFE writes the server JSON → the agent pulls it into the repository over the read-only FTP user.
+  - **Repo → Admin:** the agent creates or changes a JSON file (with a `modified` bump) → commit → the user pushes → deploy → the admin shows "Sync available" → a colleague reviews the diff and clicks Sync.
+- **Sync never happens automatically.** A human confirms every structural change in the admin. A structural change counts as live only after that sync; until then the QA status stays `implementation pass, sync pending`.
+- Groups registered in PHP by plugins (bridge origin `local: "php"`, for example WST plugin groups) do not take part in this model and are never edited.
+- Projects without an `acf-json/` setup run the bundled `setup-acf-local-json` Skill first.
+
+## Binding Operating Rules
+
+1. **Pull-before-Deploy:** before every commit that will be deployed, pull the **complete** `acf-json/` directory listing from the server into the repository over read-only FTP — never only known filenames. This prevents a deploy from overwriting newer server JSONs (colleague changes) and keeps newly named files visible.
+2. **JSON files are the only agent write path** for field definitions. Structural ACF database writes stay forbidden without exception: no `acf_update_field()` on definitions, no direct `$wpdb` writes to `acf-field`/`acf-field-group` posts, no import scripts against the database. The legacy clone-source data-loss hazard stays structurally closed.
+3. **Sync detection runs over `modified`.** Every agent change needs a `modified` bump (Unix timestamp greater than the database state), otherwise no sync hint appears in the admin. Seed files without `modified` conversely produce no false sync hints.
+4. **Sync only after diff review** is the team-side counterpart: communicate it once per project and record it in `PROJECT-CONTEXT.md`.
+
+## Keys, Names, And Filenames
+
+- Every group, field, and layout carries a stable explicit key (`group_<uniqid>`, `field_<uniqid>`); generate a fresh unique key for every new definition.
+- Never reuse an existing key for a different field, and never rename a saved field's `name` or `key` casually — stored content references both. Treat key or name changes as data migrations requiring an explicit user decision.
+- **The filename convention can differ per installation** (for example `group-<hex>.json` instead of `group_<hex>.json`, caused by an `acf/json/save_file_name` transformation). Read the empirically determined convention from `PROJECT-CONTEXT.md`; if it is not recorded, determine it per the `setup-acf-local-json` Skill before creating files.
+- Duplicate files with the same group key are dangerous: ACF loads the last file read, so a stale file can shadow the fresh one. Never leave two files carrying the same key.
+
+## Format And Tooling Pitfalls
+
+- Emulate the PHP `json_encode` style ACF writes itself: 4-space indentation, `\/` escaping, `\uXXXX` for non-ASCII. This keeps diffs minimal when ACF rewrites the file after an admin save.
+- **ACF Extended makes JSON writing per group opt-in:** the group setting `acfe_autosync` must contain `"json"`. Groups created before `acf-json/` existed have it empty — saving then silently writes nothing. Keep the setting present in every group file.
+- **Deploy removal behavior:** `weseo-git-installer` removes repo-deleted or renamed files from the server (verified). With any other deploy tool, verify this once — otherwise stale files can shadow fresh ones.
+- **FTP comparisons use content hashes, never timestamps:** directory mtimes do not change on overwrite, and FTP listing modes can mix UTC and local time.
+
+## Verification
+
+- After the bridge-verified deploy (`deployed_commit` matches local HEAD per the `status-bridge` Rule), hand over for the human sync with a short statement of which groups changed and why.
+- After the sync: confirm in the admin that the group renders (editor shows the layout, field values save and load) and that the frontend renders the affected output.
+- The bridge lists participating groups as `local: "json"` in `GET /wp-json/wso/v1/status`; a target group still reported as a plain database group (`local: false`) means the sync or the setup is incomplete.
+
+This Rule never stores project group keys, field keys, layout keys, filenames, or URLs. Concrete values live in the project repository, `PROJECT-CONTEXT.md`, and the project `docs/` layer.

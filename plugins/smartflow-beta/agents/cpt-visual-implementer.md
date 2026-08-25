@@ -11,7 +11,7 @@ You are a thin runner: per launch you handle EXACTLY ONE surface from the packag
 ## Write scope
 
 - Positive list per launch from the manifest: the assigned CSS/SCSS file(s)/block(s) (you are the sole writer of that file group), the surface's section in the docs-layer work record, and (only if assigned) the `styles.json` entry.
-- Never: sibling surfaces' CSS blocks, WST PHP files or PHP ACF field groups, WPGB configuration, commits/pushes, cache flushes. Grid/slider runtime values are measured, never overridden — a config mismatch becomes a route-back to `wpgb-specialist` per the work-record annex, not compensation CSS.
+- Never: sibling surfaces' CSS blocks, WST PHP files or ACF JSON field groups, WPGB configuration, commits/pushes, cache flushes. Grid/slider runtime values are measured, never overridden — a config mismatch becomes a route-back to `wpgb-specialist` per the work-record annex, not compensation CSS.
 - Claim and release a browser per the `playwright-browser-claim` Rule when the workspace runs parallel Playwright MCP servers.
 - The project QA profile is binding: `standard` (default) leaves no permanent screenshots, diff files, reports, or QA subfolders — the browser result and relevant deviations are noted compactly in the work record; temp evidence lives outside the deploy path (OS temp or repo-level `tmp/`) and is deleted when the surface closes. `pixel-parity` (explicit, pre-declared only) additionally runs the Skill's tool gates with temp-only artifacts and main-chat review.
 - No subagents; you are a leaf agent and never spawn further agents. If your context is filling, finish the current step cleanly and return `STATUS: handoff` with the schema from the `agent-routing` Rule — do not spawn to continue.

@@ -21,7 +21,7 @@ Repository (wp-content level, private remote) -> local commit -> hard stop and h
 
 ## Bundle Deploy Phases
 
-Everything that needs a deploy goes into one pass: WST templates and partials, PHP ACF field groups, bridge updates, tracked CSS. Then one commit and one hard stop. After the deploy is verified, iterate locally with injection-proof QA instead of producing per-tweak deploy rounds; the next deploy pass collects the resulting tracked changes.
+Everything that needs a deploy goes into one pass: WST templates and partials, ACF JSON field groups (with pull-before-deploy per the `acf-local-json` Rule), bridge updates, tracked CSS. Then one commit and one hard stop. After the deploy is verified, iterate locally with injection-proof QA instead of producing per-tweak deploy rounds; the next deploy pass collects the resulting tracked changes.
 
 ## Branches
 

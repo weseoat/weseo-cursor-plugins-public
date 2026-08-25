@@ -2,11 +2,11 @@
 
 Reusable lookup material for the `wst-section-workflow` Skill. Values shown with angle brackets come from `PROJECT-CONTEXT.md`, the current brief, or the Section work record. Do not copy project-only keys, IDs, URLs, paths, labels, or access values into reusable plugin content.
 
-All field definitions here are PHP registrations per the `acf-php-field-groups` Rule. There are no database field-definition shapes anymore; the legacy `wp_insert_post`-based ACF wiring is retired together with the structural-DB-write hazard.
+All field definitions here are Local JSON files per the `acf-local-json` Rule: one JSON file per group under `themes/<child-theme>/acf-json/`, deployed with the theme and applied through a human-confirmed sync in the admin. Structural database writes stay forbidden; the legacy `wp_insert_post`-based ACF wiring is retired together with the structural-DB-write hazard.
 
 ## Shared clone groups
 
-Every standard Section field group usually clones the project's shared content, button, and layout groups (the `[TMPL]` groups, PHP-registered since the project migration).
+Every standard Section field group usually clones the project's shared content, button, and layout groups (the `[TMPL]` groups, JSON-versioned since the project's `setup-acf-local-json` run).
 
 | Clone group | Placeholder | Typical purpose |
 | --- | --- | --- |
@@ -14,84 +14,81 @@ Every standard Section field group usually clones the project's shared content, 
 | Button | `<button-clone-group-key>` | Button repeater with labels, link type, internal/external targets, accessibility labels, IDs, and style variations. |
 | Layout | `<layout-clone-group-key>` | Width, alignment, custom class, padding, background, anchor ID, and editor layout controls. |
 
-The exact group keys are project-local values: read them from the PHP field-group sources under `smart-template-builder/acf/field-groups/`. If a clone group key cannot be found there, stop and ask or record an unresolved placeholder. Do not invent reusable default keys.
+The exact group keys are project-local values: read them from the JSON sources under `themes/<child-theme>/acf-json/`. If a clone group key cannot be found there, stop and ask or record an unresolved placeholder. Do not invent reusable default keys.
 
-## Section field group shape (PHP)
+## Section field group shape (JSON)
 
-Create one PHP field group file for the Section-specific editor fields only when `Work type` is `new-section-foundation` or the confirmed work record explicitly requires a new field group. For an `existing-section-remodel`, reuse the existing field group and field keys by default.
+Create one JSON group file for the Section-specific editor fields only when `Work type` is `new-section-foundation` or the confirmed work record explicitly requires a new field group. For an `existing-section-remodel`, reuse the existing field group and field keys by default.
 
-The group is cloned into the Flexible Content layout and needs no location rule. One file per group, registered through the project's field-group loader on `acf/init`:
+The group is cloned into the Flexible Content layout and needs no location rule. One file per group under `acf-json/`, named per the installation's filename convention from `PROJECT-CONTEXT.md`, formatted in the PHP `json_encode` style ACF writes itself (4-space indentation, `\/` escaping, `\uXXXX` for non-ASCII):
 
-```php
-<?php
-
-if (! defined('ABSPATH')) exit;
-
-add_action('acf/init', function () {
-    acf_add_local_field_group([
-        'key'    => 'group_<unique>_section_<section_slug>',
-        'title'  => '[TMPL] <section-label>',
-        'fields' => [
-            [
-                'key'   => 'field_<unique>_<section_slug>_tab',
-                'label' => '<section-label>',
-                'name'  => '',
-                'type'  => 'tab',
-            ],
-            [
-                'key'          => 'field_<unique>_<section_slug>_content',
-                'label'        => 'Content',
-                'name'         => 'content',
-                'type'         => 'clone',
-                'clone'        => ['<content-clone-group-key>'],
-                'display'      => 'seamless',
-                'prefix_name'  => 1,
-                'prefix_label' => 0,
-            ],
-            // button clone, layout clone, then Section-specific fields
-        ],
-        'location' => [],
-        'active'   => true,
-    ]);
-});
+```json
+{
+    "key": "group_<unique>_section_<section_slug>",
+    "title": "[TMPL] <section-label>",
+    "fields": [
+        {
+            "key": "field_<unique>_<section_slug>_tab",
+            "label": "<section-label>",
+            "name": "",
+            "type": "tab"
+        },
+        {
+            "key": "field_<unique>_<section_slug>_content",
+            "label": "Content",
+            "name": "content",
+            "type": "clone",
+            "clone": ["<content-clone-group-key>"],
+            "display": "seamless",
+            "prefix_name": 1,
+            "prefix_label": 0
+        }
+    ],
+    "location": [],
+    "active": true,
+    "acfe_autosync": ["json"],
+    "modified": <unix-timestamp>
+}
 ```
 
-Key discipline (`acf-php-field-groups` Rule): every group, field, and layout carries a stable explicit fresh key. Never reuse an existing key for a different field, and never rename a saved field's `name` or `key` casually — stored content references both; such changes are data migrations needing an explicit user decision.
+`acfe_autosync` must contain `"json"` and `modified` must exceed the database state, otherwise the admin offers no sync (`acf-local-json` Rule). Button clone, layout clone, and Section-specific fields follow the same field shape.
 
-## Flexible Content layout wiring (PHP)
+Key discipline (`acf-local-json` Rule): every group, field, and layout carries a stable explicit fresh key. Never reuse an existing key for a different field, and never rename a saved field's `name` or `key` casually — stored content references both; such changes are data migrations needing an explicit user decision.
 
-The Page-Builder Flexible Content container is PHP-registered (one-time migration per project; see `migrate-ssh-to-local`). The layout entry and the seamless clone child field are added in that container's PHP source:
+## Flexible Content layout wiring (JSON)
 
-```php
-// Inside the FC field's 'layouts' array:
-'<generated-layout-key>' => [
-    'key'        => '<generated-layout-key>',
-    'name'       => 'layout_<section_slug_with_underscores>',
-    'label'      => '<section-label>',
-    'display'    => 'block',
-    'sub_fields' => [
-        [
-            'key'            => '<clone-child-field-key>',
-            'label'          => '<section-label>',
-            'name'           => '<clone-child-field-name>',
-            'type'           => 'clone',
-            'clone'          => ['<section-field-group-key>'],
-            'display'        => 'seamless',
-            'layout'         => 'block',
-            'prefix_label'   => 0,
-            'prefix_name'    => 1,
-            'parent_layout'  => '<generated-layout-key>',
-            'acfe_save_meta' => 1,
-        ],
-    ],
-],
+The Page-Builder Flexible Content container is itself a JSON-versioned group in `acf-json/` (set up per project; see `setup-acf-local-json`). The layout entry and the seamless clone child field are added by editing that container's JSON file — with a `modified` bump so the admin offers the sync:
+
+```json
+// Inside the FC field's "layouts" object:
+"<generated-layout-key>": {
+    "key": "<generated-layout-key>",
+    "name": "layout_<section_slug_with_underscores>",
+    "label": "<section-label>",
+    "display": "block",
+    "sub_fields": [
+        {
+            "key": "<clone-child-field-key>",
+            "label": "<section-label>",
+            "name": "<clone-child-field-name>",
+            "type": "clone",
+            "clone": ["<section-field-group-key>"],
+            "display": "seamless",
+            "layout": "block",
+            "prefix_label": 0,
+            "prefix_name": 1,
+            "parent_layout": "<generated-layout-key>",
+            "acfe_save_meta": 1
+        }
+    ]
+},
 ```
 
 `parent_layout` is the binding between the Flexible Content layout and the cloned Section fields. If it does not match the layout key exactly, editor fields can appear under the wrong layout or fail to appear.
 
 Field names resolve through the seamless clone chain with `prefix_name=1`: a field `title` in the Content group, cloned as `content` into the Section group, cloned as `<clone-child-field-name>` into the layout, is stored and read as `<clone_child>_content_title`. These expanded names are what `get_sub_field()` resolves, what test-content row plans must use, and what preview fixtures carry.
 
-If the FC container is still an admin-created database group, stop: ACF cannot add PHP-registered fields to an admin-created Flexible Content field. The one-time migration must happen first.
+If the FC container is not yet in `acf-json/` (the bridge still reports it as a plain database group, `local: false`), stop: run the `setup-acf-local-json` Skill first so the container has a JSON source to edit.
 
 ## Section template and registration
 
@@ -101,7 +98,7 @@ Section templates live in the project-owned WST source inside the active child t
 themes/<child-theme>/smart-template-builder/sections/<section-slug>.php
 ```
 
-Do not place Section templates, PHP field groups, or `flexible-content.php` registrations under `plugins/weseo-smart-template-builder/`. That folder is the WST runtime/library and is off-limits unless `PROJECT-CONTEXT.md` records an explicit project-source exception for that exact subpath.
+Do not place Section templates, ACF JSON group files, or `flexible-content.php` registrations under `plugins/weseo-smart-template-builder/`. That folder is the WST runtime/library and is off-limits unless `PROJECT-CONTEXT.md` records an explicit project-source exception for that exact subpath.
 
 Register the Section in the project-local Flexible Content template registry:
 

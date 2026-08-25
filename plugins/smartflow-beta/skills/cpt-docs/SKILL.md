@@ -40,7 +40,7 @@ If missing, ask briefly and list the existing CPT folders.
 CPT-Doku:
 - [ ] 1. Identify the CPT (map folder <-> post_type)
 - [ ] 2. Server discovery via REST + bridge status (read-only)
-- [ ] 3. Repo discovery (templates, CSS, Sections, assets, PHP field groups)
+- [ ] 3. Repo discovery (templates, CSS, Sections, assets, ACF JSON groups)
 - [ ] 4. Derive ACF fields + CSS hooks
 - [ ] 5. Fill the doc template and write docs/post-types/<resource>.md (merge, preserve work record)
 - [ ] 6. Check tracking (.gitignore) + verify the doc
@@ -66,7 +66,7 @@ Registration, taxonomies, and entries live in the DB; read them over REST with t
 | Connected taxonomies | `GET /wp-json/wp/v2/taxonomies?type=<post_type>` |
 | Count + sample entry | `GET /wp-json/wp/v2/<rest_base>?per_page=1` (header `X-WP-Total` = count) |
 | Taxonomy terms | `GET /wp-json/wp/v2/<taxonomy_rest_base>` |
-| ACF field groups (`local: php`) and WPGB grids | `GET /wp-json/wso/v1/status` (per the `status-bridge` Rule) |
+| ACF field groups (`local: json`) and WPGB grids | `GET /wp-json/wso/v1/status` (per the `status-bridge` Rule) |
 
 Note: `public`/`viewable`, `has_archive`, `supports`, `rest_base`, detail pages (yes/no), entry count, taxonomy names plus term counts, and the bridge-listed field groups and WPGB grid/card IDs for this CPT.
 
@@ -82,7 +82,8 @@ Search for every file with `<resource>` relevance (paths per `PROJECT-CONTEXT.md
 | CSS registration (style loader) | `styles.json` (check the entry) |
 | Embedding WST Sections | `smart-template-builder/sections/*.php` (search for grid ID / `<resource>`) |
 | CPT assets (icons/SVG) | `assets/<resource>/**` |
-| PHP ACF field groups | `smart-template-builder/acf/field-groups/*.php` (location `post_type == <post_type>`) |
+| ACF JSON field groups | `themes/<child-theme>/acf-json/*.json` (location `post_type == <post_type>`) |
+| Legacy PHP field groups (fallback) | `smart-template-builder/acf/field-groups/*.php` |
 | Legacy ACF JSON export (fallback) | `acf_export/*.json` |
 | Field-group docs | `docs/field-groups/*.md` (link as `related_docs`) |
 
@@ -92,8 +93,8 @@ WPGB grid/card IDs are project-local values — take them from the existing work
 
 ACF fields are not reliably available over plain REST. Sources in this order:
 
-1. PHP field groups under `smart-template-builder/acf/field-groups/` with location `post_type == <post_type>` → field name, `key`, `type`, `return_format`. Cross-check that the group appears in the bridge status with `local: php`.
-2. Legacy `acf_export/*.json` when the project still maintains an admin export instead of PHP groups.
+1. ACF JSON groups under `themes/<child-theme>/acf-json/` with location `post_type == <post_type>` → field name, `key`, `type`, `return_format`. Cross-check that the group appears in the bridge status with `local: json`.
+2. Legacy sources when the project has no `acf-json/` yet: PHP field groups under `smart-template-builder/acf/field-groups/`, or the newest `acf_export/*.json` admin export.
 3. Card/single templates → fields actually used, derived from WST shortcodes (`[wst_acf field='…']`, `[wst_acf_file field='…']`, `[wst_post_title]`, `[wst_if field='…']`).
 
 Read the CSS hooks directly from the card markup (`.wso-<resource>-card …`) and list them in the doc — these selectors connect template and CSS.
@@ -182,7 +183,7 @@ er im Frontend sichtbar.>
 |---|---|---|---|
 | `<name>` | `<field_key>` | `<type>` | <Beschreibung> |
 
-Feldgruppe: `<group_key>` (PHP-Registrierung: `smart-template-builder/acf/field-groups/<datei>.php`,
+Feldgruppe: `<group_key>` (Local JSON: `acf-json/<datei>.json`,
 Location `post_type == wso_<resource>`) — Doku: [`<group-slug>.md`](../field-groups/<group-slug>.md)
 
 ## Verbundene Templates, Grids, Cards, Seiten
@@ -248,7 +249,7 @@ Oberfläche, offene Fragen, Blocker. Gehört den WST-/Frontend-QA-Workflows. -->
 | Pfad | Rolle |
 |---|---|
 | `smart-template-builder/post-types/<resource>/cards/<...>.php` | Card-Template |
-| `smart-template-builder/acf/field-groups/<datei>.php` | PHP-Feldgruppe |
+| `acf-json/<datei>.json` | ACF-JSON-Feldgruppe |
 | `styles/post-type/<resource>/<...>.css` | Frontend-CSS |
 | `styles.json` | CSS-Registrierung |
 | `smart-template-builder/sections/<...>.php` | Einbettende Section |
@@ -264,8 +265,8 @@ Oberfläche, offene Fragen, Blocker. Gehört den WST-/Frontend-QA-Workflows. -->
 For an existing CPT **Downloads**:
 
 - Input: `downloads` → post_type `wso_download`.
-- REST: `types/wso_download` (labels, `rest_base`, supports), `taxonomies?type=wso_download`; bridge status lists the `wso_download` field group (`local: php`) and the WPGB grids.
-- Repo: `post-types/downloads/cards/download-list-card.php` plus `download-highlight-card.php`, the PHP field group, `assets/download/**`.
+- REST: `types/wso_download` (labels, `rest_base`, supports), `taxonomies?type=wso_download`; bridge status lists the `wso_download` field group (`local: json`) and the WPGB grids.
+- Repo: `post-types/downloads/cards/download-list-card.php` plus `download-highlight-card.php`, the ACF JSON group in `acf-json/`, `assets/download/**`.
 - WPGB grid/card IDs from the existing work record `docs/post-types/downloads.md` (or the bridge status).
 - Output: the updated `docs/post-types/downloads.md`, with the filled `Visual QA Targets` rows and QA notes preserved.
 

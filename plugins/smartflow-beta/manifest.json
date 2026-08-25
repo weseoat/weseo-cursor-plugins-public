@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "smartflow-beta",
   "displayName": "SmartFlow (Beta)",
-  "version": "0.7.0-beta.3",
+  "version": "0.8.0-beta.1",
   "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
   "assumptions": [
     "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
@@ -42,16 +42,16 @@
       "description": "Secret handling for SmartFlow repositories: the tracked repo-root .env pushed to the private remote is a deliberate accepted decision, and secrets enter commands exclusively through environment variables, never as literals in tracked files, chat, logs, or docs."
     },
     {
-      "name": "acf-php-field-groups",
-      "path": "rules/acf-php-field-groups.mdc",
-      "source": "plugins/wordpress-server-ops-beta/rules/programmatic-acf-db-writes.mdc",
-      "description": "Author all ACF field definitions as PHP field groups under smart-template-builder/acf/field-groups/ in the child theme (Flexible Content container and layouts registered together, stable keys, one-time per-project migration) and forbid structural ACF database writes entirely. Replaces the legacy programmatic-acf-db-writes rule."
+      "name": "acf-local-json",
+      "path": "rules/acf-local-json.mdc",
+      "source": "plugin-feedback/acf-local-json-workflow.md (proven at anton-llm-playground.at.weseo.dev, 2026-08-19)",
+      "description": "Author all project-owned ACF field definitions as Local JSON files under acf-json/ in the child theme: admin stays editable, agents write JSON with a modified bump, a human confirms every structural change with a sync click. Binding operating rules (pull-before-deploy over read-only FTP, JSON as the only agent write path, sync only after diff review) plus the empirical filename convention and the ACF Extended autosync opt-in. Structural ACF database writes stay forbidden entirely. Replaces the retired acf-php-field-groups rule and the PHP migration scaffold."
     },
     {
       "name": "file-edit-boundary",
       "path": "rules/file-edit-boundary.mdc",
       "source": "plugins/wordpress-server-ops-beta/rules/file-edit-boundary.mdc",
-      "description": "Restrict edits in the wp-content-level repository to approved source paths: child theme incl. WST source and PHP ACF field groups, docs layer, workspace config; WST plugin folder, third-party code, uploads, and direct server edits stay off-limits; functions.php is forbidden and theme-functions.php needs explicit confirmation."
+      "description": "Restrict edits in the wp-content-level repository to approved source paths: child theme incl. WST source and the ACF Local JSON definitions under acf-json/, docs layer, workspace config; WST plugin folder, third-party code, uploads, and direct server edits stay off-limits; functions.php is forbidden and theme-functions.php needs explicit confirmation."
     },
     {
       "name": "commit-trailer",
@@ -140,22 +140,28 @@
       "description": "Guided German wizard for the complete first setup of a local SmartFlow workspace: clone the wp-content-level repository, name the folder exactly after the server hostname (DevTools Local Overrides), fill the tracked .env with the application password, run the REST test, verify Atlassian MCP, find and follow the current Confluence weseo-git-installer guide via search, create the read-only FTP user with .ftpaccess (verified read-works/write-denied), install the status bridge, expose post types, taxonomies, ACF field groups, and ACF options pages over REST (bundled wso/v1/options endpoints and the full connection test, absorbed from the legacy setup-wordpress-cursor skill), configure Playwright MCP, verify Figma MCP, and fill PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation."
     },
     {
+      "name": "setup-acf-local-json",
+      "path": "skills/setup-acf-local-json/SKILL.md",
+      "source": "plugin-feedback/acf-local-json-workflow.md (proven at anton-llm-playground.at.weseo.dev, 2026-08-19)",
+      "description": "One-time setup of the ACF Local JSON workflow in a SmartFlow project: bridge inventory (participants local false, plugin groups local php excluded), acf-json/ in the child theme without any code change, seed split from a user-driven ACF admin export (PHP json_encode style, no modified timestamps, keys reconciled), the ACF Extended acfe_autosync opt-in fix with a one-time collective sync, empirical filename-convention determination, both-direction functional proofs, and acceptance over an FTP hash comparison plus the bridge listing all participants as local json."
+    },
+    {
       "name": "migrate-ssh-to-local",
       "path": "skills/migrate-ssh-to-local/SKILL.md",
       "source": "plugins/smartflow/skills/migrate-ssh-to-local/SKILL.md",
-      "description": "Self-contained one-time migration of an existing project from the legacy Remote-SSH plus WP Pusher model to the local SmartFlow model. Export stage in the SSH workspace: inventory, read-only ACF export of the Page-Builder Flexible Content group and shared TMPL groups to PHP field groups with verified keys, backup-first deletion (trash) of the database groups, migration bundle outside the webroot. Import stage locally: setup-local-project foundation, theme and docs import with FTP diff, PROJECT-CONTEXT.md translation, WP Pusher teardown, git-installer build-up, and bridge-verified acceptance that closes the ACF-fully-in-PHP validation."
+      "description": "Self-contained one-time migration of an existing project from the legacy Remote-SSH plus WP Pusher model to the local SmartFlow model. Export stage in the SSH workspace: inventory, the ACF admin JSON export as the Local JSON seed source (nothing deleted, nothing converted), migration bundle outside the webroot. Import stage locally: setup-local-project foundation, theme and docs import with FTP diff, PROJECT-CONTEXT.md translation, WP Pusher teardown, git-installer build-up, ACF Local JSON setup via setup-acf-local-json, and bridge-verified acceptance with the project groups listed as local json."
     },
     {
       "name": "wst-section-workflow",
       "path": "skills/wst-section-workflow/SKILL.md",
       "source": "plugins/wst-builder-beta/skills/wst-section-workflow/SKILL.md",
-      "description": "Single entry point for WST Flexible Content Section work in the local workspace: classification (new foundation, remodel, visual-only), pattern discovery with the four-source proof, Section templates plus PHP ACF field groups and Flexible Content wiring as tracked source, one bundled deploy pass with commit-and-hand-over stop and bridge-verified served verification, Section preview pages offer, and the Section work record in the project docs layer that routes to frontend-section-qa."
+      "description": "Single entry point for WST Flexible Content Section work in the local workspace: classification (new foundation, remodel, visual-only), pattern discovery with the four-source proof, Section templates plus ACF Local JSON field groups and Flexible Content wiring as tracked source, one bundled deploy pass with pull-before-deploy, commit-and-hand-over stop, bridge-verified served verification, and the human sync click for field-definition changes, Section preview pages offer, and the Section work record in the project docs layer that routes to frontend-section-qa."
     },
     {
       "name": "wst-new-post-type",
       "path": "skills/wst-new-post-type/SKILL.md",
       "source": "plugins/wst-builder-beta/skills/wst-new-post-type/SKILL.md",
-      "description": "Single entry point for WST Custom Post Type work in the local workspace: preflight as write gate, three delivery paths (tracked source for templates and PHP ACF field groups over the bundled deploy pass; CPT UI, taxonomy, and WPGB apply-specs for the user; bridge flushes), remodel protections, and the CPT work record in the project docs layer that routes to cpt-frontend-qa."
+      "description": "Single entry point for WST Custom Post Type work in the local workspace: preflight as write gate, three delivery paths (tracked source for templates and ACF Local JSON field groups over the bundled deploy pass plus the human sync; CPT UI, taxonomy, and WPGB apply-specs for the user; bridge flushes), remodel protections, and the CPT work record in the project docs layer that routes to cpt-frontend-qa."
     },
     {
       "name": "section-preview-harness",
@@ -203,7 +209,7 @@
       "name": "cpt-docs",
       "path": "skills/cpt-docs/SKILL.md",
       "source": "Confluence Skill-Einreichungen: [Skill] cpt-docs, page 1828061204 (Tobias Uhl)",
-      "description": "Create or update the German documentation for one WST Custom Post Type at docs/post-types/<resource>.md — the CPT work record — from read-only REST and bridge discovery plus repo discovery (PHP ACF field groups, card templates, WPGB IDs from the work record or bridge), preserving the work-record sections and carrying the Visual QA Targets section. Also the post-types worker template inside an auto-docs run."
+      "description": "Create or update the German documentation for one WST Custom Post Type at docs/post-types/<resource>.md — the CPT work record — from read-only REST and bridge discovery plus repo discovery (ACF JSON field groups, card templates, WPGB IDs from the work record or bridge), preserving the work-record sections and carrying the Visual QA Targets section. Also the post-types worker template inside an auto-docs run."
     },
     {
       "name": "grid-cards",
@@ -247,7 +253,7 @@
       "name": "wst-shortcode-implementer",
       "path": "agents/wst-shortcode-implementer.md",
       "source": "Tests/agents/wst-shortcode-implementer.md",
-      "description": "Thin runner for exactly one assigned WST task via the bundled wst-new-post-type or wst-section-workflow Skill, writing only the assigned WST templates/partials, PHP ACF field groups, and the Skill's work record; never CSS, WPGB config, commits, or pushes."
+      "description": "Thin runner for exactly one assigned WST task via the bundled wst-new-post-type or wst-section-workflow Skill, writing only the assigned WST templates/partials, ACF JSON field groups, and the Skill's work record; never CSS, WPGB config, commits, or pushes."
     },
     {
       "name": "wpgb-specialist",
@@ -263,5 +269,5 @@
     }
   ],
   "commands": [],
-  "releaseNotes": "release-notes/0.7.0-beta.3.md"
+  "releaseNotes": "release-notes/0.8.0-beta.1.md"
 }

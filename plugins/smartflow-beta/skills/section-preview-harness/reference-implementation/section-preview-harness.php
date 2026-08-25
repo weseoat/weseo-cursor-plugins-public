@@ -18,8 +18,8 @@
  * against the fixture instead of the database - including seamless clone
  * resolution. Important: the keys in "data" are the EXPANDED field names of
  * the layout (e.g. intro_content_title, not title - seamless clones with
- * prefix_name). Derive the expanded names from the PHP field-group sources
- * under smart-template-builder/acf/field-groups/ (definitions are code) or
+ * prefix_name). Derive the expanded names from the ACF JSON sources under
+ * the child theme's acf-json/ directory (definitions are tracked files) or
  * from an existing page row over the fixture export route
  * (see _export-fixtures.php).
  *

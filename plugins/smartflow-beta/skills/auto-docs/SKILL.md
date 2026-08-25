@@ -69,7 +69,7 @@ Category-specific fields are added on top (see the bundled templates and the `cp
 | sections | `themes/<child-theme>/smart-template-builder/sections/*.php` | `docs/sections/<slug>.md` |
 | elements | `smart-template-builder/elements/` and/or `styles/elements/` (per element: template plus its CSS) | `docs/elements/<slug>.md` |
 | post-types | `smart-template-builder/post-types/*/` | `docs/post-types/<resource>.md` |
-| field-groups | `smart-template-builder/acf/field-groups/*.php` (SmartFlow standard) or the newest `acf_export/acf-export-*.json` (legacy) | `docs/field-groups/<slug>.md` |
+| field-groups | `themes/<child-theme>/acf-json/*.json` (SmartFlow standard), `smart-template-builder/acf/field-groups/*.php` (legacy PHP model) or the newest `acf_export/acf-export-*.json` (legacy export) | `docs/field-groups/<slug>.md` |
 | coding-standard | Project code per language (php, js, css, scss, html) | `docs/coding-standard/<language>.md` |
 
 ### 3. Delta (Completeness Check)
@@ -83,12 +83,12 @@ A doc whose only newer content is work-record progress (QA results, deploy state
 
 ### 4. field-groups
 
-The SmartFlow standard registers all ACF field definitions as PHP field groups under `smart-template-builder/acf/field-groups/` (`acf-php-field-groups` Rule). Those PHP files are the documentation source:
+The SmartFlow standard versions all project-owned ACF field definitions as Local JSON files under `themes/<child-theme>/acf-json/` (`acf-local-json` Rule). Those JSON files are the documentation source:
 
-1. One worker subtask per PHP field-group file, using [templates/field-group.md](templates/field-group.md): overview (group key, active, location rules), the flat field table, and the per-field detail (key, type, required, conditional logic, choices, clone targets with `parent_layout`). Everything comes from the PHP source; nothing is invented.
-2. Cross-check over the status bridge when available: `GET /wp-json/wso/v1/status` lists the registered groups with `local: php`. A documented group missing there is recorded as an open point (`status: partial`), not silently ignored.
+1. One worker subtask per JSON group file, using [templates/field-group.md](templates/field-group.md): overview (group key, active, location rules), the flat field table, and the per-field detail (key, type, required, conditional logic, choices, clone targets with `parent_layout`). Everything comes from the JSON source; nothing is invented.
+2. Cross-check over the status bridge when available: `GET /wp-json/wso/v1/status` lists the participating groups with `local: "json"`. A documented group missing there is recorded as an open point (`status: partial`), not silently ignored. Plugin-registered groups (`local: "php"`) are documented from their PHP sources only when the project explicitly asks for it.
 
-Legacy fallback — only when the project still maintains an admin JSON export instead of PHP groups: copy [scripts/generate.js](scripts/generate.js) to `docs/field-groups/generate.js` (when missing or older than the Skill copy) and run `node docs/field-groups/generate.js` from the repository root; it picks the newest `acf_export/acf-export-*.json`, writes one file per group, and generates its own `docs/field-groups/README.md` — do not overwrite that one in step 6. When neither PHP groups nor a JSON export exist, inform the user immediately and skip field-groups without aborting the other categories.
+Legacy fallbacks — when the project has no `acf-json/` yet: legacy PHP field groups under `smart-template-builder/acf/field-groups/*.php` are documented from the PHP source the same way. When the project only maintains an admin JSON export, copy [scripts/generate.js](scripts/generate.js) to `docs/field-groups/generate.js` (when missing or older than the Skill copy) and run `node docs/field-groups/generate.js` from the repository root; it picks the newest `acf_export/acf-export-*.json`, writes one file per group, and generates its own `docs/field-groups/README.md` — do not overwrite that one in step 6. When no definition source exists, inform the user immediately and skip field-groups without aborting the other categories.
 
 ### 5. LLM Generation Through Worker Subagents
 

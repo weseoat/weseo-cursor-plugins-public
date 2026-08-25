@@ -19,7 +19,7 @@ Use these defaults only as starting points during the preflight:
 
 | Work type | Default behavior |
 | --- | --- |
-| `new-cpt-foundation` | Create or prepare only the artifacts explicitly needed by the work record: registration apply-spec, optional taxonomy apply-spec, optional PHP field group, optional WPGB apply-spec, card template, optional archive/grid integration, optional single template, and CSS hook documentation. |
+| `new-cpt-foundation` | Create or prepare only the artifacts explicitly needed by the work record: registration apply-spec, optional taxonomy apply-spec, optional ACF JSON group, optional WPGB apply-spec, card template, optional archive/grid integration, optional single template, and CSS hook documentation. |
 | `existing-cpt-remodel` | Preserve existing structure by default. No new registration, taxonomy, field group, WPGB, template, CSS, or style loader artifacts unless the confirmed work record requires them. |
 | `visual-only` | No structural work. Route to `cpt-frontend-qa`, with `frontend-section-qa` noted when the visible change is Section-level. |
 | `unclear` | Stop and ask before any write or read-only audit beyond project context. |
@@ -106,44 +106,45 @@ Set `hierarchical` to `true` for category-style terms and `false` for tag-style 
 
 For `existing-cpt-remodel`, preserve the existing taxonomy name, hierarchy, public archive behavior, and rewrite behavior unless the confirmed work record explicitly approves a structural change.
 
-## ACF field group shape (PHP)
+## ACF field group shape (JSON)
 
-One PHP file per field group under `themes/<child-theme>/smart-template-builder/acf/field-groups/`, registered through the project's field-group loader per the `acf-php-field-groups` Rule. The location rule targets the registered post type:
+One JSON file per field group under `themes/<child-theme>/acf-json/`, named per the installation's filename convention from `PROJECT-CONTEXT.md`, formatted in the PHP `json_encode` style ACF writes itself (4-space indentation, `\/` escaping, `\uXXXX` for non-ASCII), per the `acf-local-json` Rule. The location rule targets the registered post type:
 
-```php
-<?php
-
-if (! defined('ABSPATH')) exit;
-
-add_action('acf/init', function () {
-    acf_add_local_field_group([
-        'key'    => 'group_<unique>_<resource>_fields',
-        'title'  => '<singular-label> Fields',
-        'fields' => [
-            [
-                'key'   => 'field_<unique>_<resource>_tab',
-                'label' => '<singular-label>',
-                'name'  => '',
-                'type'  => 'tab',
-            ],
-            [
-                'key'   => 'field_<unique>_<resource>_<field>',
-                'label' => '<field-label>',
-                'name'  => '<resource>_<field>',
-                'type'  => '<field-type>',
-            ],
-            // further CPT-specific fields
-        ],
-        'location' => [[
-            ['param' => 'post_type', 'operator' => '==', 'value' => 'wso_<resource>'],
-        ]],
-        'position'              => 'normal',
-        'style'                 => 'default',
-        'label_placement'       => 'top',
-        'instruction_placement' => 'label',
-        'active'                => true,
-    ]);
-});
+```json
+{
+    "key": "group_<unique>_<resource>_fields",
+    "title": "<singular-label> Fields",
+    "fields": [
+        {
+            "key": "field_<unique>_<resource>_tab",
+            "label": "<singular-label>",
+            "name": "",
+            "type": "tab"
+        },
+        {
+            "key": "field_<unique>_<resource>_<field>",
+            "label": "<field-label>",
+            "name": "<resource>_<field>",
+            "type": "<field-type>"
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "wso_<resource>"
+            }
+        ]
+    ],
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "active": true,
+    "acfe_autosync": ["json"],
+    "modified": <unix-timestamp>
+}
 ```
 
 Field group conventions:
@@ -152,7 +153,7 @@ Field group conventions:
 - For `existing-cpt-remodel`, reuse the existing field group and field keys by default; add fields only when the approved work record requires them.
 - Prefer core post fields before adding duplicate ACF fields.
 - Keep field names stable and prefixed consistently with the CPT.
-- PHP-registered groups are not editable in the ACF admin; the admin is a read surface for definitions. After the deploy, `GET /status` lists the group with PHP origin.
+- `acfe_autosync` must contain `"json"` and `modified` must exceed the database state, otherwise the admin offers no sync. The group stays editable in the admin; after deploy plus sync, `GET /status` lists it with `local: "json"`.
 
 Common field types:
 
@@ -250,7 +251,7 @@ archive/search behavior, taxonomy decision (wso_tax_* or explicit no), display t
 CPT UI settings (applied yes/no), taxonomy settings + fixed terms, WPGB spec + generated IDs
 
 ## ACF
-PHP field group file, field names, unresolved field questions
+ACF JSON group file, field names, unresolved field questions
 
 ## Templates
 Card / archive-grid integration / optional single / optional Section integration paths

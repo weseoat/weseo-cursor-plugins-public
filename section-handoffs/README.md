@@ -20,7 +20,7 @@ scripts/
 
 ## Canonical Template
 
-`section-handoffs/section-handoff.template.md` is an exact copy of the canonical plugin template (`plugins/wst-builder-beta/handoffs/section-handoff.template.md` during a beta cycle, `plugins/wst-builder/handoffs/section-handoff.template.md` after promotion). Never edit the repo copy directly; edit the plugin template and copy it over. `scripts/validate-section-handoffs.py` fails when the two drift apart.
+`section-handoffs/section-handoff.template.md` is an exact copy of the canonical plugin template (`plugins/wst-builder/handoffs/section-handoff.template.md`; the legacy beta twin was removed in the 2026-08 cleanup). Never edit the repo copy directly; edit the plugin template and copy it over. `scripts/validate-section-handoffs.py` fails when the two drift apart.
 
 ## Create A Handoff
 

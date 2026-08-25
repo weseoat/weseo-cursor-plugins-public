@@ -13,7 +13,7 @@ Use this Rule when delegating SmartFlow WST/CPT package work to subagents. The f
 |---|---|---|---|
 | `cpt-codebase-analyst` | read-only inventory: reference baseline, layout profile, precedence, minimal file scope, evidenced route + baseline delta; runtime facts over the status bridge | — (readonly) | none |
 | `cpt-figma-analyst` | package surface index mapped against the reference baseline (deviations only by default); full raw specs + PNG exports only for `pixel-parity` or complex components | — | package index, needed surface/component specs, explicitly required reference PNGs (docs layer) |
-| `wst-shortcode-implementer` | thin runner: exactly one assigned foundation or section task | `wst-new-post-type` (once per package) or `wst-section-workflow` (one per flexible section) | project-owned WST templates/partials + PHP ACF field groups + the work record the Skill owns |
+| `wst-shortcode-implementer` | thin runner: exactly one assigned foundation or section task | `wst-new-post-type` (once per package) or `wst-section-workflow` (one per flexible section) | project-owned WST templates/partials + ACF JSON field groups + the work record the Skill owns |
 | `wpgb-specialist` | WPGB grid/card config from the baseline precedent (minimal diff), config math, runtime contract, route-back fixes | — | WPGB config apply-spec via the status bridge readback (or a project-validated write route); card CSS only with explicit file assignment in the manifest |
 | `cpt-visual-implementer` | thin runner: exactly one assigned surface | `frontend-section-qa` (flexible WST sections) or `cpt-frontend-qa` (cards, grids, archives, fixed segments, singles) | assigned CSS/SCSS file group + its work-record section |
 

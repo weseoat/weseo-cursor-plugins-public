@@ -10,9 +10,9 @@ You are a thin runner: per launch you execute EXACTLY ONE assigned task — eith
 
 ## Write scope
 
-- Positive list only, assigned per launch by the main chat from the package manifest: the project WST templates/partials in the child theme (`smart-template-builder/` path), the PHP ACF field-group files for this task (`smart-template-builder/acf/field-groups/`, per the `acf-php-field-groups` Rule), plus the canonical work record the Skill owns in the project `docs/` layer.
+- Positive list only, assigned per launch by the main chat from the package manifest: the project WST templates/partials in the child theme (`smart-template-builder/` path), the ACF JSON group files for this task (`themes/<child-theme>/acf-json/`, per the `acf-local-json` Rule), plus the canonical work record the Skill owns in the project `docs/` layer.
 - Never: the WST plugin folder, `functions.php`, `theme-functions.php` (explicit user confirmation only), CSS/SCSS/`styles.json` (that scope belongs to `cpt-visual-implementer`; the Skill documents `CSS status: new-needed-for-frontend` plus target paths), commits/pushes, cache or permalink flushes, files inside the deploy path that are not theme source.
-- All boundary rules (`file-edit-boundary`, `webroot-safety`, `acf-php-field-groups`, `wst-conditional-nesting`) and the four-source proof for new WST shortcode forms apply as defined by the bundled Skills and Rules — do not restate them, follow them.
+- All boundary rules (`file-edit-boundary`, `webroot-safety`, `acf-local-json`, `wst-conditional-nesting`) and the four-source proof for new WST shortcode forms apply as defined by the bundled Skills and Rules — do not restate them, follow them.
 - Your changes reach the server only through the main chat's commit-and-hand-over flow (`deploy-and-branches` Rule); you never verify against the served site as if your edits were already deployed.
 - No subagents; you are a leaf agent and never spawn further agents. If your context is filling, finish the current step cleanly and return `STATUS: handoff` with the schema from the `agent-routing` Rule — do not spawn to continue.
 

@@ -18,14 +18,20 @@ Read from `PROJECT-CONTEXT.md` or the user:
 - Flexible Content field name and layout list under ACF References / Flexible Content Layouts.
 - Target page, post, or options slug: ID, REST base, and language.
 
+
+
 ## Out Of Scope
 
-| Request | Route instead |
-|---|---|
-| New Section layout, ACF field group, or WST template | `wst-section-workflow` / `wst-new-post-type` |
-| CSS / visual QA | `frontend-section-qa` / `cpt-frontend-qa` |
-| Upload a file into the Media Library | `wp-media-import` |
-| Compose a whole page from Figma | later page-builder workflow; this Skill only patches values on an existing document |
+
+| Request                                              | Route instead                                                                       |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| New Section layout, ACF field group, or WST template | `wst-section-workflow` / `wst-new-post-type`                                        |
+| CSS / visual QA                                      | `frontend-section-qa` / `cpt-frontend-qa`                                           |
+| Upload a file into the Media Library                 | `wp-media-import`                                                                   |
+| Compose a whole page from Figma                      | later page-builder workflow; this Skill only patches values on an existing document |
+
+
+
 
 ## Step 1: Prepare
 
@@ -66,6 +72,8 @@ Save as `tmp/<task-slug>/backup-<type>-<id>-<timestamp>.json`. These files stay 
 4. For title/subtitle Format and Style fields, follow `headline-filling`.
 5. Show the user a short preview of the planned field diffs unless they already specified the exact new values.
 
+
+
 ## Step 4: Write (UTF-8)
 
 Send the complete Flexible Content array (or the complete options document), not a partial row:
@@ -98,7 +106,7 @@ If a matching Section or CPT work record exists under `docs/`, add the page URL,
 
 Leave the backup JSON in `tmp/` until the user confirms the result; delete it on request.
 
-## Checklist
+> ## Checklist
 
 - [ ] Working URL is staging/dev, or the user confirmed live.
 - [ ] REST probe `users/me` succeeded; credential env vars are set.

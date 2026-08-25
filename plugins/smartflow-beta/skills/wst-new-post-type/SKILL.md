@@ -1,6 +1,6 @@
 ---
 name: wst-new-post-type
-description: Plan, classify, and execute WST Custom Post Type work in the local SmartFlow workspace. Use for any new CPT foundation, existing CPT remodel, CPT/WPGB/card preflight, taxonomy or ACF CPT changes, optional single templates, or the CPT work record. Templates and PHP ACF field groups are authored as tracked source and reach the server through the bundled deploy pass; CPT UI and WPGB configuration are prepared as exact apply-specs for the user. CPT visual-only changes route to the bundled cpt-frontend-qa Skill.
+description: Plan, classify, and execute WST Custom Post Type work in the local SmartFlow workspace. Use for any new CPT foundation, existing CPT remodel, CPT/WPGB/card preflight, taxonomy or ACF CPT changes, optional single templates, or the CPT work record. Templates and ACF Local JSON field groups are authored as tracked source and reach the server through the bundled deploy pass (field definitions go live after the human sync in the admin); CPT UI and WPGB configuration are prepared as exact apply-specs for the user. CPT visual-only changes route to the bundled cpt-frontend-qa Skill.
 ---
 
 # WST New Post Type
@@ -9,7 +9,7 @@ This Skill is the single entry point for WST Custom Post Type work. It classifie
 
 Everything happens in one workspace: the wp-content-level repository checkout. There is no server shell. The CPT foundation splits into three delivery paths:
 
-- **Tracked source** (card templates, optional single templates, PHP ACF field groups, Section integrations): authored in the repository, delivered through the bundled deploy pass of the `deploy-and-branches` Rule, verified over the status bridge.
+- **Tracked source** (card templates, optional single templates, ACF Local JSON field groups in `acf-json/`, Section integrations): authored in the repository, delivered through the bundled deploy pass of the `deploy-and-branches` Rule, verified over the status bridge; field-definition changes additionally need the human sync click in the admin (`acf-local-json` Rule).
 - **Admin-managed objects** (CPT UI registration, taxonomy registration, WP Grid Builder grids/cards): prepared as exact apply-specs in the work record and applied in the WordPress admin by the user. WPGB config is read back over the status bridge; whether WPGB can be written programmatically is an open validation — until it is settled, the admin apply-spec is the standard route.
 - **Bridge actions** (cache flush, permalink flush after registration or rewrite changes): `POST /flush-cache` and `POST /flush-permalinks` per the `status-bridge` Rule.
 
@@ -19,12 +19,12 @@ This Skill does not own CPT CSS or SCSS. It documents CSS paths, stable classes,
 
 Apply these rules before any other action.
 
-Do not perform any write operation before the CPT preflight has produced a concrete work-record draft. Write operations include template files, PHP ACF field groups, prepared registration or WPGB apply-specs handed to the user, content plans, commits, and bridge flushes.
+Do not perform any write operation before the CPT preflight has produced a concrete work-record draft. Write operations include template files, ACF JSON field groups, prepared registration or WPGB apply-specs handed to the user, content plans, commits, and bridge flushes.
 
 - If work type is `unclear`, stop and ask for the missing decision.
 - If work type is `visual-only`, route to `cpt-frontend-qa` without structural work.
-- For `existing-cpt-remodel`, do not create a new CPT, taxonomy, PHP field group, WPGB grid/card, card template, archive integration, single template, CSS file, or style loader entry unless the confirmed work record explicitly says the remodel requires a new artifact. Preserve existing registered post type, rewrite behavior, taxonomy names, field keys, WPGB IDs, template paths, and selectors by default.
-- Structural ACF database writes are forbidden without exception (`acf-php-field-groups` Rule): field definitions are PHP files, never `acf-field`/`acf-field-group` posts. Field key or name changes on saved fields are data migrations needing an explicit user decision.
+- For `existing-cpt-remodel`, do not create a new CPT, taxonomy, ACF JSON group, WPGB grid/card, card template, archive integration, single template, CSS file, or style loader entry unless the confirmed work record explicitly says the remodel requires a new artifact. Preserve existing registered post type, rewrite behavior, taxonomy names, field keys, WPGB IDs, template paths, and selectors by default.
+- Structural ACF database writes are forbidden without exception (`acf-local-json` Rule): field definitions are JSON files in `acf-json/`, never `acf-field`/`acf-field-group` posts; structural changes go live only through deploy plus the human sync click. Field key or name changes on saved fields are data migrations needing an explicit user decision.
 - `functions.php` is forbidden; `theme-functions.php` and MU plugin files require explicit prior user confirmation for the exact change (`file-edit-boundary` Rule).
 - Never write project-owned CPT artifacts under `plugins/weseo-smart-template-builder/`; they live in the child theme under `themes/<child-theme>/smart-template-builder/`.
 - Built-in hard stop of every deploy pass: after committing, stop and hand over per the `deploy-and-branches` Rule. The agent never pushes.
@@ -43,7 +43,7 @@ Before asking the maintainer for technical values, search `PROJECT-CONTEXT.md` a
 
 - Child theme name and WST template path (`themes/<child-theme>/smart-template-builder/`; the WST plugin folder is off-limits).
 - CPT naming conventions, URL slug policy, and whether the CPT has a detail page.
-- Existing PHP field groups under `smart-template-builder/acf/field-groups/` and field key naming expectations.
+- Existing ACF JSON groups under `themes/<child-theme>/acf-json/`, the installation's JSON filename convention, and field key naming expectations.
 - WP Grid Builder grid/card conventions and where grid/card IDs are recorded (`GET /status` lists the existing grids).
 - Target dev or staging URL and the docs-layer conventions.
 - Existing selectors, CPT references, taxonomy references, card/grid/single template paths, and project workflow notes.
@@ -56,7 +56,7 @@ The very first decision is the `Work type`. Until this is recorded in the work-r
 
 | Work type | Meaning |
 | --- | --- |
-| `new-cpt-foundation` | A WST CPT that does not exist yet. Prepare CPT registration and optional taxonomy for the user, create the PHP ACF field group, prepare the WPGB card/grid foundation, create card templates, optional archive/grid integration, optional single template, and CSS hook documentation. |
+| `new-cpt-foundation` | A WST CPT that does not exist yet. Prepare CPT registration and optional taxonomy for the user, create the ACF JSON field group, prepare the WPGB card/grid foundation, create card templates, optional archive/grid integration, optional single template, and CSS hook documentation. |
 | `existing-cpt-remodel` | An existing WST CPT whose registration, taxonomy, ACF shape, WPGB setup, templates, or display integration needs to change. Default to preserving structure and require explicit approval for each new artifact. |
 | `visual-only` | An existing CPT display whose visual behavior should change without touching CPT, taxonomy, ACF, WPGB, template, registration, or content structure. Route immediately to `cpt-frontend-qa`. |
 | `unclear` | The request cannot be classified yet. Stop and ask before any write or read-only audit beyond project context. |
@@ -68,7 +68,7 @@ The preflight is evidence-first and intentionally short. After `Work type` is cl
 1. `Please send the source brief, Figma link, or reference for this CPT display.`
 2. `Should this CPT have public detail pages? If yes, what URL slug or slug policy should it use?`
 
-Then inspect project context, existing CPT patterns (templates, PHP field groups, rendered markup, `GET /status` for ACF groups and WPGB grids) before asking anything else. Do not ask the maintainer to specify HTML structure, wrapper classes, field names, selectors, spacing, responsive behavior, or interaction details that are visible in the source design or inferable from existing project patterns. Under package orchestration, the `cpt-codebase-analyst` and `cpt-figma-analyst` supply this evidence.
+Then inspect project context, existing CPT patterns (templates, ACF JSON groups, rendered markup, `GET /status` for ACF groups and WPGB grids) before asking anything else. Do not ask the maintainer to specify HTML structure, wrapper classes, field names, selectors, spacing, responsive behavior, or interaction details that are visible in the source design or inferable from existing project patterns. Under package orchestration, the `cpt-codebase-analyst` and `cpt-figma-analyst` supply this evidence.
 
 If a detail is not discoverable and a project-default pattern exists, use that assumption in the draft. Ask a follow-up only when the missing answer blocks a safe write: an unknown CPT name, URL slug policy, taxonomy decision, ACF/WPGB reference, or target URL.
 
@@ -78,7 +78,7 @@ The preflight output is the CPT work-record draft in the project docs layer (def
 - CPT slug, registered post type, singular and plural labels, admin visibility, and source brief.
 - Public detail-page decision, URL slug or explicit no-detail-page decision, archive/search behavior, and unresolved detail-page questions.
 - Taxonomy decision per the `wordpress-taxonomies` Rule (English `wso_tax_*` machine name, labels, hierarchy, public archive decision, purpose), or an explicit no-taxonomy decision.
-- PHP field group file, field names, field ownership decisions, and unresolved field questions.
+- ACF JSON group file, field names, field ownership decisions, and unresolved field questions.
 - WPGB grid/card IDs or explicit no-WPGB decision, plus display target: grid, carousel, existing Section, or dedicated Section.
 - Card, archive/grid, optional single, and optional Section integration template paths.
 - Expected card, archive/grid, optional single, and Section integration selectors to preserve.
@@ -93,7 +93,7 @@ When `Work type` is `existing-cpt-remodel`, the default position is to preserve 
 
 Before any write:
 
-- Read the existing CPT registration (over the rendered admin apply-spec history in the docs layer, `GET /wp-json/wp/v2/types`, or the user), the taxonomy registration, the PHP field group, the WPGB setup (`GET /status`), template paths, CSS path, and rendered HTML classes.
+- Read the existing CPT registration (over the rendered admin apply-spec history in the docs layer, `GET /wp-json/wp/v2/types`, or the user), the taxonomy registration, the ACF JSON group, the WPGB setup (`GET /status`), template paths, CSS path, and rendered HTML classes.
 - Record those values under `Protected existing artifacts` in the work record.
 - Propose the exact scope to the maintainer and wait for explicit approval.
 
@@ -111,7 +111,7 @@ New WST CPT Foundation:
 - [ ] Work type confirmed as `new-cpt-foundation`
 - [ ] Prepare CPT registration apply-spec for the user (CPT UI)
 - [ ] Prepare taxonomy apply-spec if needed (wordpress-taxonomies Rule)
-- [ ] Create the PHP ACF field group for CPT fields
+- [ ] Create the ACF JSON field group for CPT fields
 - [ ] Prepare WP Grid Builder card and grid apply-spec (wpgb-specialist under orchestration)
 - [ ] Create card template foundation (four-source proof for new shortcode forms)
 - [ ] Create optional single template foundation
@@ -155,13 +155,13 @@ After the user applies the spec: flush permalinks through the bridge and verify 
 
 Add a taxonomy only when the content model requires grouping, filtering, admin columns, or card labels. Follow the `wordpress-taxonomies` Rule: English `wso_tax_<resource>` machine name, German labels allowed, CPT UI managed, deliberate hierarchy choice, rewrites disabled unless taxonomy archives are part of the brief, fixed terms listed in the apply-spec. Code only for what CPT UI cannot do (for example a `body_class` filter), which lands in `theme-functions.php` only with explicit prior user confirmation.
 
-### 4.4 Create the PHP ACF field group
+### 4.4 Create the ACF JSON field group
 
-Create one PHP field group file under `themes/<child-theme>/smart-template-builder/acf/field-groups/` whose location rule targets the new CPT, per the `acf-php-field-groups` Rule (fresh stable `group_`/`field_` keys, registered through the project's field-group loader). See `reference.md` for the shape.
+Create one JSON group file under `themes/<child-theme>/acf-json/` (named per the installation's filename convention from `PROJECT-CONTEXT.md`) whose location rule targets the new CPT, per the `acf-local-json` Rule: fresh stable `group_`/`field_` keys, `acfe_autosync` containing `"json"`, and a `modified` timestamp so the admin offers the sync. See `reference.md` for the shape. If the project has no `acf-json/` setup yet, run the bundled `setup-acf-local-json` Skill first.
 
 Recommended structure: a tab field for admin organization, content fields specific to the CPT, optional tabs for complex CPTs, field names prefixed with the CPT naming convention when the project does that already. Prefer core post title, thumbnail, editor, excerpt, and taxonomy terms before duplicating data in ACF fields.
 
-The field group ships with the deploy pass. After the bridge-verified deploy, `GET /status` must list it with PHP origin.
+The field group ships with the deploy pass. After the bridge-verified deploy and the human sync in the admin, `GET /status` must list it with `local: "json"`.
 
 ### 4.5 Prepare the WP Grid Builder foundation
 
@@ -215,13 +215,13 @@ When the project requires a new CSS file or style loader entry, record that requ
 
 ## 6. Deploy, flush, and verify
 
-Bundle everything deploy-needing into one pass (`deploy-and-branches` Rule): card/single templates, PHP field group, Section integrations, work record. Commit with the `Made with: SmartFlow` trailer, HARD STOP, the user pushes, then verify `deployed_commit` over the status bridge with the bounded retry budget.
+Bundle everything deploy-needing into one pass (`deploy-and-branches` Rule): card/single templates, ACF JSON group, Section integrations, work record. Before committing, pull the complete `acf-json/` listing from the server over read-only FTP (`acf-local-json` Rule, pull-before-deploy). Commit with the `Made with: SmartFlow` trailer, HARD STOP, the user pushes, then verify `deployed_commit` over the status bridge with the bounded retry budget. When the pass changed ACF JSON, hand over for the human sync in the admin — structural field changes are not live before that click.
 
-After the deploy and the admin apply-specs are done:
+After the deploy, the sync, and the admin apply-specs are done:
 
 - Flush permalinks through the bridge after CPT/taxonomy registration or rewrite changes; verify affected URLs respond without a 404.
 - Flush caches through the bridge after template, field, or content changes.
-- Verify: the CPT appears in the admin (user confirms) and in `GET /wp-json/wp/v2/types` when REST-exposed; taxonomy UI appears only when expected; `GET /status` lists the PHP field group and the WPGB grid; card template markup renders without PHP errors on a page embedding the grid; public single URLs work only when intended; expected card/single CSS hooks exist in rendered markup.
+- Verify: the CPT appears in the admin (user confirms) and in `GET /wp-json/wp/v2/types` when REST-exposed; taxonomy UI appears only when expected; `GET /status` lists the field group with `local: "json"` and the WPGB grid; card template markup renders without PHP errors on a page embedding the grid; public single URLs work only when intended; expected card/single CSS hooks exist in rendered markup.
 
 Record the results in the work record under `QA notes`. Until the bridge confirms the deployed commit, results stay `implementation pass, deployed verification pending`.
 
@@ -236,7 +236,7 @@ Completed CPT work routes to `cpt-frontend-qa`. If the CPT display becomes prima
 ### Example A: New `team` CPT foundation
 
 - `Work type`: `new-cpt-foundation`. Registered post type `wso_<resource>` prepared as a CPT UI apply-spec; detail-page decision recorded before rewrites or single templates exist.
-- PHP field group `acf/field-groups/cpt-<resource>.php`; card template `post-types/<resource>/cards/<resource>-card.php`; one deploy pass.
+- ACF JSON group in `acf-json/` per the project filename convention; card template `post-types/<resource>/cards/<resource>-card.php`; one deploy pass plus the admin sync.
 - WPGB grid/card created by the user from the apply-spec; IDs read back over `GET /status`.
 - `CSS status`: `new-needed-for-frontend`; the work record names the CSS path as `cpt-frontend-qa` work.
 

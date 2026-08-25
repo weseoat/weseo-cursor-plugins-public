@@ -26,7 +26,7 @@ Seiten ist sie im Einsatz.>
 
 - **Template:** [`<slug>.php`](<relativer Pfad>)
 - **Flexible-Content-Layout:** `<layout-name>` (Key: `<layout_...|unbekannt>`)
-- **PHP-Feldgruppe:** [`section-<slug>.php`](<relativer Pfad>) — Doku: [`section-<slug>.md`](../field-groups/section-<slug>.md)
+- **ACF-JSON-Feldgruppe:** [`<datei>.json`](<relativer Pfad>) — Doku: [`section-<slug>.md`](../field-groups/section-<slug>.md)
 - **Registrierung:** <flexible-content.php-Eintrag oder `unbekannt`>
 
 ### Markup-Struktur
@@ -99,7 +99,7 @@ offene Fragen, Blocker. Gehört den WST-/Frontend-QA-Workflows. -->
 | Pfad | Rolle |
 |---|---|
 | `smart-template-builder/sections/<slug>.php` | Section-Template |
-| `smart-template-builder/acf/field-groups/section-<slug>.php` | PHP-Feldgruppe |
+| `acf-json/<datei>.json` | ACF-JSON-Feldgruppe |
 | `styles/sections/<slug>.css` | Frontend-CSS |
 | `<weitere>` | <Rolle> |
 

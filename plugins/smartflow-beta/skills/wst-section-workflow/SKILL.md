@@ -1,13 +1,13 @@
 ---
 name: wst-section-workflow
-description: Plan, classify, and execute WST Flexible Content Section work in the local SmartFlow workspace as a productive implementation workflow with safety stops. Use for any new Section, existing Section remodel, or Section-related preflight before frontend CSS work. Visual-only Section changes route to the bundled frontend-section-qa Skill with a minimal work record. Section artifacts are authored as tracked source (templates plus PHP ACF field groups) and reach the server only through the bundled deploy pass.
+description: Plan, classify, and execute WST Flexible Content Section work in the local SmartFlow workspace as a productive implementation workflow with safety stops. Use for any new Section, existing Section remodel, or Section-related preflight before frontend CSS work. Visual-only Section changes route to the bundled frontend-section-qa Skill with a minimal work record. Section artifacts are authored as tracked source (templates plus ACF Local JSON field groups) and reach the server only through the bundled deploy pass; field-definition changes go live after a human-confirmed sync in the admin.
 ---
 
 # WST Section Workflow
 
 This Skill is the single entry point for any WST Flexible Content Section work. It classifies the request, drives the implementation, protects existing Section artifacts during remodels, and maintains the Section work record in the project docs layer that the frontend QA pass consumes.
 
-Everything happens in one workspace: the wp-content-level repository checkout. There is no server shell and no server/local phase split. Section templates, PHP ACF field groups, Flexible Content wiring, and registrations are authored as tracked source; they reach the server only through the bundled deploy pass of the `deploy-and-branches` Rule (commit, hard stop, the user pushes, the deploy delivers the child theme, the status bridge verifies `deployed_commit`).
+Everything happens in one workspace: the wp-content-level repository checkout. There is no server shell and no server/local phase split. Section templates, ACF Local JSON field groups (`acf-json/` in the child theme), Flexible Content wiring, and registrations are authored as tracked source; they reach the server only through the bundled deploy pass of the `deploy-and-branches` Rule (commit, hard stop, the user pushes, the deploy delivers the child theme, the status bridge verifies `deployed_commit`). Field-definition changes additionally need the human sync click in the admin per the `acf-local-json` Rule before they are live.
 
 The Skill is a productive implementation workflow with safety stops, not a preflight write gate. Reads and discovery are always allowed. Repository writes proceed when scope is clear and safe; the workflow stops and asks only at concrete risk points.
 
@@ -27,8 +27,8 @@ Apply these rules before any other action.
 Stop and confirm before:
 
 - Changing the classified work type during the task. Reclassification is always a stop-and-confirm point, including when it becomes safer (for example `new-section-foundation -> visual-only`).
-- Touching public selectors, layout names, layout keys, or ACF field keys that templates, scripts, styles, or stored content rely on. Key or name changes on saved fields are data migrations and need an explicit user decision (per the `acf-php-field-groups` Rule).
-- Creating new artifacts during an `existing-section-remodel` (new template file, PHP field group, Flexible Content layout, clone child field, or style loader entry) unless explicitly approved.
+- Touching public selectors, layout names, layout keys, or ACF field keys that templates, scripts, styles, or stored content rely on. Key or name changes on saved fields are data migrations and need an explicit user decision (per the `acf-local-json` Rule).
+- Creating new artifacts during an `existing-section-remodel` (new template file, ACF JSON group file, Flexible Content layout, clone child field, or style loader entry) unless explicitly approved.
 - Making a structural ACF/FC decision that discovery cannot resolve.
 - Preparing content changes that overwrite existing page content (the row plan for the admin must be explicit about replace vs append).
 - Backend review of prefilled variant rows before fixtures are exported for the Section preview pages.
@@ -47,17 +47,17 @@ Always allowed:
 - Lightweight Media Library lookup over the WordPress REST API.
 - Updating the Section work record with discovery findings and proposed scope.
 
-Structural ACF database writes are forbidden without exception (`acf-php-field-groups` Rule): field definitions are PHP files, never `acf-field`/`acf-field-group` posts.
+Structural ACF database writes are forbidden without exception (`acf-local-json` Rule): field definitions are JSON files in `acf-json/`, never `acf-field`/`acf-field-group` posts. Structural changes go live only through deploy plus the human sync click.
 
 ## Workflow at a glance
 
-1. Read `PROJECT-CONTEXT.md`, the project docs layer, and the `acf-php-field-groups` Rule.
+1. Read `PROJECT-CONTEXT.md`, the project docs layer, and the `acf-local-json` Rule.
 2. Run the Start question block in one compact message; skip any question whose answer is already in project context.
 3. Inspect Figma/source, search similar Sections, identify the work type, and record `Discovery and safety status` in the work record.
 4. If a structural ambiguity remains, run one Structural question block. Otherwise continue.
 5. Announce a short Execution Plan before any repository write.
-6. Implement the Section artifacts as tracked source: template, PHP field group, Flexible Content layout and clone child wiring, registration. Prove every new WST shortcode form with the four-source proof (`wst-shortcodes`).
-7. Bundle everything deploy-needing into one pass: commit, hard stop, hand over. After the user pushes, verify `deployed_commit` over the status bridge.
+6. Implement the Section artifacts as tracked source: template, ACF JSON group, Flexible Content layout and clone child wiring, registration. Prove every new WST shortcode form with the four-source proof (`wst-shortcodes`).
+7. Bundle everything deploy-needing into one pass: pull-before-deploy on `acf-json/`, commit, hard stop, hand over. After the user pushes, verify `deployed_commit` over the status bridge; field-definition changes then need the human sync in the admin.
 8. Served verification (function and existence only), test content, and Section preview pages.
 9. Complete the work record with the Frontend QA Brief and route to `frontend-section-qa`.
 
@@ -97,7 +97,7 @@ Classify based on discovery, not on the wording of the request.
 | Work type | Trigger |
 | --- | --- |
 | `new-section-foundation` | No suitable existing Section/layout/template is found; Figma or brief requires a new reusable Section. |
-| `existing-section-remodel` | A matching existing Section exists and the change touches template markup, the PHP field group, Flexible Content wiring, or registration. Visual change alone is not enough. |
+| `existing-section-remodel` | A matching existing Section exists and the change touches template markup, the ACF JSON group, Flexible Content wiring, or registration. Visual change alone is not enough. |
 | `visual-only` | Template, field group, and Flexible Content already fit; only CSS, spacing, typography, colors, responsive behavior, or interaction states need to change. |
 | `unclear` | The Skill cannot decide after discovery. Use the Structural question block. |
 
@@ -124,8 +124,8 @@ Before any new template or remodel, orient in the project's WST dialect.
 
 Reading order:
 
-1. Apply the `acf-php-field-groups` Rule before any field-group or Flexible Content wiring write.
-2. Use [`reference.md`](reference.md) for the PHP field-group shapes, Flexible Content wiring, template invariants, and registration patterns.
+1. Apply the `acf-local-json` Rule before any field-group or Flexible Content wiring write.
+2. Use [`reference.md`](reference.md) for the JSON group shapes, Flexible Content wiring, template invariants, and registration patterns.
 3. Use the bundled `wst-shortcodes` Skill as the catalog entry for shortcode forms; every new WST shortcode form needs the four-source proof (catalog, installed runtime, project precedent, rendered HTML).
 4. Inspect at least one similar existing Section in the project to match local conventions: `conditional_logic_start/end` placeholders, `wst_include` registration, row/wrap/column classes, section ID and tabindex elements, `get_sub_field` and clone-prefix patterns, content/button/layout clone usage.
 
@@ -134,7 +134,7 @@ Conflict resolution priority:
 1. Explicit user decision for this task.
 2. Installed runtime behavior and rendered HTML evidence.
 3. Project-local context, existing site conventions, and project examples that satisfy the invariants.
-4. The `acf-php-field-groups` Rule and this Skill's reference invariants.
+4. The `acf-local-json` Rule and this Skill's reference invariants.
 5. The catalog snapshot (`wst-shortcodes`).
 6. Generic Skill examples.
 
@@ -142,7 +142,7 @@ If a local example contradicts a hard invariant, do not copy it blindly. Record 
 
 ### Searching for similar Sections
 
-The Skill searches for a structural reference by itself before asking. Sources include Section template files under `themes/<child-theme>/smart-template-builder/sections/`, the PHP field groups under `smart-template-builder/acf/field-groups/`, Flexible Content layouts, and rendered markup on existing pages. Do not search inside `plugins/weseo-smart-template-builder/` for project-owned references; it is the WST runtime/library and contains framework code, not the project's Sections.
+The Skill searches for a structural reference by itself before asking. Sources include Section template files under `themes/<child-theme>/smart-template-builder/sections/`, the ACF JSON groups under `themes/<child-theme>/acf-json/`, Flexible Content layouts, and rendered markup on existing pages. Do not search inside `plugins/weseo-smart-template-builder/` for project-owned references; it is the WST runtime/library and contains framework code, not the project's Sections.
 
 Only ask when no usable reference is found, when multiple references would change the structural model differently, or when the maintainer might prefer a specific reference Section.
 
@@ -155,7 +155,7 @@ Only ask when no usable reference is found, when multiple references would chang
 - Preserve existing field keys and clone child field keys (stored content references them).
 - Preserve public selectors that templates, scripts, or styles rely on.
 
-Do not create a new template file, PHP field group, Flexible Content layout, clone child field, or style loader entry during a remodel unless the confirmed work record explicitly approves that new artifact.
+Do not create a new template file, ACF JSON group, Flexible Content layout, clone child field, or style loader entry during a remodel unless the confirmed work record explicitly approves that new artifact.
 
 If a desired change only affects spacing, typography, color, responsive behavior, or hover/focus, apply the reclassification rule to switch to `visual-only` and route to `frontend-section-qa`.
 
@@ -167,7 +167,7 @@ The repository root is the wp-content level. Resolve before any write:
 
 ```text
 themes/<child-theme>/smart-template-builder/sections/<section-slug>.php   (templates)
-themes/<child-theme>/smart-template-builder/acf/field-groups/             (PHP field groups)
+themes/<child-theme>/acf-json/                                            (ACF JSON field groups)
 ```
 
 Read `PROJECT-CONTEXT.md` for the child theme name and any project deviations. The WST plugin folder `plugins/weseo-smart-template-builder/` is hard off-limits for project-owned artifacts (see hard safety stops). Verify paths with a quick directory listing before writing.
@@ -183,17 +183,17 @@ Once the slug is confirmed, derive the rest deterministically:
 | Layout name | `layout_<section_slug_with_underscores>` |
 | Primary class | `.wso-section-<section-slug>` |
 | Template file | `themes/<child-theme>/smart-template-builder/sections/<section-slug>.php` |
-| PHP field group file | `themes/<child-theme>/smart-template-builder/acf/field-groups/section-<section-slug>.php` |
+| ACF JSON group file | `themes/<child-theme>/acf-json/<per the installation's filename convention from PROJECT-CONTEXT.md>` |
 | Work record | `docs/sections/<section-slug>.md` (or the project docs convention from `PROJECT-CONTEXT.md`) |
 
 For `existing-section-remodel`, do not re-confirm the slug if a single existing Section is unambiguously matched. Ask only if multiple candidates apply or the maintainer wants a rename.
 
-## PHP field group and Flexible Content wiring
+## ACF JSON group and Flexible Content wiring
 
-All ACF work is PHP authoring per the `acf-php-field-groups` Rule; see [`reference.md`](reference.md) for the concrete shapes.
+All ACF work is Local JSON authoring per the `acf-local-json` Rule; see [`reference.md`](reference.md) for the concrete shapes.
 
-- The Section field group is one PHP file registering `acf_add_local_field_group()` with a stable fresh `group_<unique>` key and stable `field_<unique>` keys for every field.
-- The Flexible Content layout entry and the seamless clone child field are added to the PHP-registered Page-Builder Flexible Content container (migrated per project; if the container is still an admin-created database group, stop: the one-time migration from the `migrate-ssh-to-local` Skill must happen first — mixing origins is not viable).
+- The Section field group is one JSON file under `acf-json/` with a stable fresh `group_<unique>` key and stable `field_<unique>` keys for every field, `acfe_autosync` containing `"json"`, and a `modified` timestamp above the database state.
+- The Flexible Content layout entry and the seamless clone child field are added by editing the JSON file of the Page-Builder Flexible Content container (with its own `modified` bump; if the container has no JSON source yet — the bridge reports it `local: false` — stop: the `setup-acf-local-json` Skill must run first).
 - Generate the layout key once and record it immediately in the work record. The clone child field references it exactly through `parent_layout`.
 - Standard clone settings: `type=clone`, `clone=[<section-field-group-key>]`, `display=seamless`, `prefix_name=1`, `prefix_label=0`, `parent_layout=<layout-key>`, `acfe_save_meta=1` when the project uses ACF Extended save-meta behavior.
 
@@ -224,7 +224,7 @@ Before writing repository files, output a short Execution Plan:
 ```text
 Plan:
 - Work type: <classification>
-- Repository writes: <template / PHP field group / FC wiring / registration / fixtures>
+- Repository writes: <template / ACF JSON group / FC wiring / registration / fixtures>
 - Content plan: <admin row plan for the user / REST route / not needed>
 - Media: <reuse existing IDs / REST media import / hand to user / not needed>
 - CSS: not written by this Skill (routed to frontend-section-qa)
@@ -316,15 +316,17 @@ After Figma or source analysis, perform a lightweight Media Library check over t
 
 ## Deploy pass and served verification
 
-Everything deploy-needing from this run goes into one pass (`deploy-and-branches` Rule): template, PHP field group, FC wiring, registration, fixtures, work record. Then:
+Everything deploy-needing from this run goes into one pass (`deploy-and-branches` Rule): template, ACF JSON group, FC wiring, registration, fixtures, work record. Then:
 
-1. Commit with the `Made with: SmartFlow` trailer. HARD STOP: hand over with the commit hash and what the deploy will deliver. The agent never pushes.
-2. After the user reports pushing, verify `deployed_commit` over the status bridge with the bounded retry budget (`status-bridge` Rule). No served result counts while the hashes differ.
-3. Flush caches through the bridge (`POST /flush-cache`) when templates or field definitions changed.
-4. Served verification (function and existence only):
+1. Pull-before-deploy: pull the complete `acf-json/` listing from the server over read-only FTP into the repository so the deploy cannot overwrite newer server JSONs (`acf-local-json` Rule).
+2. Commit with the `Made with: SmartFlow` trailer. HARD STOP: hand over with the commit hash and what the deploy will deliver. The agent never pushes.
+3. After the user reports pushing, verify `deployed_commit` over the status bridge with the bounded retry budget (`status-bridge` Rule). No served result counts while the hashes differ.
+4. Field-definition sync: when the pass changed ACF JSON, hand over for the human sync — the admin shows "Sync available", a colleague reviews the diff and clicks Sync. Structural changes are not live before that click.
+5. Flush caches through the bridge (`POST /flush-cache`) when templates or field definitions changed.
+6. Served verification (function and existence only):
    - Target or preview page loads without PHP fatal errors or new warnings.
    - Section markup and the primary class `.wso-section-<section-slug>` are present in the rendered page.
-   - `GET /status` lists the Section field group with PHP origin.
+   - `GET /status` lists the Section field group with `local: "json"`.
    - The layout is selectable in the editor (user confirms, or evident from saved test content).
 
 Pixel-perfect rendering, responsive layout, spacing, typography, colors, and interaction states belong to `frontend-section-qa` and are not part of this Skill's verification. Record the results in the work record under `QA notes`.
@@ -407,8 +409,8 @@ When editing this Skill or related plugin files, follow the `plugin-package-boun
 ### Example A: New `feature-cards` Section foundation
 
 - `Work type`: `new-section-foundation`. Slug confirmed: `feature-cards`.
-- Template: `themes/<child-theme>/smart-template-builder/sections/feature-cards.php`; field group file `acf/field-groups/section-feature-cards.php`; layout `layout_feature_cards`; primary class `.wso-section-feature-cards`.
-- One deploy pass carries template, field group, FC wiring, and registration; bridge-verified before served checks.
+- Template: `themes/<child-theme>/smart-template-builder/sections/feature-cards.php`; ACF JSON group file in `acf-json/` per the project filename convention; layout `layout_feature_cards`; primary class `.wso-section-feature-cards`.
+- One deploy pass carries template, ACF JSON group, FC wiring, and registration; bridge-verified and admin-synced before served checks.
 - `CSS status`: `new-needed-for-frontend`; the work record names `styles/sections/feature-cards.css` as frontend work.
 - Work record: `docs/sections/feature-cards.md`.
 

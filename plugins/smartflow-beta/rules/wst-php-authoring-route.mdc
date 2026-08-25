@@ -12,7 +12,7 @@ For PHP changes in the child theme (`themes/<child-theme>/`):
 1. Use the relevant WST workflow first (`wst-section-workflow` for Sections, `wst-new-post-type` for CPT foundations).
 2. Delegate the PHP write phase to the `wst-shortcode-implementer` subagent. Main-chat, general-purpose, explore, and shell agents may inspect and plan, but must not write these PHP files themselves.
 3. Presentation and template output must compose the existing WST shortcodes and follow the nearest verified WST precedent. Do not replace WST templates with freely authored PHP/HTML rendering.
-4. PHP infrastructure such as preview harnesses, adapters, resolvers, registration helpers, and PHP ACF field groups may require normal PHP. It is still routed through the WST workflow and implementer; do not force shortcode syntax where the file is not a render template.
+4. PHP infrastructure such as preview harnesses, adapters, resolvers, and registration helpers may require normal PHP. It is still routed through the WST workflow and implementer; do not force shortcode syntax where the file is not a render template. (ACF field definitions are not PHP: they are Local JSON files per the `acf-local-json` Rule.)
 5. If `wst-shortcode-implementer` is unavailable or the task cannot be classified safely, stop and ask instead of implementing directly.
 
 Exceptions:

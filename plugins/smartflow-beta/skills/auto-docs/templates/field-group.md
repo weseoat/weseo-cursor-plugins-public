@@ -3,7 +3,7 @@ title: "<Feldgruppen-Titel>"
 category: field-groups
 slug: <slug>
 source_files:
-  - themes/<child-theme>/smart-template-builder/acf/field-groups/<datei>.php
+  - themes/<child-theme>/acf-json/<datei>.json
 related_docs:
   - ../sections/<slug>.md
 generated: <YYYY-MM-DD>
@@ -16,11 +16,11 @@ acf_group_key: <group_...>
 ## Übersicht
 
 - **Gruppen-Key:** `<group_...>`
-- **Registrierung:** PHP (`acf_add_local_field_group()` in [`<datei>.php`](<relativer Pfad>))
+- **Registrierung:** Local JSON ([`<datei>.json`](<relativer Pfad>) in `acf-json/`; Sync per Admin-Klick)
 - **Aktiv:** <ja|nein>
 - **Beschreibung:** <aus der Registrierung — oder „keine">
 - **Anzahl Felder (oberste Ebene, ohne Struktur-Felder):** <n>
-- **Bridge-Abgleich:** <in GET /status mit local: php gelistet | nicht gelistet — offener Punkt | nicht geprüft>
+- **Bridge-Abgleich:** <in GET /status mit local: json gelistet | nicht gelistet — offener Punkt | nicht geprüft>
 
 ## Wo wird die Feldgruppe angezeigt?
 

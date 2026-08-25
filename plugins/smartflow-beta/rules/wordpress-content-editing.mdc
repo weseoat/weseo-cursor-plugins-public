@@ -9,7 +9,7 @@ Use this Rule when editing WordPress page, post, or options content through the 
 
 ## Core Model
 
-ACF Flexible Content stores page sections as an ordered array. Each item has an `acf_fc_layout` value that identifies the layout type. The Flexible Content field name, available layout names, page IDs, and clone group keys belong in `PROJECT-CONTEXT.md`. Layout definitions live in PHP field groups (`acf-php-field-groups` Rule); content values live in the WordPress database and are mutated over REST, not as tracked theme source.
+ACF Flexible Content stores page sections as an ordered array. Each item has an `acf_fc_layout` value that identifies the layout type. The Flexible Content field name, available layout names, page IDs, and clone group keys belong in `PROJECT-CONTEXT.md`. Layout definitions live in ACF Local JSON files (`acf-local-json` Rule); content values live in the WordPress database and are mutated over REST, not as tracked theme source.
 
 ## Read Before Writing
 

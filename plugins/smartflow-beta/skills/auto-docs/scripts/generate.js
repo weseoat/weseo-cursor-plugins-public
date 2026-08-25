@@ -2,8 +2,8 @@
  * Generates one LLM-readable Markdown doc per ACF field group into docs/field-groups/.
  *
  * Legacy path: only for projects that still maintain an admin JSON export
- * (acf_export/acf-export-*.json) instead of PHP field groups. Projects on the
- * SmartFlow standard (PHP field groups under smart-template-builder/acf/)
+ * (acf_export/acf-export-*.json) instead of tracked field-group sources.
+ * Projects on the SmartFlow standard (ACF Local JSON under acf-json/)
  * document field groups through the auto-docs worker subagents instead.
  *
  * Source: a path passed as argument, otherwise the newest acf-export-*.json in acf_export/.
