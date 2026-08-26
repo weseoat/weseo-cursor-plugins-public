@@ -243,8 +243,8 @@ New WST FC Section:
 - [ ] Execution Plan announced
 - [ ] Create Section template at themes/<child-theme>/smart-template-builder/sections/<section-slug>.php (never under plugins/weseo-smart-template-builder/)
 - [ ] Every new WST shortcode form four-source-proven (wst-shortcodes)
-- [ ] Create the PHP Section field group (fresh stable keys)
-- [ ] Add the Flexible Content layout entry and clone child field in the PHP FC container (parent_layout matches the layout key exactly)
+- [ ] Create the Section ACF JSON group file under acf-json/ (fresh stable keys, acfe_autosync includes "json", modified bump — acf-local-json Rule)
+- [ ] Add the Flexible Content layout entry and clone child field in the FC container's JSON file (own modified bump; parent_layout matches the layout key exactly)
 - [ ] Register the Section in flexible-content.php
 - [ ] Document CSS hooks and CSS path in the work record (no CSS file from this Skill)
 - [ ] Deploy pass: commit with trailer, HARD STOP, user pushes, bridge-verify deployed_commit
@@ -276,7 +276,7 @@ For every built Section (`new-section-foundation` and `existing-section-remodel`
 
 1. Look for a preview-pages block (stable key `section-preview-pages`).
 2. If it is present and active, use the preview route for variant work and write the resulting preview URLs into the work record.
-3. If it is absent and there is no `section-preview-pages: declined` marker, actively offer to set it up (plain words, benefit stated: each variant gets its own preview URL, so QA checks one Section in isolation with fewer tokens). On `yes`: run `section-preview-harness` as a sub-flow, then record the preview URLs. On `no`: record `section-preview-pages: declined` in `PROJECT-CONTEXT.md` and set `Preview URLs: n/a (declined)`. Do not ask again for this project.
+3. If it is absent and there is no `section-preview-pages: declined` marker, actively offer to set it up (plain words, benefit stated: each variant gets its own preview URL, so QA checks one Section in isolation with fewer tokens). On `yes`: the **main chat** runs the bundled `section-preview-harness` Skill itself and then records the preview URLs — the harness is deliberately not routed to runners (`agent-routing` Rule) because its bootstrap needs the `theme-functions.php` confirmation stop and other interactive hard stops. If the offer point surfaces inside a `wst-shortcode-implementer` run, the runner returns it as `OPEN DECISION`; the main chat runs the harness after integrating the runner's return. On `no`: record `section-preview-pages: declined` in `PROJECT-CONTEXT.md` and set `Preview URLs: n/a (declined)`. Do not ask again for this project.
 4. If the preview-pages block is missing values needed to build URLs, keep `Preview URLs: <unresolved: ...>` rather than inventing them.
 
 The offer is a recommendation, not a hard stop. A `no` never blocks the Section work.
