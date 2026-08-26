@@ -1,11 +1,13 @@
 ---
 name: setup-local-project
-description: Guided wizard for the complete first setup of a local SmartFlow workspace for a WESEO WordPress/WST project. Use when starting a new project, re-orienting a partially set up local workspace, cloning the wp-content-level repository, naming the folder after the server hostname, filling .env with the application password, configuring the weseo-git-installer deploy to the child theme from the live Confluence guide, creating the read-only FTP user with .ftpaccess, running the REST test, installing the status bridge, exposing post types, taxonomies, ACF field groups, and options pages over REST, configuring Playwright MCP, verifying that Atlassian MCP (Rovo preflight) and Figma MCP are running, anchoring the project's Confluence page and mirroring its extract into PROJECT-CONTEXT.md, or creating PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation.
+description: Guided wizard for the complete first setup of a local SmartFlow workspace for a WESEO WordPress/WST project. Use when starting a new project, re-orienting a partially set up local workspace, cloning the wp-content-level repository, naming the folder after the server hostname, filling .env with the application password, configuring the weseo-git-installer deploy to the child theme from the live Confluence guide, creating the read-only FTP user with .ftpaccess, running the REST test, installing the status bridge, exposing post types, taxonomies, ACF field groups, and options pages over REST, configuring Playwright MCP, verifying that Atlassian MCP (Rovo preflight) and Figma MCP are running, anchoring the project's Confluence page and mirroring its extract into PROJECT-CONTEXT.md, recording which master installation the project was cloned from, writing the css_setup pending marker for the later project-css-setup pass, or creating PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation.
 ---
 
 # Setup Local Project
 
 Run this Skill as a guided wizard for the first setup of a WESEO WordPress/WST project in the SmartFlow model: one local Cursor workspace on the developer's machine, opened on a wp-content-level repository that contains essentially the child theme. There is no Remote-SSH workspace and no server shell; the server is reached only through the deploy path (push by the user, delivery by `weseo-git-installer`), the status bridge (`wso/v1`), the WordPress REST API, and a read-only FTP user.
+
+Every WESEO project starts as a clone of a fully loaded master WordPress installation — all Sections present, a few basic CPTs, and the master's CSS values. There is no greenfield project. The wizard records which master installation the project was cloned from, and it records that the theme's CSS values are still the master's: the `css_setup: pending` marker written at the end points to the bundled `project-css-setup` Skill, which reconciles the values with this project's design shortly before the first Section is built.
 
 The wizard must work from any starting state. Re-read `PROJECT-CONTEXT.md` on every invocation, find the first gate whose status is missing, `pending`, or unverified, and resume there. Setup is complete only when every gate in the final checklist has a recorded outcome in `PROJECT-CONTEXT.md`.
 
@@ -18,6 +20,7 @@ Ask the user or the maintainer for:
 - The Bitbucket repository of the project (a fork of `website-repo-structure-template` prepared for this project) and the deploy branch that `weseo-git-installer` will watch.
 - The server hostname of the target WordPress environment (the exact host string, for example `<www-host>.<server>.example`).
 - The target environment base URL `<site-url>` and the child theme name.
+- Which master installation the project was cloned from (the master's identifier as the team names it — a project value, recorded in `PROJECT-CONTEXT.md`, never baked into the plugin).
 - Access to the WordPress admin (to create the application password and configure `weseo-git-installer`) and to the hosting panel (to create the FTP user).
 
 Do not invent repository names, hostnames, URLs, branches, or theme names. If a value is unknown, stop and ask.
@@ -216,6 +219,8 @@ Do not declare setup complete while this gate is unresolved unless the user choo
 `PROJECT-CONTEXT.md` at the repository root is the project's non-secret context contract; later SmartFlow work reads it first. Create it if missing, update stale values if present. At minimum record:
 
 - Project name, live URL, and dev/staging URL.
+- `Cloned from: <master-install>` — the master installation this project was cloned from (clone model).
+- The CSS-values marker `css_setup: pending`, with the pointer that the bundled `project-css-setup` Skill should run shortly before the first Section (it reconciles the master's CSS values with this project's design and flips the marker to `reconciled (<date>)`). Setup does not run that pass — at setup time the Figma design is often not final.
 - Server hostname (equals the local folder name) and the reason for the naming (DevTools Local Overrides).
 - Child theme path and WST source path (`wp-content/themes/<child-theme>/smart-template-builder/`).
 - Working branch and deploy branch; deploy path `weseo-git-installer` with target directory and Bitbucket registration status; the pending go-live deregistration step; `git_installer_guide` (Confluence page ID, URL, and title as fetched).
@@ -246,6 +251,7 @@ Walk the gates once more and confirm each has a recorded outcome:
 - [ ] REST exposure done: relevant post types, taxonomies, and ACF field groups reachable over REST; options-page endpoints probed and installed if needed.
 - [ ] Playwright MCP ready, verification loop done.
 - [ ] Figma MCP running: server identifier recorded, `whoami` succeeded.
+- [ ] `Cloned from` recorded and the `css_setup: pending` marker written, with the `project-css-setup` pointer for the pass shortly before the first Section.
 - [ ] `PROJECT-CONTEXT.md` complete, including deploy branch and bridge version.
 
 If a required gate is unresolved, ask the user whether to fix it now, consciously record it as `pending` with reason and next action, or stop. Do not declare setup complete while required gates are unresolved. End with a short German summary: what the project is ready for now, and which points remain open.
@@ -261,4 +267,4 @@ Stop and ask before:
 
 ## Scope Boundaries
 
-This Skill does not migrate an existing project off the legacy Remote-SSH model — that is the bundled `migrate-ssh-to-local` Skill, which runs this Skill as its import-stage foundation. It also does not build Sections, CPTs, or CSS; those follow after setup through the SmartFlow workflow Skills.
+This Skill does not migrate an existing project off the legacy Remote-SSH model — that is the bundled `migrate-ssh-to-local` Skill, which runs this Skill as its import-stage foundation. It also does not build Sections, CPTs, or CSS; those follow after setup through the SmartFlow workflow Skills. The project-level CSS reconciliation (master values against this project's design) is the bundled `project-css-setup` Skill, triggered by the `css_setup: pending` marker shortly before the first Section.

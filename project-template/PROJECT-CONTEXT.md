@@ -16,6 +16,17 @@ This file is the project-local source of truth for site-specific SmartFlow facts
 | Repository | `<repo-name>` |
 | Default branch | `<branch-name>` |
 | Deployment path | `<deployment-method>` |
+| Cloned from | `<master-install>` |
+| css_setup | `pending` |
+
+Every project starts as a clone of a fully loaded master installation, so the theme initially carries the master's CSS values. `setup-local-project` records `Cloned from` and writes `css_setup: pending`; the `project-css-setup` Skill reconciles the values with this project's design and flips the marker to `reconciled (<date>)`. Per-block status for that pass (values: `pending | in-progress | done (<date>) | skipped: <reason>`):
+
+```text
+css_setup_widths: pending
+css_setup_fonts: pending
+css_setup_colors: pending
+css_setup_buttons: pending
+```
 
 ## Environment
 
@@ -134,9 +145,21 @@ Record all layouts registered in `flexible-content.php`. Add project-specific la
 
 ### Container Widths
 
-| Breakpoint | Width | Notes |
-|------------|-------|-------|
-| `<breakpoint>` | `<width>` | `<notes>` |
+Recorded by the `project-css-setup` Skill: derive once at the 1920 design anchor (design px / anchor rem basis), let the fluid rem basis do the scaling on smaller viewports, and add per-breakpoint overrides only where a viewport-ladder rung visually failed.
+
+| Field | Value | Notes |
+|-------|-------|-------|
+| Design content width at 1920 | `<design-px>` | From the desktop design frame |
+| Design side margin at 1920 | `<design-px>` | From the desktop design frame |
+| Anchor rem basis | `<px>` | Desktop `html` font-size |
+| Content width | `<rem>` | Design px / anchor rem basis |
+| Viewport cap | `<cap-or-none>` | For example `90vw`; kept because the rem basis steps instead of scaling continuously |
+
+Per-breakpoint overrides (only where a ladder rung visually failed, with the reason):
+
+| Breakpoint | Override | Reason |
+|------------|----------|--------|
+| `<breakpoint>` | `<value>` | `<why-the-rung-failed>` |
 
 ### Button Variants
 
@@ -149,6 +172,31 @@ Record all layouts registered in `flexible-content.php`. Add project-specific la
 | Text style | Token / selector | Value | Notes |
 |------------|------------------|-------|-------|
 | `<text-style>` | `<token-or-selector>` | `<clamp-or-size>` | `<notes>` |
+
+## Breakpoints & QA-Viewports
+
+Read by the QA Skills (`frontend-section-qa`, `cpt-frontend-qa`, `project-css-setup`) and the `frontend-section-qa-tablet-band` Rule. The values below are the standard WESEO Astra shape — replace them only when this project's theme deviates, and keep the rung list complete.
+
+### Breakpoint Bands And Rem Bases
+
+| Band | Media query range | Rem basis (`html` font-size) | Notes |
+|------|-------------------|------------------------------|-------|
+| Desktop | `<min-width>` and up | `<px>` | Anchor basis for rem derivation |
+| Tablet | `768px`-`991px` | `<px>` | Reduced rem basis; typography already uses the mobile scale |
+| Mobile | `<max-width>` and down | `<px>` | `<notes>` |
+
+### QA Viewport Ladder
+
+| Rung (px) | Role |
+|-----------|------|
+| 1920 | Desktop design anchor (Figma matrix, ±2px) |
+| 1440 | Mid-desktop container/rem interpolation |
+| 1024 | Inside the desktop rem band |
+| 991 | Tablet band top — verify at 990 in Playwright MCP (fractional devicePixelRatio) |
+| 921 | Common Astra header/burger/tabs/accordion breakpoint |
+| 767 | Mobile band top |
+| 575 | Extra-small boundary |
+| 375 | Mobile design anchor (Figma matrix, ±2px) |
 
 ## File Boundaries
 

@@ -1,6 +1,6 @@
 ---
 name: frontend-section-qa
-description: Implement and verify frontend Section CSS/SCSS in the local SmartFlow workspace from a Section work record. Use for Section CSS or SCSS work, the Playwright MCP browser QA loop (navigation, snapshots, screenshots, viewport ladder, selector checks), injection-proofed iteration against the served WordPress page, and the one-time bridge-verified served check after the bundled deploy pass. Consumes and writes back the Section work record in the project docs layer.
+description: Implement and verify frontend Section CSS/SCSS in the local SmartFlow workspace from a Section work record. Use for Section CSS or SCSS work, the Playwright MCP browser QA loop (navigation, snapshots, screenshots, viewport ladder, selector checks), injection-proofed iteration against the served WordPress page, and the one-time bridge-verified served check after the bundled deploy pass. Consumes and writes back the Section work record in the project docs layer. Warns once when PROJECT-CONTEXT.md still carries css_setup pending, and hard-stops with a route to project-css-setup when the layout preflight measures an actual container mismatch.
 ---
 
 # Frontend Section QA
@@ -71,7 +71,7 @@ If `browser_evaluate` itself is broken, leave Degraded Mode and apply the hard s
 Read before editing:
 
 - The Section work record: identity, CSS hooks, selectors to preserve, `Preview URLs`, the `Visual QA Targets` matrix, the Frontend QA Brief, deploy state.
-- `PROJECT-CONTEXT.md`: theme tokens, style loader, breakpoints and QA viewport rungs, rem scale, local build command, bridge base URL and credential env var names, working branch.
+- `PROJECT-CONTEXT.md`: the `css_setup` marker (stage 1 of the two-stage reaction below), theme tokens, style loader, breakpoints and QA viewport rungs, rem scale, local build command, bridge base URL and credential env var names, working branch.
 - The Figma/source design links from the work record (desktop and mobile frame; `no-mobile-design: derived-from-desktop` marks documented interpretation latitude).
 - The bundled Rules that gate this pass: `css-guideline` (proof modes, tokens, selectors), `figma-to-code`, `frontend-section-qa-layout-preflight` (layout model extraction and container fit check before the CSS pass), `frontend-section-qa-tablet-band` (full viewport ladder, deliberate 768-991 styling).
 
@@ -86,7 +86,7 @@ Frontend Section QA:
 - [ ] Playwright MCP preflight and Capability Probe; Degraded Mode or hard stop when needed
 - [ ] Confirm browser access to the target URL, or stop and ask for login/access
 - [ ] Re-read the Figma/source design (desktop and mobile frame)
-- [ ] Run the layout preflight (layout model, container fit check, px measurement matrix)
+- [ ] Run the layout preflight (layout model, container fit check, px measurement matrix); warn once on css_setup pending, hard stop and route to project-css-setup on a measured container mismatch
 - [ ] Inspect existing Section and theme CSS/SCSS patterns
 - [ ] Preview URLs first when the work record lists them; then the real page
 - [ ] Browser QA loop: real DOM, matched and computed styles for the target elements
@@ -104,7 +104,10 @@ Frontend Section QA:
 
 Re-read the Figma source from the work record link instead of trusting only the upstream summary: frame, spacing, typography, breakpoints, image behavior, interaction states. Interpret Figma project-conformly (tokens, container widths, button systems, rem scale) and document real deviations as `figma shows X, project pattern enforces Y, implemented as Z`.
 
-Run the layout preflight from the `frontend-section-qa-layout-preflight` Rule before writing CSS: extract the layout model (paradigm, sizes, gaps, min widths, typography), run the container fit check against the project content width, and prepare the px measurement matrix. Never compensate for a global container mismatch inside a Section; record it as a project-level finding.
+Run the layout preflight from the `frontend-section-qa-layout-preflight` Rule before writing CSS: extract the layout model (paradigm, sizes, gaps, min widths, typography), run the container fit check against the project content width, and prepare the px measurement matrix. Two-stage reaction to an unreconciled project CSS setup:
+
+1. **Marker stage:** when `PROJECT-CONTEXT.md` carries `css_setup: pending`, warn once — "CSS setup not yet run — best run `project-css-setup` first" — and continue when the preflight's own on-site measurement passes. No blanket stop.
+2. **Measured mismatch stage:** when the preflight measures an actual container mismatch (the served container inner width deviates from the project's recorded content width), hard stop the CSS pass. Never write Section CSS that compensates for the global mismatch inside the Section; route to the bundled `project-css-setup` Skill — the user decides whether it runs now.
 
 Check text alignment per text node, not per container: read the text node's own `textAlignHorizontal`/`textAlign` (and vertical alignment in fixed-height rows) from Figma, per breakpoint when it differs, and translate deliberately (`text-align` on the text element; flex alignment only when the whole row moves). Capture computed alignment during DOM inspection and re-verify after injection.
 

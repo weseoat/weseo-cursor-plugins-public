@@ -30,8 +30,11 @@ Before writing CSS, compare:
 | Figma min width vs the project container's inner width | Do **not** map Figma to a 50/50 column split; use flex/grid with `flex: 0 0 auto` or asymmetric columns |
 | Grid gutter vs Figma gap | Prefer explicit `gap` on a flex wrapper; avoid gutter-bleed unless the work record documents the trade-off |
 | Template column classes | Note whether a CSS-only override is enough or a WST template change is required |
+| Measured container inner width vs the project's recorded content width (`PROJECT-CONTEXT.md`) | **Hard stop** — global mismatch, see below |
 
 Document the result, e.g. `figma min <x>px, container inner ~<y>px -> CSS flex override on <wrapper selector>`.
+
+**Global container mismatch = hard stop.** When the measured container inner width deviates from the content width the project records (or the design prescribes), the defect is project-level, not a Section-fit problem: do not write Section CSS that compensates for it (no widened Section wrappers, no negative margins, no Section-local container overrides). Stop the CSS pass and route to the bundled `project-css-setup` Skill; the user decides whether it runs now. When `PROJECT-CONTEXT.md` carries `css_setup: pending`, this case is expected — the earlier warn-once from `frontend-section-qa` already announced it.
 
 ## 3. Playwright Measurement Matrix (Before Injection Proof)
 

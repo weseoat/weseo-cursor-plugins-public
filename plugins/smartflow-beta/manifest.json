@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "smartflow-beta",
   "displayName": "SmartFlow (Beta)",
-  "version": "0.12.0-beta.3",
+  "version": "0.13.0-beta.1",
   "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
   "assumptions": [
     "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
@@ -149,7 +149,7 @@
       "name": "setup-local-project",
       "path": "skills/setup-local-project/SKILL.md",
       "source": "plugins/wordpress-server-ops-beta/skills/setup-orientation/SKILL.md",
-      "description": "Guided German wizard for the complete first setup of a local SmartFlow workspace: clone the wp-content-level repository, name the folder exactly after the server hostname (DevTools Local Overrides), fill the tracked .env with the application password, run the REST test, verify Atlassian MCP with the Rovo preflight (official Atlassian Rovo MCP from the Cursor marketplace with OAuth as team standard, a working community server stays a valid variant), anchor the project's Confluence page and mirror its extract into PROJECT-CONTEXT.md per the confluence-source Rule (no page is a valid state), find and follow the current Confluence weseo-git-installer guide via search, create the read-only FTP user with .ftpaccess (verified read-works/write-denied), install the status bridge, expose post types, taxonomies, ACF field groups, and ACF options pages over REST (bundled wso/v1/options endpoints and the full connection test, absorbed from the legacy setup-wordpress-cursor skill), configure Playwright MCP, verify Figma MCP, and fill PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation."
+      "description": "Guided German wizard for the complete first setup of a local SmartFlow workspace: clone the wp-content-level repository, name the folder exactly after the server hostname (DevTools Local Overrides), fill the tracked .env with the application password, run the REST test, verify Atlassian MCP with the Rovo preflight (official Atlassian Rovo MCP from the Cursor marketplace with OAuth as team standard, a working community server stays a valid variant), anchor the project's Confluence page and mirror its extract into PROJECT-CONTEXT.md per the confluence-source Rule (no page is a valid state), find and follow the current Confluence weseo-git-installer guide via search, create the read-only FTP user with .ftpaccess (verified read-works/write-denied), install the status bridge, expose post types, taxonomies, ACF field groups, and ACF options pages over REST (bundled wso/v1/options endpoints and the full connection test, absorbed from the legacy setup-wordpress-cursor skill), configure Playwright MCP, verify Figma MCP, record which master installation the project was cloned from (clone model: every project starts as a clone of a fully loaded master install) and write the css_setup pending marker pointing at the project-css-setup pass shortly before the first Section, and fill PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation."
     },
     {
       "name": "setup-acf-local-json",
@@ -162,6 +162,12 @@
       "path": "skills/migrate-ssh-to-local/SKILL.md",
       "source": "plugins/smartflow/skills/migrate-ssh-to-local/SKILL.md",
       "description": "Self-contained one-time migration of an existing project from the legacy Remote-SSH plus WP Pusher model to the local SmartFlow model. Export stage in the SSH workspace: inventory, the ACF admin JSON export as the Local JSON seed source (nothing deleted, nothing converted), migration bundle outside the webroot. Import stage locally: setup-local-project foundation, theme and docs import with FTP diff, PROJECT-CONTEXT.md translation, WP Pusher teardown, git-installer build-up, ACF Local JSON setup via setup-acf-local-json, and bridge-verified acceptance with the project groups listed as local json."
+    },
+    {
+      "name": "project-css-setup",
+      "path": "skills/project-css-setup/SKILL.md",
+      "source": "docs/project-css-setup-plan.md (grill-me decision log 2026-08-26)",
+      "description": "Reconcile a project's global theme CSS values with its Figma design in one resumable pass: four blocks in fixed order (content widths, fonts, colors/brand tokens, buttons and global spacing), each running extract from the design, compare with the theme, per-value confirmation, injection-proofed write, and viewport-ladder verification. Reads the css_setup marker in PROJECT-CONTEXT.md (master-values mode sets directly from the design; adapted mode shows the theme-vs-design diff and the user decides per value), builds an impact map before every change (docs-layer work records plus var() consumer search; the affected-Sections list is shown in the confirmation, becomes the post-change spot-check plan, and doc gaps are written back), derives values once at the 1920 design anchor and lets the fluid rem basis scale (bundled measurement reference with the 991-at-990 Playwright caveat, 375 as second anchor, targeted per-breakpoint overrides only where a rung visually fails), flips the marker to reconciled when at minimum the widths block is done, and ends in one bundled commit with hard stop. Runs in the main chat by design (interactive per-value confirmations, deliberately not routed)."
     },
     {
       "name": "wst-section-workflow",
@@ -191,7 +197,7 @@
       "name": "frontend-section-qa",
       "path": "skills/frontend-section-qa/SKILL.md",
       "source": "plugins/frontend-design-qa-beta/skills/frontend-section-qa/SKILL.md",
-      "description": "Frontend CSS/SCSS pass for a WST Section from the Section work record in the project docs layer: Playwright MCP browser QA loop with Capability Probe and Degraded Mode, injection-proofed iteration against the served page as the main mode, tracked CSS writes, the Visual QA Targets writeback, one bundled deploy pass with hard stop, bridge verification of deployed_commit with a bounded retry and abort budget, and the one-time served check that closes the work. On every start — direct start included — the CSS/browser-QA run executes through the cpt-visual-implementer runner per the agent-routing Rule; deploy pass, bridge verification, and commit stay with the main chat."
+      "description": "Frontend CSS/SCSS pass for a WST Section from the Section work record in the project docs layer: Playwright MCP browser QA loop with Capability Probe and Degraded Mode, injection-proofed iteration against the served page as the main mode, tracked CSS writes, the Visual QA Targets writeback, one bundled deploy pass with hard stop, bridge verification of deployed_commit with a bounded retry and abort budget, and the one-time served check that closes the work. Two-stage reaction to an unreconciled project CSS setup: warn once when PROJECT-CONTEXT.md carries css_setup pending, hard stop with a route to project-css-setup when the layout preflight measures an actual container mismatch — never Section-local compensation. On every start — direct start included — the CSS/browser-QA run executes through the cpt-visual-implementer runner per the agent-routing Rule; deploy pass, bridge verification, and commit stay with the main chat."
     },
     {
       "name": "cpt-frontend-qa",
@@ -323,5 +329,5 @@
     }
   ],
   "commands": [],
-  "releaseNotes": "release-notes/0.12.0-beta.2.md"
+  "releaseNotes": "release-notes/0.13.0-beta.1.md"
 }
