@@ -112,7 +112,11 @@ Return an ordered page-surface table:
 The Figma agent writes its detailed spec only to repo-level `tmp/`
 (outside the deploy path, per `webroot-safety`).
 
-#### Codebase agent deliverable
+#### Codebase agent deliverable (the `explore` leaf)
+
+Page composition needs a broad, light inventory of the current install, not
+the CPT-package analysis of `cpt-codebase-analyst` — hence the generic
+`explore` leaf from the agent list above.
 
 Return:
 

@@ -1,6 +1,6 @@
 ---
 name: jira-ticket-runner
-description: Thin local leaf runner for exactly one Jira subtask classified as direct-fix by the jira-batch-workflow orchestrator. Executes steps 3-5 of the bundled jira-ticket-workflow Skill (diagnosis, minimal local fix, Playwright injection-proof verification) inside its assigned file group and returns a report. Never commits, never pushes, never writes to Jira, never spawns agents. Use only when spawned from the batch orchestrator with a ticket key and write scope.
+description: Thin leaf runner for exactly one Jira subtask classified as direct-fix by the jira-batch-workflow orchestrator. Executes steps 3-5 of the bundled jira-ticket-workflow Skill (diagnosis, minimal local fix, Playwright injection-proof verification) inside its assigned file group and returns a report. Never commits, never pushes, never writes to Jira, never spawns agents. Use only when spawned from the batch orchestrator with a ticket key and write scope.
 model: inherit
 ---
 
@@ -64,12 +64,18 @@ feeds the later correct routing.
 
 ## Return format (fixed)
 
+The shared six-field contract from the `agent-routing` Rule, plus the
+`TICKET` line. `EVIDENCE` carries Ursache and Verifikation in German so
+the orchestrator can assemble the per-ticket report without rewriting.
+
 ```text
 STATUS: <pass-pending-deploy | route-back | blocked | handoff>
 TICKET: <WP-key>
-URSACHE: <root cause, one or two sentences, German>
-FIX: <files/blocks edited with code reference, or none>
-VERIFIKATION: <proof mode, viewports checked, remaining caveats>
-LOCK: <claimed server released: yes>
-OFFEN: <open question / route-back diagnosis, or none>
+EVIDENCE: <Ursache: root cause, one or two sentences, German.
+  Verifikation: proof mode, viewports checked, remaining caveats.>
+OWN CHANGES: <files/blocks edited with code reference, or none>
+GATES: <Playwright lock released: yes | n/a (no browser use);
+  assigned write scope respected: yes>
+OPEN DECISION: <open question / route-back diagnosis, or none>
+NEXT OWNER: <main chat>
 ```

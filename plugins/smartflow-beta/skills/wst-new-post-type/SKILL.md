@@ -171,7 +171,7 @@ WPGB grids and cards are admin-managed objects. Default WST pattern:
 
 - The WPGB card exists so the grid can select a card; the visual card builder usually stays empty because WST PHP card templates render the markup.
 - The WPGB grid source points at the new CPT.
-- The apply-spec names grid title, source post type, selected card, and the settings that deviate from the closest existing baseline grid (read the baseline over `GET /status`). Under package orchestration the `wpgb-specialist` owns this spec and derives the config values from the design matrix.
+- The apply-spec names grid title, source post type, selected card, and the settings that deviate from the closest existing baseline grid (read the baseline over `GET /status`). The `wpgb-specialist` owns this spec on every start (per the routing paragraph above and the `agent-routing` Rule) and derives the config values from the design matrix.
 - After the user creates the objects, read the generated grid and card IDs back over `GET /status` and record them in the work record and `PROJECT-CONTEXT.md`.
 
 Do not hardcode generated WPGB IDs into reusable plugin content. Whether WPGB objects can be created programmatically (without the admin) is an open validation; do not attempt undocumented write routes.

@@ -29,13 +29,13 @@ All six agent files ship with `model: inherit`, so a spawn never fails because a
 | Agent | Recommended model |
 |---|---|
 | `cpt-codebase-analyst` | `composer-2.5-fast` (readonly) |
-| `cpt-figma-analyst` | `gpt-5.6-sol-medium` |
+| `cpt-figma-analyst` | `gpt-5.6-sol-high` |
 | `wst-shortcode-implementer` | `composer-2.5-fast` |
-| `wpgb-specialist` | `claude-sonnet-5-thinking-medium` |
+| `wpgb-specialist` | `claude-sonnet-5-thinking-high` |
 | `cpt-visual-implementer` | `composer-2.5-fast` |
 | `jira-ticket-runner` | `composer-2.5-fast` |
 
-Before the first spawn of a run, the main chat checks whether the recommended slug is available on the account in use. Available: pass the slug at spawn. Not available: spawn with `inherit` and report the deviation transparently in one sentence — no blocker, no silent substitution by a third model. For the two demanding agents (`wpgb-specialist`, `cpt-figma-analyst`), if only a clearly weaker model is available, the main chat says so before the spawn. Premium escalation happens only after one evidenced gate conflict, decided by the main chat.
+Recommended slugs age with the model lineup: when a slug in this table no longer exists on the account, the availability check below falls back to `inherit` — treat a permanently missing slug as a maintenance signal to update this table, not as a runtime problem. Before the first spawn of a run, the main chat checks whether the recommended slug is available on the account in use. Available: pass the slug at spawn. Not available: spawn with `inherit` and report the deviation transparently in one sentence — no blocker, no silent substitution by a third model. For the two demanding agents (`wpgb-specialist`, `cpt-figma-analyst`), if only a clearly weaker model is available, the main chat says so before the spawn. Premium escalation happens only after one evidenced gate conflict, decided by the main chat.
 
 ## Shared Rules
 
