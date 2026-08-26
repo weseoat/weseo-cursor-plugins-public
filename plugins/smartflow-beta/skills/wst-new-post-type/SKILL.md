@@ -68,6 +68,8 @@ The preflight is evidence-first and intentionally short. After `Work type` is cl
 1. `Please send the source brief, Figma link, or reference for this CPT display.`
 2. `Should this CPT have public detail pages? If yes, what URL slug or slug policy should it use?`
 
+When `PROJECT-CONTEXT.md` records a Confluence anchor, re-read the anchored PL page **fresh at preflight start** over the Atlassian MCP and pull only the section relevant to this CPT — the matching task row, module notes, content source, and Figma link — into the work-record draft (`confluence-source` Rule). No anchor, or no usable Atlassian MCP: skip cleanly, record `confluence-source: no anchor` (or `MCP unavailable`) in the draft, and continue from the mirror. Never re-read mid-run; runners receive the distilled extract in their prompt and never call Confluence.
+
 Then inspect project context, existing CPT patterns (templates, ACF JSON groups, rendered markup, `GET /status` for ACF groups and WPGB grids) before asking anything else. Do not ask the maintainer to specify HTML structure, wrapper classes, field names, selectors, spacing, responsive behavior, or interaction details that are visible in the source design or inferable from existing project patterns. Under package orchestration, the `cpt-codebase-analyst` and `cpt-figma-analyst` supply this evidence.
 
 If a detail is not discoverable and a project-default pattern exists, use that assumption in the draft. Ask a follow-up only when the missing answer blocks a safe write: an unknown CPT name, URL slug policy, taxonomy decision, ACF/WPGB reference, or target URL.

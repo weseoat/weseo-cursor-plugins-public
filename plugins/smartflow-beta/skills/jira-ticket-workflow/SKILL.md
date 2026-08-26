@@ -46,7 +46,16 @@ the server only through the commit-and-hand-over flow
      a visual ticket blind against the screenshot.
    - In the diagnosis, state explicitly what each screenshot shows
      (element, page area, viewport if visible) before naming a root cause.
-4. In parallel, start reading the code the user pointed at (file
+4. When `PROJECT-CONTEXT.md` records a Confluence anchor, re-read the
+   anchored PL page fresh over the Atlassian MCP and pull only the
+   section relevant to this ticket — the matching task row (often
+   carrying the same WP-key), its notes, and any per-module Figma link —
+   into the run context (`confluence-source` Rule). No anchor, or no
+   usable Atlassian MCP: skip cleanly, note `confluence-source: no
+   anchor` (or `MCP unavailable`), and continue from the mirror. Never
+   re-read mid-run; the `jira-ticket-runner` receives the distilled
+   extract in its worker prompt and never calls Confluence.
+5. In parallel, start reading the code the user pointed at (file
    references in the message) — do not wait for Jira to explore.
 
 ## 2. Triage and routing

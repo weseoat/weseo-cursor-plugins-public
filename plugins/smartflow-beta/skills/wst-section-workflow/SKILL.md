@@ -51,8 +51,8 @@ Structural ACF database writes are forbidden without exception (`acf-local-json`
 
 ## Workflow at a glance
 
-1. Read `PROJECT-CONTEXT.md`, the project docs layer, and the `acf-local-json` Rule.
-2. Run the Start question block in one compact message; skip any question whose answer is already in project context.
+1. Read `PROJECT-CONTEXT.md`, the project docs layer, and the `acf-local-json` Rule. When `PROJECT-CONTEXT.md` records a Confluence anchor, re-read the anchored PL page **fresh at run start** over the Atlassian MCP and pull only the section relevant to this Section — the matching task row, module notes, and the Section's Figma link — into the work record (`confluence-source` Rule). No anchor, or no usable Atlassian MCP: skip cleanly, record `confluence-source: no anchor` (or `MCP unavailable`) in the work record, and continue from the mirror. Never re-read mid-run; runners receive the distilled extract in their prompt and never call Confluence.
+2. Run the Start question block in one compact message; skip any question whose answer is already in project context or the run-start Confluence extract.
 3. Inspect Figma/source, search similar Sections, identify the work type, and record `Discovery and safety status` in the work record.
 4. If a structural ambiguity remains, run one Structural question block. Otherwise continue.
 5. Announce a short Execution Plan before any repository write.

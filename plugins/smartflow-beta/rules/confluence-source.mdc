@@ -1,0 +1,51 @@
+---
+description: Confluence as the leading project source — anchor the PL "Umsetzung" page in PROJECT-CONTEXT.md, read it at exactly three points with runners offline, extract instead of enforcing a template, and never mirror secrets. Use when anchoring, reading, or mirroring a project's Confluence page.
+alwaysApply: false
+---
+
+# Confluence Source
+
+Use this Rule whenever a project's Confluence page is anchored, read, or mirrored into the local layer. It defines how the SmartFlow workflow treats the project lead's (PL's) Confluence page as the **leading input source** while `PROJECT-CONTEXT.md` and the project `docs/` layer stay the **working layer**: agents work from committed local values, never from live Confluence reads mid-step.
+
+## Anchor Convention
+
+- The project's Confluence link is asked for **once** — in `setup-local-project`, or in the first Skill that needs it when setup never recorded one. After that, no Skill asks again.
+- The anchor is recorded in the Confluence block of `PROJECT-CONTEXT.md`: **page ID, full URL, and the timestamp of the last mirror**. The page ID is in every Confluence URL (`.../pages/<page_id>/<title>`) and is the stable half of the anchor — reads go by ID, so title changes do not break them.
+- One page per project: the PL's "Umsetzung" page (or equivalent central project page). Subpages are reached from there, not anchored separately.
+- If the anchored page cannot be found by ID (moved, deleted, permission change), stop the read, report the drift to the user, and re-anchor only with user confirmation. Never silently guess a replacement page.
+- A project without an anchor is a valid state: every read point below skips cleanly and records `confluence-source: no anchor` in its work record instead of blocking.
+
+## Read Discipline: Exactly Three Read Points
+
+1. **`setup-local-project`:** asks for the link, extracts the page, and mirrors the extract into `PROJECT-CONTEXT.md` (including the anchor itself).
+2. **Work-package start:** `wst-section-workflow`, `wst-new-post-type`, `figma-page-builder`, and `jira-ticket-workflow` re-read the anchored page **fresh at run start** and pull only the section relevant to their work package — the matching task row, module notes, Figma link — into the work record. Not the whole page, and never again mid-run.
+3. **Runners stay offline:** `wst-shortcode-implementer`, `cpt-visual-implementer`, and `jira-ticket-runner` receive the distilled extract in their worker prompt and **never call Confluence themselves**. No MCP dependency in the subagent depth.
+
+Outside these points, the mirror in `PROJECT-CONTEXT.md` is the working basis. A PL edit mid-run must not silently change what the run builds on. When the PL page has changed after setup, the dedicated `sync-project-brief` Skill re-reads the anchored page, shows the diff against the mirror block, and overwrites **only after user confirmation** — never silently, never mid-work.
+
+## Extraction Instead Of Template Enforcement
+
+PL pages are rich, semi-structured working pages — a task table with Jira keys, link collections, prose notes, decision history. No template is imposed on the PL. The agent **extracts**:
+
+- URLs (dev URL, final domain, reference sites), Figma links (global and per module/section), Jira keys, module/section lists, interfaces and content sources, constraints and out-of-scope notes.
+- Every extracted value is mirrored with enough context to trace it back; every gap the page does not answer is marked explicitly as open (`<unresolved: ...>`) in the mirror or work record — never silently assumed.
+
+Two **optional** PL conventions are recognized when present, never required:
+
+- **Status markers as text** at row or note start: `OFFEN:`, `ENTSCHIEDEN (<Datum>):`, `ENTFÄLLT:`. When present, they beat any color-only status; a color-only status (for example "red means unresolved") does not survive extraction and is treated as unknown — mark the item open and say why.
+- **A compact "Für Cursor" header block** (dev URL, final domain, languages, accessibility, main Figma link, Jira parent, interfaces). When present, it is the first extraction target; when absent, the same facts are gathered from the rest of the page.
+
+Extraction reads the page's **current state**; decision chains ("fällt raus → doch → brauchen wir") are resolved to the newest statement, and the ambiguity is flagged when the newest statement is not clearly final.
+
+## Secrets Are Never Mirrored
+
+PL pages sometimes carry credentials in plaintext (API keys, logins). These **never** enter `PROJECT-CONTEXT.md`, work records, worker prompts, commits, or chat output:
+
+- Mirror a placeholder plus pointer instead (for example `DeepL API key: <on the PL page — belongs in .env>`), per the `secrets` Rule: secret values live only in the tracked repo-root `.env`, referenced by variable name.
+- Report the finding to the user once per page: the credential should move to the vault/`.env` and come off the page — agents read these pages automatically, so a page secret is one mirror away from a repo leak.
+
+## MCP Surface
+
+The team standard is the **official Atlassian Rovo MCP** (Cursor marketplace install, OAuth; preflighted by `setup-local-project`). Discover the workspace's Atlassian MCP surface before the first read and map the operations by schema — never guess tool names. Reads used here: get a page by ID (Rovo `getConfluencePage` / community `confluence_get_page`), find a page or subpage (Rovo `searchConfluenceUsingCql` / community `confluence_search`). If no Atlassian MCP is available at a read point, skip the read, record `confluence-source: MCP unavailable` in the work record, and continue from the existing mirror — the read point is an input, not a gate.
+
+This Rule never stores project page IDs, URLs, or extracted values. Concrete values live in `PROJECT-CONTEXT.md` and the project `docs/` layer.

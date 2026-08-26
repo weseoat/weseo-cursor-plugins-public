@@ -79,9 +79,17 @@ forbidden entirely.
    - current ordered FC layouts
    - assigned brand/audience terms
    - global header, booking, menu, and footer behavior
-4. Confirm git status. Do not commit unless the composition changes
+4. When `PROJECT-CONTEXT.md` records a Confluence anchor, re-read the
+   anchored PL page fresh over the Atlassian MCP and pull only the section
+   relevant to this page — the matching task row, page notes, and the
+   page's Figma link — into the run context (`confluence-source` Rule).
+   No anchor, or no usable Atlassian MCP: skip cleanly, note
+   `confluence-source: no anchor` (or `MCP unavailable`), and continue
+   from the mirror. Never re-read mid-run; leaf agents receive the
+   distilled extract in their prompt and never call Confluence.
+5. Confirm git status. Do not commit unless the composition changes
    tracked source; never push (`deploy-and-branches` Rule).
-5. Treat existing page-content replacement as authorized only when the user
+6. Treat existing page-content replacement as authorized only when the user
    clearly asked to rebuild/populate that exact page. Otherwise ask once.
 
 ### 2. Parallel discovery

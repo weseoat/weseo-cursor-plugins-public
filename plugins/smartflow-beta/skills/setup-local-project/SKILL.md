@@ -1,6 +1,6 @@
 ---
 name: setup-local-project
-description: Guided wizard for the complete first setup of a local SmartFlow workspace for a WESEO WordPress/WST project. Use when starting a new project, re-orienting a partially set up local workspace, cloning the wp-content-level repository, naming the folder after the server hostname, filling .env with the application password, configuring the weseo-git-installer deploy to the child theme from the live Confluence guide, creating the read-only FTP user with .ftpaccess, running the REST test, installing the status bridge, exposing post types, taxonomies, ACF field groups, and options pages over REST, configuring Playwright MCP, verifying that Atlassian MCP and Figma MCP are running, or creating PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation.
+description: Guided wizard for the complete first setup of a local SmartFlow workspace for a WESEO WordPress/WST project. Use when starting a new project, re-orienting a partially set up local workspace, cloning the wp-content-level repository, naming the folder after the server hostname, filling .env with the application password, configuring the weseo-git-installer deploy to the child theme from the live Confluence guide, creating the read-only FTP user with .ftpaccess, running the REST test, installing the status bridge, exposing post types, taxonomies, ACF field groups, and options pages over REST, configuring Playwright MCP, verifying that Atlassian MCP (Rovo preflight) and Figma MCP are running, anchoring the project's Confluence page and mirroring its extract into PROJECT-CONTEXT.md, or creating PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation.
 ---
 
 # Setup Local Project
@@ -69,25 +69,40 @@ Expected: a JSON user object whose `capabilities` include `manage_options`. On 4
 
 Record `rest_access: verified` (or `pending: <reason>`) in `PROJECT-CONTEXT.md`.
 
-For the full connection walkthrough (post types, sample content, options pages), run `reference/rest-connection-test.md` — either now for the basic checks, or after Step 9 once the content exposure is complete.
+For the full connection walkthrough (post types, sample content, options pages), run `reference/rest-connection-test.md` — either now for the basic checks, or after Step 10 once the content exposure is complete.
 
-## Step 5: Verify Atlassian MCP
+## Step 5: Verify Atlassian MCP (Rovo Preflight)
 
-The `weseo-git-installer` install walkthrough and its current status live on Confluence and are updated there. The wizard must confirm Atlassian MCP is actually running in this Cursor session before that step — listing it under Settings is not enough.
+The `weseo-git-installer` install walkthrough and its current status live on Confluence and are updated there, and the project's Confluence page is anchored in the next step. The wizard must confirm Atlassian MCP is actually running in this Cursor session before those steps — listing it under Settings is not enough.
 
-Do not write Atlassian credentials, OAuth tokens, or cloud IDs into `.cursor/mcp.json`, `.env`, chat, or `PROJECT-CONTEXT.md`. The official Cursor Atlassian integration authenticates with OAuth. Prefer a **user-level** server (typically `user-atlassian`) so every project workspace inherits it; a project-level server whose name contains `atlassian` is also acceptable. Record the observed server identifier, never secrets.
+The team standard is the **official Atlassian Rovo MCP**, installed from the Cursor marketplace ([cursor.com/marketplace/atlassian](https://cursor.com/marketplace/atlassian)) with an OAuth 2.1 browser flow: no API token, no `mcp.json` editing. Guide a colleague without any Atlassian MCP through exactly that route. A community `mcp-atlassian` server that is already configured and working stays a valid variant — do not tear it down; but never guide a new install toward the token-based community server, and flag an API token sitting in a server's command line as an anti-pattern to correct (secrets belong in env blocks, never in `args`).
 
-1. Probe the MCP catalog for any server whose name contains `atlassian`. Treat `needsAuth`, `error`, and `loading` as not ready. If `needsAuth`, ask the user to complete OAuth under `Settings` -> `Tools & MCP`, then re-probe. If the server is missing, ask the user to add the official Atlassian MCP there (user-level) and restart or reconnect.
-2. When the server is usable, discover the tool schema and run cheap live reads — not writes:
-   - **Confluence (required for this setup):** `confluence_search` with a short query such as `git-installer` (space `Frontend` when the tool allows a space filter). Success is a search response, not a specific page ID. Do not copy page bodies into `PROJECT-CONTEXT.md`.
-   - **Jira:** `jira_search` with a one-result query, or `jira_get_all_projects`.
+Do not write Atlassian credentials, OAuth tokens, or cloud IDs into `.cursor/mcp.json`, `.env`, chat, or `PROJECT-CONTEXT.md`. Prefer a **user-level** server so every project workspace inherits it; a project-level server whose name contains `atlassian` is also acceptable. Record the observed server identifier, never secrets.
+
+1. Probe the MCP catalog for any server whose name contains `atlassian`. Treat `needsAuth`, `error`, and `loading` as not ready. If `needsAuth`, ask the user to complete OAuth under `Settings` -> `Tools & MCP`, then re-probe. If the server is missing, guide the user through the marketplace install + OAuth above, then restart or reconnect.
+2. When the server is usable, discover the tool schema and map the operations by name — the Rovo server (`searchConfluenceUsingCql`, `getConfluencePage`, ...) and the community server (`confluence_search`, `confluence_get_page`, ...) expose different tool names. Then run cheap live reads — not writes:
+   - **Confluence (required for this setup):** a CQL/text search with a short query such as `git-installer` (space `Frontend` when the tool allows a space filter). Success is a search response, not a specific page ID. Do not copy page bodies into `PROJECT-CONTEXT.md` during this health check; the only sanctioned page-content mirror is the controlled extract of Step 6.
+   - **Jira:** a one-result issue search, or a project listing.
 3. Record in `PROJECT-CONTEXT.md`:
    - `atlassian_mcp: ready` when the Confluence search succeeded, plus the server identifier and whether Jira also responded.
    - `atlassian_mcp: pending: <reason>` with the next action when the server is missing, still in `needsAuth`/`error`, or Confluence search failed.
 
-Confluence is the setup-blocking surface: do not continue to the git-installer step while it is unresolved, unless the user consciously records `pending` and accepts that the installer cannot be guided from Confluence. A Jira-only result is not enough. Jira failure with a working Confluence search may be recorded as a note; it does not block the installer step.
+Confluence is the setup-blocking surface: do not continue to the anchor and git-installer steps while it is unresolved, unless the user consciously records `pending` and accepts that the installer cannot be guided from Confluence and the project page cannot be anchored. A Jira-only result is not enough. Jira failure with a working Confluence search may be recorded as a note; it does not block the following steps.
 
-## Step 6: Configure weseo-git-installer From Confluence
+## Step 6: Anchor The Project's Confluence Page And Mirror The Extract
+
+Confluence is the leading input source for project implementation facts (`confluence-source` Rule): the project lead (PL) maintains a central project page — typically the "Umsetzung" page — and the SmartFlow workflow reads it at controlled points. This step creates the anchor and the first mirror.
+
+1. Ask the user once for the project's Confluence link (the PL's central project page). The page ID is in the URL (`.../pages/<page_id>/<title>`).
+   - **No page exists or the user has none:** that is a valid state. Record `confluence_anchor: none` in `PROJECT-CONTEXT.md`; every later read point skips cleanly. Do not block setup.
+2. Fetch the page by ID over the Atlassian MCP and extract per the `confluence-source` Rule: dev URL and final domain, reference sites, Figma links (global and per module/section), Jira keys and the Jira parent task, module/section lists, interfaces and content sources, constraints and out-of-scope notes. Honor the optional PL conventions when present (text status markers `OFFEN:` / `ENTSCHIEDEN (<Datum>):` / `ENTFÄLLT:`, the compact "Für Cursor" header block as the first extraction target). Do not impose a template on the PL; extract what the page offers and mark every gap explicitly as `<unresolved: ...>`.
+3. Write the Confluence block into `PROJECT-CONTEXT.md`: page ID, full URL, mirror timestamp, and the extracted values. This controlled extract mirror is deliberate and sanctioned — it is not the "page bodies" copying that Step 5 forbids: mirror distilled facts, never the raw storage-format body.
+4. **Secrets are never mirrored** (`confluence-source` and `secrets` Rules): a credential found in plaintext on the page becomes a placeholder plus pointer (`<on the PL page — belongs in .env>`), and the wizard reports the finding to the user once — the value belongs in the vault/`.env`, not on a page that agents read automatically.
+5. Record the gate: `confluence_anchor: mirrored` (with the page ID), `none`, or `pending: <reason>`.
+
+After setup, the mirror is refreshed only through the dedicated `sync-project-brief` Skill (diff shown, user confirms); the four work-package Skills re-read the anchored page fresh at their run start per the `confluence-source` Rule.
+
+## Step 7: Configure weseo-git-installer From Confluence
 
 Deployment is push-based: the user pushes to Bitbucket, and the `weseo-git-installer` WordPress plugin delivers only the child theme subdirectory to the server. The install and configure UI, and the current status of that process, live on Confluence. **Do not bake a page ID or a parallel install recipe into this Skill.** Find the current guide with Atlassian MCP and follow that page.
 
@@ -109,7 +124,7 @@ Record in `PROJECT-CONTEXT.md`: deploy path `weseo-git-installer`, the deploy br
 
 Go-live: follow the go-live section of the found page as currently written. Record that as a pending go-live step, not as a setup task.
 
-## Step 7: Create The Read-Only FTP User With `.ftpaccess`
+## Step 8: Create The Read-Only FTP User With `.ftpaccess`
 
 Server read access (inspecting served files, parent theme, plugin templates) runs over a dedicated FTP user that is scoped to `wp-content` and hard-limited to read.
 
@@ -136,13 +151,13 @@ Verify both directions before recording the gate:
 
 Record `ftp_read_access: verified read-only` (or `pending: <reason>`) plus the FTP host and variable names in `PROJECT-CONTEXT.md`.
 
-## Step 8: Install The Status Bridge
+## Step 9: Install The Status Bridge
 
-Run the bundled `install-status-bridge` Skill. It installs the versioned managed block in the child theme's `js-snippets.php`, wires the deployed-commit contract from Step 6, commits with the SmartFlow trailer, and makes the hard stop so the user pushes and the git installer deploys.
+Run the bundled `install-status-bridge` Skill. It installs the versioned managed block in the child theme's `js-snippets.php`, wires the deployed-commit contract from Step 7, commits with the SmartFlow trailer, and makes the hard stop so the user pushes and the git installer deploys.
 
 After the user confirms the push and the deploy ran, verify over `GET <site-url>/wp-json/wso/v1/status` per the `status-bridge` Rule: `bridge_version` equals `WSO_BRIDGE_VERSION` from the bundled template, and `deployed_commit` equals the local `git rev-parse HEAD`. This doubles as the first end-to-end test of the whole deploy chain: commit -> user push -> git installer -> bridge.
 
-## Step 9: Expose WordPress Content Over REST
+## Step 10: Expose WordPress Content Over REST
 
 Server write access runs entirely over the REST API, so the project's content types and options pages must actually be reachable there. Absorbed from the legacy `setup-wordpress-cursor` skill.
 
@@ -155,11 +170,11 @@ GET <site-url>/wp-json/wso/v1/options/wso-website-settings
 ```
 
    - **Reachable:** confirm to the user and continue.
-   - **404 or error:** install the endpoints from `reference/acf-options-rest-endpoints.php` into the child theme's `js-snippets.php` — read the existing file first and match its style, adapt the `$options_pages` map to the project's actual options pages, and respect the `file-edit-boundary` Rule (never `functions.php`). This is tracked source: commit with the SmartFlow trailer and make the hard stop so the user pushes and the deploy delivers it (per the `deploy-and-branches` Rule, bundle it with the Step 8 bridge commit when both run in one sitting). Re-probe after the bridge confirms the deployed commit. As a fallback (no `js-snippets.php`, or the project manages snippets in the admin), hand the code to the user for the Code Snippets plugin instead.
+   - **404 or error:** install the endpoints from `reference/acf-options-rest-endpoints.php` into the child theme's `js-snippets.php` — read the existing file first and match its style, adapt the `$options_pages` map to the project's actual options pages, and respect the `file-edit-boundary` Rule (never `functions.php`). This is tracked source: commit with the SmartFlow trailer and make the hard stop so the user pushes and the deploy delivers it (per the `deploy-and-branches` Rule, bundle it with the Step 9 bridge commit when both run in one sitting). Re-probe after the bridge confirms the deployed commit. As a fallback (no `js-snippets.php`, or the project manages snippets in the admin), hand the code to the user for the Code Snippets plugin instead.
 
 4. Verify with the options-pages part of `reference/rest-connection-test.md` and record `rest_exposure: verified` (or `pending: <reason>` with the open post types or options slugs) in `PROJECT-CONTEXT.md`.
 
-## Step 10: Configure Playwright MCP
+## Step 11: Configure Playwright MCP
 
 Playwright QA runs locally against the target URLs, so the local workspace needs Playwright MCP.
 
@@ -182,7 +197,7 @@ Playwright QA runs locally against the target URLs, so the local workspace needs
 
 `.cursor/mcp.json` stays untracked; never add credentials, cookies, or session tokens to it or to tracked examples. Record `playwright_mcp: ready` (or `pending: <reason>` with next action) in `PROJECT-CONTEXT.md`.
 
-## Step 11: Verify Figma MCP
+## Step 12: Verify Figma MCP
 
 Section and CPT work reads Figma through the Figma MCP, not through the browser. The wizard must check that the server is actually running in this Cursor session — listing it under Settings is not enough.
 
@@ -196,7 +211,7 @@ Do not write Figma credentials, OAuth tokens, or personal access tokens into `.c
 
 Do not declare setup complete while this gate is unresolved unless the user chooses to record it as `pending`.
 
-## Step 12: Fill PROJECT-CONTEXT.md
+## Step 13: Fill PROJECT-CONTEXT.md
 
 `PROJECT-CONTEXT.md` at the repository root is the project's non-secret context contract; later SmartFlow work reads it first. Create it if missing, update stale values if present. At minimum record:
 
@@ -205,10 +220,11 @@ Do not declare setup complete while this gate is unresolved unless the user choo
 - Child theme path and WST source path (`wp-content/themes/<child-theme>/smart-template-builder/`).
 - Working branch and deploy branch; deploy path `weseo-git-installer` with target directory and Bitbucket registration status; the pending go-live deregistration step; `git_installer_guide` (Confluence page ID, URL, and title as fetched).
 - Bridge base URL (`<site-url>/wp-json/wso/v1/`), installed bridge version, and the deployed-commit write mechanism (or its open item).
+- The Confluence block from Step 6: page ID, URL, mirror timestamp, and the extracted values (or `confluence_anchor: none`).
 - Credential environment variable names (`WSO_BRIDGE_USER`, `WSO_BRIDGE_APP_PASSWORD`, `WSO_FTP_USER`, `WSO_FTP_PASSWORD`) with purposes — names only, never values.
 - FTP host and the verified read-only status.
 - REST exposure state: post types and taxonomies with `show_in_rest`, REST-exposed ACF field groups, and the reachable options-page slugs under `wso/v1/options/` (or the open item).
-- `rest_access`, `rest_exposure`, `ftp_read_access`, `playwright_mcp`, `atlassian_mcp`, and `figma_mcp` gate statuses.
+- `rest_access`, `rest_exposure`, `ftp_read_access`, `playwright_mcp`, `atlassian_mcp`, `confluence_anchor`, and `figma_mcp` gate statuses.
 - Location of the project `docs/` layer and `tmp/` policy (gitignored scratch space).
 - Setup completion status per step (`done`, `pending: <reason>`, `skipped: <reason>`).
 
@@ -223,6 +239,7 @@ Walk the gates once more and confirm each has a recorded outcome:
 - [ ] `.env` filled by the user; variable names recorded, no values leaked.
 - [ ] REST test passed with `manage_options`.
 - [ ] Atlassian MCP running: server identifier recorded, Confluence search succeeded.
+- [ ] Confluence anchor resolved: page anchored and extract mirrored into `PROJECT-CONTEXT.md`, or `confluence_anchor: none` consciously recorded.
 - [ ] `weseo-git-installer` configured from the Confluence guide found this run (repo, deploy branch, child theme target, Bitbucket registration); deployed-commit mechanism recorded.
 - [ ] Read-only FTP user verified: read works, write denied by `.ftpaccess`.
 - [ ] Status bridge installed and bridge-verified after the first deploy (`bridge_version` and `deployed_commit` match).

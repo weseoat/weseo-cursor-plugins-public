@@ -41,6 +41,31 @@ Record only non-secret coordinates and the approved local methods. Real tokens, 
 | Approved temp path outside webroot | `<path-outside-webroot>` | Used for temporary scripts, dumps, exports, scratch files. |
 | Database dump policy | Outside webroot, untracked, removed after use | Never store dumps in the WordPress root or in a tracked repo path. |
 
+## Confluence Project Source
+
+The anchored PL page is the leading input source per the `confluence-source` Rule; this block is the local mirror. It is written at setup, refreshed only through the `sync-project-brief` Skill (diff shown, user confirms), and read fresh by the work-package Skills at run start. Never mirror secrets here — placeholders plus pointer only. If the project has no Confluence page, record `confluence_anchor: none` and remove the mirror rows.
+
+| Field | Value |
+|-------|-------|
+| Page ID | `<confluence-page-id>` |
+| Page URL | `<confluence-page-url>` |
+| Last mirror | `<iso-timestamp>` |
+| Anchor gate | `<mirrored-or-none-or-pending-reason>` |
+
+### Mirrored Extract
+
+Distilled facts from the anchored page. Mark every gap the page does not answer as `<unresolved: ...>`.
+
+| Fact | Value | Source note |
+|------|-------|-------------|
+| Dev URL / final domain | `<value>` | `<page-section-or-fuer-cursor-block>` |
+| Main Figma link | `<value>` | `<source-note>` |
+| Jira parent task | `<value>` | `<source-note>` |
+| Languages / accessibility | `<value>` | `<source-note>` |
+| Interfaces / content sources | `<value>` | `<source-note>` |
+| Modules / sections | `<value-or-list>` | `<source-note>` |
+| Constraints / out of scope | `<value>` | `<source-note>` |
+
 ## Theme Stack
 
 | Area | Value |

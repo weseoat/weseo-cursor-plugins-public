@@ -20,7 +20,7 @@ Use this Rule when delegating SmartFlow WST/CPT package work or Jira batch ticke
 
 ## Deliberately Not Routed
 
-`content`, `wp-media-import`, `grill-me`, the setup and migration wizards (`setup-local-project`, `setup-acf-local-json`, `migrate-ssh-to-local`, `install-status-bridge`, `section-preview-harness`), and the pure reference Skills (`wst-shortcodes`, `smarttags`, `wst-nested-shortcodes`, `headline-filling`) deliberately run in the main chat: no bundled agent matches their work, they contain interactive hard stops, or they are lookup material rather than execution runs. This scope decision is intentional, not a gap.
+`content`, `wp-media-import`, `grill-me`, `smartflow-feedback`, `sync-project-brief`, the setup and migration wizards (`setup-local-project`, `setup-acf-local-json`, `migrate-ssh-to-local`, `install-status-bridge`, `section-preview-harness`), and the pure reference Skills (`wst-shortcodes`, `smarttags`, `wst-nested-shortcodes`, `headline-filling`) deliberately run in the main chat: no bundled agent matches their work, they contain interactive hard stops, or they are lookup material rather than execution runs. `smartflow-feedback` needs the session context for autofill and the reporter for confirmations; `sync-project-brief` lives on the interactive diff review — and per the `confluence-source` Rule, runners never call Confluence themselves. This scope decision is intentional, not a gap.
 
 ## Model Routing
 
