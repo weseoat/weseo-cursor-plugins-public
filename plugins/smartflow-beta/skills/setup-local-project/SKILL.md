@@ -1,13 +1,13 @@
 ---
 name: setup-local-project
-description: Guided wizard for the complete first setup of a local SmartFlow workspace for a WESEO WordPress/WST project. Use when starting a new project, re-orienting a partially set up local workspace, cloning the wp-content-level repository, naming the folder after the server hostname, filling .env with the application password, configuring the weseo-git-installer deploy to the child theme from the live Confluence guide, creating the read-only FTP user with .ftpaccess, running the REST test, installing the status bridge, exposing post types, taxonomies, ACF field groups, and options pages over REST, configuring Playwright MCP, verifying that Atlassian MCP (Rovo preflight) and Figma MCP are running, anchoring the project's Confluence page and mirroring its extract into PROJECT-CONTEXT.md, recording which master installation the project was cloned from, writing the css_setup pending marker for the later project-css-setup pass, or creating PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation.
+description: Guided wizard for the complete first setup of a local SmartFlow workspace for a WESEO WordPress/WST project. Use when starting a new project, re-orienting a partially set up local workspace, cloning the wp-content-level repository, naming the folder after the server hostname, filling .env with the application password, configuring the weseo-git-installer deploy to the child theme from the live Confluence guide, creating the read-only FTP user with .ftpaccess, running the REST test, installing the status bridge, exposing post types, taxonomies, ACF field groups, and options pages over REST, configuring Playwright MCP, verifying that Atlassian MCP (Rovo preflight) and Figma MCP are running, anchoring the project's Confluence page and mirroring its extract into PROJECT-CONTEXT.md, recording the current Motherboard hostname from the Erstinstallation Confluence guide as Cloned from, writing the css_setup pending marker for the later project-css-setup pass, or creating PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation.
 ---
 
 # Setup Local Project
 
 Run this Skill as a guided wizard for the first setup of a WESEO WordPress/WST project in the SmartFlow model: one local Cursor workspace on the developer's machine, opened on a wp-content-level repository that contains essentially the child theme. There is no Remote-SSH workspace and no server shell; the server is reached only through the deploy path (push by the user, delivery by `weseo-git-installer`), the status bridge (`wso/v1`), the WordPress REST API, and a read-only FTP user.
 
-Every WESEO project starts as a clone of a fully loaded master WordPress installation — all Sections present, a few basic CPTs, and the master's CSS values. There is no greenfield project. The wizard records which master installation the project was cloned from, and it records that the theme's CSS values are still the master's: the `css_setup: pending` marker written at the end points to the bundled `project-css-setup` Skill, which reconciles the values with this project's design shortly before the first Section is built.
+Every WESEO project starts as a clone of a fully loaded master WordPress installation — the team name is **Motherboard** — with all Sections present, a few basic CPTs, and the master's CSS values. There is no greenfield project. The wizard records the current Motherboard hostname from the team's Erstinstallation Confluence page as `Cloned from`; it does not ask the user for a master-install name. It also records that the theme's CSS values are still the master's: the `css_setup: pending` marker written at the end points to the bundled `project-css-setup` Skill, which reconciles the values with this project's design shortly before the first Section is built.
 
 The wizard must work from any starting state. Re-read `PROJECT-CONTEXT.md` on every invocation, find the first gate whose status is missing, `pending`, or unverified, and resume there. Setup is complete only when every gate in the final checklist has a recorded outcome in `PROJECT-CONTEXT.md`.
 
@@ -20,10 +20,11 @@ Ask the user or the maintainer for:
 - The Bitbucket repository of the project (a fork of `website-repo-structure-template` prepared for this project) and the deploy branch that `weseo-git-installer` will watch.
 - The server hostname of the target WordPress environment (the exact host string, for example `<www-host>.<server>.example`).
 - The target environment base URL `<site-url>` and the child theme name.
-- Which master installation the project was cloned from (the master's identifier as the team names it — a project value, recorded in `PROJECT-CONTEXT.md`, never baked into the plugin).
 - Access to the WordPress admin (to create the application password and configure `weseo-git-installer`) and to the hosting panel (to create the FTP user).
 
-Do not invent repository names, hostnames, URLs, branches, or theme names. If a value is unknown, stop and ask.
+The Motherboard hostname is not a user input. After Atlassian MCP is ready, read it from the current Erstinstallation Confluence page (same locate-the-guide pattern as Step 7) and record it as `Cloned from`. Never ask the user for a master-install name. Do not bake a page ID or a Motherboard hostname into this Skill.
+
+Do not invent repository names, hostnames, URLs, branches, theme names, or Motherboard hostnames. If a value is unknown, stop and ask — except the Motherboard hostname, which comes from Erstinstallation, not from the user.
 
 ## Step 1: Clone The Repository At wp-content Level
 
@@ -219,11 +220,16 @@ Do not declare setup complete while this gate is unresolved unless the user choo
 `PROJECT-CONTEXT.md` at the repository root is the project's non-secret context contract; later SmartFlow work reads it first. Create it if missing, update stale values if present. At minimum record:
 
 - Project name, live URL, and dev/staging URL.
-- `Cloned from: <master-install>` — the master installation this project was cloned from (clone model).
+- `Cloned from: <motherboard-hostname>` — the current Motherboard this project's clone model comes from. **Do not ask the user for this name.** User-facing German uses "Motherboard", never "Master-Install". Read it from the team's Erstinstallation Confluence page, same locate-the-guide pattern as Step 7:
+  1. Locate the page: if `PROJECT-CONTEXT.md` already records an `erstinstallation_guide` page ID, try that ID first. Otherwise — and whenever that ID 404s — `confluence_search` in space `Frontend` for `Erstinstallation`. Prefer the live page whose title is exactly `Erstinstallation`. Skip backup/legacy titles (`ALT Erstinstallation` and similar). One clear hit: `confluence_get_page` on that ID. Several plausible live hits: list title + URL in German and ask which one to use. Do not guess. No hit: stop and ask the user for the current Confluence URL of the Erstinstallation guide — still do not ask for a free-form master-install name.
+  2. Extract the clone-source hostname from the WESEO Cloner / Motherboard-clone section of **that** page (the host of the clone-menu URL). That hostname is the identifier.
+  3. Record `Cloned from` as that hostname, and `erstinstallation_guide` as the page ID, URL, and title **as found this run**.
+  4. If Atlassian MCP is still `pending`, record `Cloned from: pending: Erstinstallation page not readable` and continue. Do not fall back to asking the user for a name.
+  Extract only the hostname. Credentials on that page stay on the page (`secrets` Rule). Communicate the lookup in German as **Was passiert** / **Warum** / **Du musst: Nichts tun**.
 - The CSS-values marker `css_setup: pending`, with the pointer that the bundled `project-css-setup` Skill should run shortly before the first Section (it reconciles the master's CSS values with this project's design and flips the marker to `reconciled (<date>)`). Setup does not run that pass — at setup time the Figma design is often not final.
 - Server hostname (equals the local folder name) and the reason for the naming (DevTools Local Overrides).
 - Child theme path and WST source path (`wp-content/themes/<child-theme>/smart-template-builder/`).
-- Working branch and deploy branch; deploy path `weseo-git-installer` with target directory and Bitbucket registration status; the pending go-live deregistration step; `git_installer_guide` (Confluence page ID, URL, and title as fetched).
+- Working branch and deploy branch; deploy path `weseo-git-installer` with target directory and Bitbucket registration status; the pending go-live deregistration step; `git_installer_guide` and `erstinstallation_guide` (Confluence page ID, URL, and title as fetched).
 - Bridge base URL (`<site-url>/wp-json/wso/v1/`), installed bridge version, and the deployed-commit write mechanism (or its open item).
 - The Confluence block from Step 6: page ID, URL, mirror timestamp, and the extracted values (or `confluence_anchor: none`).
 - Credential environment variable names (`WSO_BRIDGE_USER`, `WSO_BRIDGE_APP_PASSWORD`, `WSO_FTP_USER`, `WSO_FTP_PASSWORD`) with purposes — names only, never values.
@@ -251,7 +257,7 @@ Walk the gates once more and confirm each has a recorded outcome:
 - [ ] REST exposure done: relevant post types, taxonomies, and ACF field groups reachable over REST; options-page endpoints probed and installed if needed.
 - [ ] Playwright MCP ready, verification loop done.
 - [ ] Figma MCP running: server identifier recorded, `whoami` succeeded.
-- [ ] `Cloned from` recorded and the `css_setup: pending` marker written, with the `project-css-setup` pointer for the pass shortly before the first Section.
+- [ ] `Cloned from` recorded from the current Motherboard hostname on the Erstinstallation Confluence page (not user-supplied); `css_setup: pending` marker written, with the `project-css-setup` pointer for the pass shortly before the first Section.
 - [ ] `PROJECT-CONTEXT.md` complete, including deploy branch and bridge version.
 
 If a required gate is unresolved, ask the user whether to fix it now, consciously record it as `pending` with reason and next action, or stop. Do not declare setup complete while required gates are unresolved. End with a short German summary: what the project is ready for now, and which points remain open.

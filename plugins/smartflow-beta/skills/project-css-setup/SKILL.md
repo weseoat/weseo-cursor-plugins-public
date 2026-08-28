@@ -39,7 +39,7 @@ Blocks are individually completable: an unfinished color topic does not block fi
 
 Read before any value work:
 
-- `PROJECT-CONTEXT.md`: the `css_setup` marker and block statuses, `Cloned from` (the master installation), theme tokens, container widths, breakpoints and QA viewport rungs, rem scale and per-band rem bases, style paths and loader, working branch, bridge base URL and credential env var names.
+- `PROJECT-CONTEXT.md`: the `css_setup` marker and block statuses, `Cloned from` (the Motherboard hostname from Erstinstallation), theme tokens, container widths, breakpoints and QA viewport rungs, rem scale and per-band rem bases, style paths and loader, working branch, bridge base URL and credential env var names.
 - The project's Figma design: the desktop frames (1920 anchor) and the mobile frames (375 anchor). If the design is not final or not available, stop — record `Offen` with the reason; running this pass against a draft design produces values that will be re-litigated.
 - The project docs layer (`docs/sections/`, `docs/cpt/`, per `auto-docs`/`cpt-docs`): work records with CSS hooks and used tokens — the primary source for the impact map.
 - The gating Rules: `css-guideline` (proof modes, tokens, selectors), `figma-to-code`, `frontend-section-qa-tablet-band` (the viewport ladder shape), `playwright-browser-claim` (when the project runs parallel Playwright servers).

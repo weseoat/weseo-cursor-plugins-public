@@ -16,10 +16,10 @@ This file is the project-local source of truth for site-specific SmartFlow facts
 | Repository | `<repo-name>` |
 | Default branch | `<branch-name>` |
 | Deployment path | `<deployment-method>` |
-| Cloned from | `<master-install>` |
+| Cloned from | `<motherboard-hostname>` |
 | css_setup | `pending` |
 
-Every project starts as a clone of a fully loaded master installation, so the theme initially carries the master's CSS values. `setup-local-project` records `Cloned from` and writes `css_setup: pending`; the `project-css-setup` Skill reconciles the values with this project's design and flips the marker to `reconciled (<date>)`. Per-block status for that pass (values: `pending | in-progress | done (<date>) | skipped: <reason>`):
+Every project starts as a clone of a fully loaded master installation (team name: Motherboard), so the theme initially carries the master's CSS values. `setup-local-project` reads the current Motherboard hostname from the team's Erstinstallation Confluence page and writes it as `Cloned from` — it does not ask the user for a name — then writes `css_setup: pending`; the `project-css-setup` Skill reconciles the values with this project's design and flips the marker to `reconciled (<date>)`. Per-block status for that pass (values: `pending | in-progress | done (<date>) | skipped: <reason>`):
 
 ```text
 css_setup_widths: pending
