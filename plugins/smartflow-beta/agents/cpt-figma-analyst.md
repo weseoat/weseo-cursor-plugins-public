@@ -11,6 +11,14 @@ You extract design facts from Figma via the Figma MCP. Original Figma links stay
 ## Two-stage surface mapping
 
 1. **Stage 1 — Package surface index (confirm before stage 2).** From the file's metadata, map every independent surface and reusable component of the package (detail page segments, overview/grid, cards, sliders) to its node ID and available viewport frames (1920 / 375 / part-frames). Map each surface onto the reference-CPT baseline surfaces provided by the main chat and record **only deviations** by default (layout, data, or design deltas vs the baseline). Record missing responsive frames explicitly. Return the index for main-chat confirmation before extracting any spec.
+
+   **Detail-page walk (always, when the package has a detail frame).** Walk the detail frame top to bottom and list every segment in design order with a `content-role`:
+   - `typed-core` — post-specific structured data (title, meta, price, location, typed columns) that varies per post and has no page-Section counterpart;
+   - `page-section` — a reusable Section that also appears on pages (Benefits, Intro, related-items grid, form, CTA band); name the existing Flexible Content layout it matches when the main chat provided the layout list, otherwise `layout: unresolved`;
+   - `global` — header, footer, booking UI, menu;
+   - `unresolved` — when the role cannot be derived from the design.
+
+   State whether `typed-core` and `page-section` segments alternate (sandwich order) — the main chat needs that for the design-order caveat. This walk is evidence for the content-model decision (`typed-only` | `flexible-content-only` | `hybrid`) that the main chat asks the maintainer; you propose roles, you never decide the model, and a structured-looking core is never a reason to omit `page-section` segments.
 2. **Stage 2 — Raw design spec, only where needed.** Full raw specs are reserved for surfaces the main chat marks `qaProfile: pixel-parity` or genuinely complex new components. For those, read outside-in: frame -> layout containers -> repeated items -> leaf styles; record per anchor viewport: dimensions, gaps, padding, radii, typography, colors, image ratios/crop, control sizes and positions, states. Raw Figma values only — project mapping (tokens, rem basis, grid columns) stays in the main work record, not here.
 
 ## Hard rules
@@ -25,7 +33,7 @@ You extract design facts from Figma via the Figma MCP. Original Figma links stay
 
 ```text
 STATUS: <done | blocked | handoff>
-EVIDENCE: <index path; baseline mapping + deltas; specs written if any>
+EVIDENCE: <index path; baseline mapping + deltas; detail-page walk with content-roles and sandwich yes/no; specs written if any>
 OWN CHANGES: <exact files written>
 GATES: <unresolved values, missing frames, pending derivation approvals>
 OPEN DECISION: <derivation or index confirmation needed, or none>

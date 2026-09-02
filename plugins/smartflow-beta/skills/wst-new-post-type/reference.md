@@ -9,6 +9,7 @@ This reference is intentionally generic. Project-specific CPT names, rewrite slu
 Use these defaults only as starting points during the preflight:
 
 - Prefer a non-detail CPT unless the brief explicitly needs public single pages.
+- There is no default content model. When detail pages exist or the design shows page Sections around the CPT content, the maintainer picks `typed-only`, `flexible-content-only`, or `hybrid` from the analysts' evidence (see below); the only value the Skill records on its own is `not-applicable` for CPTs without detail pages and without page Sections.
 - Prefer core post title, featured image, editor, excerpt, and taxonomy terms before duplicating data in ACF fields.
 - Add taxonomy only when it has a clear filtering, grouping, card-label, archive, or editor-organization purpose.
 - Prepare WP Grid Builder card/grid apply-specs only when the display target uses WPGB.
@@ -23,6 +24,60 @@ Use these defaults only as starting points during the preflight:
 | `existing-cpt-remodel` | Preserve existing structure by default. No new registration, taxonomy, field group, WPGB, template, CSS, or style loader artifacts unless the confirmed work record requires them. |
 | `visual-only` | No structural work. Route to `cpt-frontend-qa`, with `frontend-section-qa` noted when the visible change is Section-level. |
 | `unclear` | Stop and ask before any write or read-only audit beyond project context. |
+
+## Content models
+
+The `Content model` decides whether a CPT with detail pages carries page-builder Sections on the post. It is asked verbatim in the preflight (question 3 in the Skill) and answered by the maintainer, never defaulted:
+
+| Content model | ACF group | Single partial | Smart Template include | Use when |
+| --- | --- | --- | --- | --- |
+| `typed-only` | typed `wso_<resource>_*` fields only | yes, renders everything | `post-types/<resource>/singles/<resource>-single.php` | The design is a closed, structured detail with no page Sections around it. |
+| `flexible-content-only` | clone of `[TMPL] Flexible Inhalte` (plus the Intro clone where the project has it); no typed detail fields | none | `flexible-content.php` | Editors compose each detail from the same Sections as pages — the reference-CPT pattern. |
+| `hybrid` | typed fields **and** the `[TMPL] Flexible Inhalte` clone | yes, typed core, then the FC include as a sibling | `post-types/<resource>/singles/<resource>-single.php` | A structured core (hero, meta, columns) plus shared page Sections (Benefits, grid, form) on the same detail. |
+| `not-applicable` | typed fields as needed | none | none | No detail pages and no page Sections around the CPT content. |
+
+Evidence the decision is made on (delivered by the analysts, see the Skill's preflight):
+
+- The reference CPT's content model: does its ACF group carry the `[TMPL] Flexible Inhalte` clone? Clone field name and clone group key as read from this install.
+- The ordered detail-page walk from the design: each segment with a `content-role` of `typed-core`, `page-section` (matched to an existing Flexible Content layout by name when possible), `global`, or `unresolved`.
+- Whether typed and page-section segments alternate (design-order caveat).
+
+The Smart Template's own Flexible Content stays empty in every model; the Smart Template is only the top-level code-editor include. Page Sections live in the clone on the CPT post.
+
+### Flexible Content clone field (hybrid, flexible-content-only)
+
+Added to the CPT's own JSON group, after the typed fields (or as the only content field for `flexible-content-only`):
+
+```json
+{
+    "key": "field_<unique>_<resource>_content",
+    "label": "<content-label>",
+    "name": "wso_<resource>_content",
+    "type": "clone",
+    "clone": [
+        "<key-of-the-project-[TMPL]-Flexible-Inhalte-group>"
+    ],
+    "display": "seamless",
+    "layout": "block",
+    "prefix_label": 0,
+    "prefix_name": 1
+}
+```
+
+- The clone group key is read from this install (the reference CPT's clone field is the precedent), never copied from another project or from documentation.
+- `prefix_name: 1` makes the cloned Flexible Content resolve as `wso_<resource>_content_<clone-field-name>` — the same shape as the reference CPT's clone. `flexible-content.php` resolves that prefix the same way it does for the reference CPT; no template change is needed for a new CPT.
+- Fresh `field_` key, additive change. On an `existing-cpt-remodel` the clone is added next to the saved fields; already-saved unprefixed field names stay as they are (renaming them is a data migration with an explicit user decision).
+
+### Render order (hybrid)
+
+```php
+<main class="wso-<resource>-single">
+  ... typed core ...
+</main>
+[wst_include template="flexible-content.php"]
+```
+
+The FC include is a sibling after the CPT wrapper, not nested inside it. One FC field has one insertion point: when the design sandwiches typed blocks and page Sections (Hero → Benefits → typed columns → Form → related grid), record the limitation in the work record — the default is typed core first, then the FC output. No second FC field and no split of the typed template unless the maintainer explicitly asks.
 
 ## Apply-spec discipline
 
@@ -212,9 +267,15 @@ Smart Template apply-spec: single view for wso_<resource>
 
    [wst_include template="post-types/<resource>/singles/<resource>-single.php"]
 
+   (Content model flexible-content-only: the one include is
+   [wst_include template="flexible-content.php"] instead.)
+
 After applying: I verify the single URL renders the partial
-(.wso-<resource>-single present in the served markup).
+(.wso-<resource>-single present in the served markup; for hybrid also
+the Flexible Content output after the wrapper).
 ```
+
+"Flexible Content stays empty" refers to the Smart Template post. For `hybrid` and `flexible-content-only` the page Sections are entered on the CPT post in its `wso_<resource>_content` clone and rendered by `flexible-content.php` from the include.
 
 Verification notes:
 
@@ -233,6 +294,7 @@ Fill this during the `existing-cpt-remodel` preflight before any write:
 | CPT registration | Registered post type, labels, supports, rewrite, archive, search behavior, REST/admin visibility. |
 | Taxonomy | Taxonomy name, hierarchy, object type binding, public archive behavior, rewrite behavior. |
 | ACF | Field group file, field names, field keys, location rules, field ownership. |
+| Content model | The existing `typed-only` / `flexible-content-only` / `hybrid` shape and the FC clone field when present. A typed-only CPT whose design shows page Sections is a flagged gap with a `hybrid` proposal, not a hardcoded include. |
 | WPGB | Grid ID, card ID, source settings, selected card, filters, pagination, carousel settings. |
 | Templates | Card, archive/grid, carousel/filter, Section integration, and optional single template paths. |
 | Selectors | Card, archive/grid, filter, carousel, single, and integration selectors used by templates, JS, WPGB behavior, CSS, or tests. |
@@ -275,6 +337,8 @@ Work type / preflight gate status / deploy state (commit, bridge verification) /
 
 ## Identity and decisions
 Registered post type, labels, admin visibility, detail-page decision (URL slug or explicit no),
+Content model: typed-only | flexible-content-only | hybrid | not-applicable (with the analysts'
+segment evidence, FC clone field name + clone group key, design-order limitation if any),
 archive/search behavior, taxonomy decision (wso_tax_* or explicit no), display target
 
 ## Apply-specs
@@ -282,10 +346,11 @@ CPT UI settings (applied yes/no), taxonomy settings + fixed terms, WPGB spec + g
 Smart Template single assignment (post ID, applied yes/no) when detail pages exist
 
 ## ACF
-ACF JSON group file, field names, unresolved field questions
+ACF JSON group file, field names, FC clone field (hybrid / flexible-content-only), unresolved field questions
 
 ## Templates
-Card / archive-grid integration / optional single / optional Section integration paths
+Card / archive-grid integration / optional single (with the flexible-content.php include for hybrid) /
+optional Section integration paths
 
 ## Selectors and CSS
 Card, archive/grid, single, integration selectors; selectors to preserve; CSS path; CSS status
@@ -298,4 +363,4 @@ Desktop, tablet, mobile, content variation, filtering, linking, interaction
 ## QA notes / known risks / open questions
 ```
 
-Stop instead of guessing when the record lacks blocking values such as CPT names, rewrite slugs, taxonomy decisions, field ownership, WPGB IDs, target URLs, stable selectors, template paths, or expected visible behavior.
+Stop instead of guessing when the record lacks blocking values such as CPT names, rewrite slugs, the content model, taxonomy decisions, field ownership, WPGB IDs, target URLs, stable selectors, template paths, or expected visible behavior.

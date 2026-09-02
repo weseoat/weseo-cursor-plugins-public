@@ -1,6 +1,6 @@
 ---
 name: wst-new-post-type
-description: Plan, classify, and execute WST Custom Post Type work in the local SmartFlow workspace. Use for any new CPT foundation, existing CPT remodel, CPT/WPGB/card preflight, taxonomy or ACF CPT changes, optional single templates, or the CPT work record. Templates and ACF Local JSON field groups are authored as tracked source and reach the server through the bundled deploy pass (field definitions go live after the human sync in the admin); CPT UI, WPGB, and Smart Template single-assignment configuration are prepared as exact apply-specs for the user (CPT detail pages render only through the Smart Template assignment, never through the WordPress template hierarchy). CPT visual-only changes route to the bundled cpt-frontend-qa Skill.
+description: Plan, classify, and execute WST Custom Post Type work in the local SmartFlow workspace. Use for any new CPT foundation, existing CPT remodel, CPT/WPGB/card preflight, taxonomy or ACF CPT changes, optional single templates, or the CPT work record. Templates and ACF Local JSON field groups are authored as tracked source and reach the server through the bundled deploy pass (field definitions go live after the human sync in the admin); CPT UI, WPGB, and Smart Template single-assignment configuration are prepared as exact apply-specs for the user (CPT detail pages render only through the Smart Template assignment, never through the WordPress template hierarchy). For CPTs with detail pages the preflight resolves the content model (typed-only | flexible-content-only | hybrid) with the maintainer from analyst evidence before any write. CPT visual-only changes route to the bundled cpt-frontend-qa Skill.
 ---
 
 # WST New Post Type
@@ -34,7 +34,7 @@ Do not perform any write operation before the CPT preflight has produced a concr
 
 1. Classify the request into a `Work type`.
 2. Immediately ask for the source brief, Figma link, or display requirement for the CPT and whether public detail pages are required.
-3. Run the preflight (below) to produce the work-record draft in the project docs layer.
+3. Run the preflight (below) to produce the work-record draft in the project docs layer; when detail pages exist or the design shows page Sections around the CPT content, the preflight also resolves the `Content model` (`typed-only` | `flexible-content-only` | `hybrid`) with the maintainer — never by default.
 4. For `new-cpt-foundation` and confirmed `existing-cpt-remodel`, perform only the explicitly approved steps.
 5. For `visual-only`, route to `cpt-frontend-qa` without structural work.
 6. Bundle everything deploy-needing into one pass; hand registration and WPGB apply-specs to the user; verify over the bridge and the rendered site.
@@ -68,18 +68,46 @@ The preflight is evidence-first and intentionally short. After `Work type` is cl
 
 1. `Please send the source brief, Figma link, or reference for this CPT display.`
 2. `Should this CPT have public detail pages? If yes, what URL slug or slug policy should it use?`
+3. The content-model question below — asked whenever detail pages are yes **or** the design shows page Sections around the CPT content (Benefits, Grid, Form, Intro, and similar). Ask it after the analyst evidence (below) is in, with that evidence attached, and ask it verbatim; do not paraphrase it into something weaker:
+
+   `Should this CPT also carry Flexible Content (page-builder Sections) on the post, in addition to typed fields? Pick one: typed-only | flexible-content-only | hybrid.`
+
+   If detail pages are no and the design shows no page Sections, record `Content model: not-applicable` and do not ask. Never invent a default: the analysts propose a model from evidence, the maintainer decides. The write gate stays blocked while the value is unresolved (same list as `Work type`, CPT slug, and taxonomy).
 
 When `PROJECT-CONTEXT.md` records a Confluence anchor, re-read the anchored PL page **fresh at preflight start** over the Atlassian MCP and pull only the section relevant to this CPT — the matching task row, module notes, content source, and Figma link — into the work-record draft (`confluence-source` Rule). No anchor, or no usable Atlassian MCP: skip cleanly, record `confluence-source: no anchor` (or `MCP unavailable`) in the draft, and continue from the mirror. Never re-read mid-run; runners receive the distilled extract in their prompt and never call Confluence.
 
 Then inspect project context, existing CPT patterns (templates, ACF JSON groups, rendered markup, `GET /status` for ACF groups and WPGB grids) before asking anything else. Do not ask the maintainer to specify HTML structure, wrapper classes, field names, selectors, spacing, responsive behavior, or interaction details that are visible in the source design or inferable from existing project patterns. On every start — direct start included — the `cpt-codebase-analyst` supplies this evidence as the read-only discovery leaf (reference baseline, Project Layout Profile, precedence, minimal file scope, evidenced route, per the `agent-routing` Rule) instead of the main chat running the inventory inline; its return lands in the work-record draft. Skip the spawn only when the project docs layer or `PROJECT-CONTEXT.md` already records a verified reference baseline and Project Layout Profile for this project — then the main chat reads only the delta for this CPT from those records. When the source brief carries a Figma or design-file reference, the `cpt-figma-analyst` extracts the design facts (surface index mapped against the reference baseline, deviations, raw specs only where needed); without a design source it has nothing to extract and does not spawn.
 
-If a detail is not discoverable and a project-default pattern exists, use that assumption in the draft. Ask a follow-up only when the missing answer blocks a safe write: an unknown CPT name, URL slug policy, taxonomy decision, ACF/WPGB reference, or target URL.
+**Content-model evidence from the analysts.** The two spawn prompts must ask for the facts the content-model question is decided on:
+
+- `cpt-codebase-analyst`: the reference CPT's content model as an explicit fact — whether its ACF group carries a clone of the project's `[TMPL] Flexible Inhalte` group, with the clone field name and the clone group key as read from the install — plus the project's FC render path (`flexible-content.php`) and the existing Flexible Content layouts. A draft that drops the reference CPT's FC clone is a baseline delta the analyst reports as `OPEN DECISION`, never a silent simplification.
+- `cpt-figma-analyst`: the ordered detail-page walk — every segment of the detail frame top to bottom, each with a `content-role` of `typed-core` (post-specific structured data), `page-section` (a reusable Section, ideally matched to an existing Flexible Content layout by name), `global` (header, footer, booking UI), or `unresolved` — and whether typed segments and page-section segments alternate (the sandwich case for the design-order caveat below).
+
+From that evidence the main chat derives a proposed `Content model` and attaches it to question 3 ("analysts propose `hybrid`: Hero and meta typed, Benefits → existing slider Section, related items → grid Section"). The proposal is evidence, not the decision: a structured-looking core is never a reason to skip Flexible Content silently.
+
+### Content models
+
+Record exactly one of these in the work record (details and the clone field shape in [`reference.md`](reference.md)):
+
+| Content model | Meaning |
+| --- | --- |
+| `typed-only` | CPT-specific ACF fields plus the optional single partial; no `[TMPL] Flexible Inhalte` clone. Only when the design is a closed, structured detail with no page Sections around it. |
+| `flexible-content-only` | The reference-CPT pattern: a clone of `[TMPL] Flexible Inhalte` (and, where the project has it, the Intro clone) on the CPT group; no typed single partial; the detail renders through `flexible-content.php`. Editors compose each detail from the same Sections as pages. |
+| `hybrid` | Typed fields plus the single partial for the structured core **and** a clone of `[TMPL] Flexible Inhalte` on the same CPT group (`prefix_name: 1`, field name `wso_<resource>_content`). Render order: the single partial first, then `[wst_include template="flexible-content.php"]` as a sibling after the CPT wrapper, not nested inside it. |
+| `not-applicable` | No detail pages and no page Sections around the CPT content. |
+
+Those page Sections never go into the Smart Template's own Flexible Content: the Smart Template stays a top-level code-editor include (step 4.7); the Flexible Content lives on the CPT post.
+
+**Design-order caveat.** One FC field occupies one insertion point. If the design sandwiches typed blocks and page Sections (for example Hero → Benefits → typed columns → Form → related grid), `hybrid` cannot reproduce that order: the default is the typed block first, then the FC output. Record the limitation in the work record and show it with the proposal. Do not invent a second FC field or split the typed template unless the maintainer explicitly asks.
+
+If a detail is not discoverable and a project-default pattern exists, use that assumption in the draft. Ask a follow-up only when the missing answer blocks a safe write: an unknown CPT name, URL slug policy, content model, taxonomy decision, ACF/WPGB reference, or target URL.
 
 The preflight output is the CPT work-record draft in the project docs layer (default `docs/post-types/<resource>.md`). It must record:
 
 - `Work type` and routing decision; write scope (which of the three delivery paths the run touches).
 - CPT slug, registered post type, singular and plural labels, admin visibility, and source brief.
 - Public detail-page decision, URL slug or explicit no-detail-page decision, archive/search behavior, and unresolved detail-page questions.
+- `Content model`: `typed-only` | `flexible-content-only` | `hybrid` | `not-applicable`, with the analysts' segment evidence, the FC clone field name and clone group key for the two FC-carrying models, and the design-order limitation when the design sandwiches typed blocks and page Sections.
 - Taxonomy decision per the `wordpress-taxonomies` Rule (English `wso_tax_*` machine name, labels, hierarchy, public archive decision, purpose), or an explicit no-taxonomy decision.
 - ACF JSON group file, field names, field ownership decisions, and unresolved field questions.
 - WPGB grid/card IDs or explicit no-WPGB decision, plus display target: grid, carousel, existing Section, or dedicated Section.
@@ -88,7 +116,7 @@ The preflight output is the CPT work-record draft in the project docs layer (def
 - Expected desktop, tablet, mobile, content variation, filtering, linking, and interaction behavior.
 - `Preflight gate status`, known risks, open questions, `Protected existing artifacts` for remodels, and `CSS status` (`existing`, `new-needed-for-frontend`, `unknown`, `not-applicable`).
 
-Do not proceed past the preflight while the draft contains unresolved placeholders for `Work type`, CPT slug/name, detail-page decision, taxonomy decision, target URL, ACF/WPGB references required for the approved work, template paths, CSS path, or frontend responsibilities.
+Do not proceed past the preflight while the draft contains unresolved placeholders for `Work type`, CPT slug/name, detail-page decision, `Content model`, taxonomy decision, target URL, ACF/WPGB references required for the approved work, template paths, CSS path, or frontend responsibilities.
 
 ## 3. Existing CPT remodel protections
 
@@ -102,6 +130,8 @@ Before any write:
 
 While remodeling, by default preserve: registered post type, labels, rewrite behavior, archive/search behavior, supports; taxonomy name, hierarchy, and public archive behavior; field keys and field ownership; WPGB grid/card IDs and source settings; template paths; and public selectors that templates, scripts, WPGB behavior, styles, or tests rely on.
 
+Record the existing `Content model` under `Protected existing artifacts`. If the existing CPT is `typed-only` and the design (or the analysts' detail-page walk) shows page Sections around the CPT content, flag the gap in the work record and propose `hybrid` — the FC clone added to the existing CPT group with a fresh field key, existing fields untouched — instead of hardcoding those Sections as includes in the single partial. Ask question 3 from the preflight with that evidence; the maintainer decides.
+
 If the desired change only affects visual spacing, typography, color, responsive behavior, hover/focus state, carousel appearance, filter appearance, or card layout CSS, switch `Work type` to `visual-only` and route to `cpt-frontend-qa`.
 
 ## 4. New CPT foundation steps
@@ -112,9 +142,10 @@ Run these steps only when `Work type` is `new-cpt-foundation` and the work-recor
 New WST CPT Foundation:
 - [ ] Preflight produced concrete work-record draft (no unresolved blockers)
 - [ ] Work type confirmed as `new-cpt-foundation`
+- [ ] Content model recorded (typed-only | flexible-content-only | hybrid | not-applicable), maintainer-confirmed
 - [ ] Prepare CPT registration apply-spec for the user (CPT UI)
 - [ ] Prepare taxonomy apply-spec if needed (wordpress-taxonomies Rule)
-- [ ] Create the ACF JSON field group for CPT fields
+- [ ] Create the ACF JSON field group for CPT fields (plus the Flexible Content clone field for hybrid / flexible-content-only)
 - [ ] Prepare WP Grid Builder card and grid apply-spec (wpgb-specialist under orchestration)
 - [ ] Create card template foundation (four-source proof for new shortcode forms)
 - [ ] Create optional single template foundation
@@ -134,8 +165,9 @@ Sequence note: the registration apply-spec can go to the user while the deploy p
 Before preparing anything, decide:
 
 - Whether the CPT has public detail pages.
+- Which `Content model` the detail follows (`typed-only`, `flexible-content-only`, `hybrid`, or `not-applicable`) — the maintainer's answer to preflight question 3, never a default. It decides whether the ACF group carries the `[TMPL] Flexible Inhalte` clone, whether a typed single partial exists, and how the two render together.
 - Whether it needs a taxonomy for filtering, grouping, or card labels.
-- Which data belongs in post title, featured image, excerpt/editor, ACF fields, or taxonomy terms.
+- Which data belongs in post title, featured image, excerpt/editor, typed ACF fields, Flexible Content Sections on the post, or taxonomy terms.
 - Whether WP Grid Builder should render a grid, carousel, or card only.
 - Whether a dedicated WST Flexible Content Section is required, or an existing grid/slider Section can consume the grid.
 
@@ -164,6 +196,8 @@ Add a taxonomy only when the content model requires grouping, filtering, admin c
 Create one JSON group file under `themes/<child-theme>/acf-json/` (named per the installation's filename convention from `PROJECT-CONTEXT.md`) whose location rule targets the new CPT, per the `acf-local-json` Rule: fresh stable `group_`/`field_` keys, `acfe_autosync` containing `"json"`, and a `modified` timestamp so the admin offers the sync. See `reference.md` for the shape. If the project has no `acf-json/` setup yet, run the bundled `setup-acf-local-json` Skill first.
 
 Recommended structure: a tab field for admin organization, content fields specific to the CPT, optional tabs for complex CPTs. Field names always carry the `wso_<resource>_` prefix per the `acf-local-json` Rule: a salary field on a Job CPT is `wso_job_salary`, never `job_salary` or `salary`. Prefer core post title, thumbnail, editor, excerpt, and taxonomy terms before duplicating data in ACF fields.
+
+For `hybrid` and `flexible-content-only`, the same group additionally carries the Flexible Content clone: one `clone` field with a fresh `field_` key, name `wso_<resource>_content`, `display: seamless`, `prefix_name: 1`, cloning the project's `[TMPL] Flexible Inhalte` group by the key read from the install (the reference CPT's clone field is the precedent; never copy the key from another install or from documentation). With `prefix_name: 1` the cloned Flexible Content resolves as `wso_<resource>_content_<clone-field-name>`, exactly like the reference CPT's clone — `flexible-content.php` resolves that prefix the same way. Shape in `reference.md`. Adding the clone to an existing group is additive: do not retrofit `wso_` prefixes onto already-saved unprefixed fields as part of it (data migration, explicit user decision).
 
 The field group ships with the deploy pass. After the bridge-verified deploy and the human sync in the admin, `GET /status` must list it with `local: "json"`.
 
@@ -200,13 +234,24 @@ Use [`examples.md`](examples.md) for generic card structures.
 
 ### 4.7 Create the optional single template foundation
 
-Only create a single template when the CPT is publicly queryable and the brief requires detail pages:
+Only create a single template when the CPT is publicly queryable and the brief requires detail pages, and only for the content models that have a typed core (`typed-only`, `hybrid`):
 
 ```text
 themes/<child-theme>/smart-template-builder/post-types/<resource>/singles/<resource>-single.php
 ```
 
 Keep markup compatible with existing WST element, row, wrap, and typography patterns; establish stable `.wso-<resource>-single` hooks; record required local CSS and QA expectations in the work record. If no public detail page exists, record that decision so the frontend pass does not look for a single view.
+
+For `hybrid`, the partial renders the typed core inside the `.wso-<resource>-single` wrapper and then includes the project's Flexible Content renderer as a **sibling after** that wrapper, never nested inside it:
+
+```php
+<main class="wso-<resource>-single">
+  ... typed core ...
+</main>
+[wst_include template="flexible-content.php"]
+```
+
+For `flexible-content-only`, there is no typed single partial: the include the user pastes into the Smart Template (below) is `flexible-content.php` itself, following the reference CPT's pattern.
 
 **How the single template actually renders — the Smart Template assignment.** WST projects have no `single.php`/`page.php` in the child theme; the WordPress template hierarchy does not pick up CPT detail pages, and the partial above is never found automatically. The established rendering path is a Smart Template assignment, split between agent and user:
 
@@ -218,7 +263,9 @@ Keep markup compatible with existing WST element, row, wrap, and typography patt
 [wst_include template="post-types/<resource>/singles/<resource>-single.php"]
 ```
 
-The Smart Template's Flexible Content field stays empty; the include belongs in the top-level code editor, **not** in a code-editor Section. Only with this assignment does the CPT single URL render the partial (WST replaces the output through its `template_include`/`the_content` mechanism).
+   For `flexible-content-only` the one include is `[wst_include template="flexible-content.php"]` instead (no single partial exists).
+
+The Smart Template's Flexible Content field stays empty. This refers to the **Smart Template post**, not the CPT post: for `hybrid` and `flexible-content-only`, the page Sections live in the Flexible Content clone on the CPT post itself and are rendered by `flexible-content.php` from the include above. The include belongs in the top-level code editor, **not** in a code-editor Section. Only with this assignment does the CPT single URL render the partial (WST replaces the output through its `template_include`/`the_content` mechanism).
 
 Never solve the rendering yourself: no `single-<resource>.php` in the theme, no `template_include` workaround in `theme-functions.php`, no assumption the partial is auto-discovered. Steps 2–3 go to the user as an admin apply-spec (shape in [`reference.md`](reference.md)); the work record captures the Smart Template post ID and assignment status once applied. `smart_template` posts are not reachable over REST (`show_in_rest = false`); the agent can read-verify the assignment over XML-RPC (`wp.getPost` with the Application Password) via the metas `smart_template_code_editor_enabled` / `smart_template_code_editor_content`.
 
@@ -256,7 +303,7 @@ Completed CPT work routes to `cpt-frontend-qa`. If the CPT display becomes prima
 
 ### Example A: New `team` CPT foundation
 
-- `Work type`: `new-cpt-foundation`. Registered post type `wso_<resource>` prepared as a CPT UI apply-spec; detail-page decision recorded before rewrites or single templates exist.
+- `Work type`: `new-cpt-foundation`. Registered post type `wso_<resource>` prepared as a CPT UI apply-spec; detail-page decision recorded before rewrites or single templates exist; `Content model: not-applicable` because the brief has no detail pages and the design shows no page Sections around the cards.
 - ACF JSON group in `acf-json/` per the project filename convention; card template `post-types/<resource>/cards/<resource>-card.php`; one deploy pass plus the admin sync.
 - WPGB grid/card created by the user from the apply-spec; IDs read back over `GET /status`.
 - `CSS status`: `new-needed-for-frontend`; the work record names the CSS path as `cpt-frontend-qa` work.
@@ -271,3 +318,10 @@ Completed CPT work routes to `cpt-frontend-qa`. If the CPT display becomes prima
 
 - `Work type`: `visual-only`. No structural work.
 - The work record captures the existing CPT identity, display URL, selectors, and the visual-only routing so `cpt-frontend-qa` can start without re-asking structural questions.
+
+### Example D: Hybrid `job` CPT with typed core and Flexible Content
+
+- `Work type`: `new-cpt-foundation` with public detail pages. The analysts' detail-page walk: Hero and meta (`typed-core`), Benefits slider (`page-section`, matches an existing slider layout), typed columns (`typed-core`), related jobs grid (`page-section`, matches the existing grid Section); the reference CPT carries the `[TMPL] Flexible Inhalte` clone. Proposal attached to question 3: `hybrid`; the maintainer confirms.
+- ACF JSON group: the typed `wso_job_*` fields plus the clone field `wso_job_content` (fresh key, seamless, `prefix_name: 1`, clone group key read from the install).
+- Single partial `post-types/job/singles/job-single.php` renders the typed core, then `[wst_include template="flexible-content.php"]` as a sibling after the `.wso-job-single` wrapper; the Smart Template include stays the single partial. Design-order limitation recorded: Benefits sits between typed blocks in Figma, rendered after the typed core here.
+- Editors compose Benefits and the related grid from the same Sections as pages; the structured core stays typed. Template in [`examples.md`](examples.md).

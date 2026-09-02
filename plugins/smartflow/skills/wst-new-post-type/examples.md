@@ -111,3 +111,53 @@ Key patterns:
 - The shell establishes hooks and semantic regions.
 - ACF fields use typed shortcodes (`[wst_acf_text]`, `[wst_acf_wysiwyg]`, …) or the `field_…` key: generic `[wst_acf]` resolves empty in the Smart Template include context. `[wst_post_*]` and `[wst_if]` work normally.
 - Final layout, typography, media behavior, and Playwright verification are owned by the frontend pass.
+- This shell is the `typed-only` content model. When the design shows page Sections around the core, see Example D.
+
+## Example D: Hybrid single (typed core plus Flexible Content)
+
+Use this shape when the maintainer answered the content-model question with `hybrid`: the detail has a structured, post-specific core (hero, meta, typed columns) **and** shared page Sections that editors compose from the same layouts as pages (Benefits slider, related items grid, later an application form). The Job pattern: typed hero and meta, then Flexible Content for the shared Sections. The reference CPT's Flexible Content clone is the precedent for the ACF side.
+
+ACF side (same JSON group as the typed fields; clone group key read from the install):
+
+```json
+{
+    "key": "field_<unique>_<resource>_content",
+    "label": "<content-label>",
+    "name": "wso_<resource>_content",
+    "type": "clone",
+    "clone": ["<key-of-the-project-[TMPL]-Flexible-Inhalte-group>"],
+    "display": "seamless",
+    "layout": "block",
+    "prefix_label": 0,
+    "prefix_name": 1
+}
+```
+
+Single partial:
+
+```php
+<?php if (! defined('ABSPATH')) exit; ?>
+
+<main class="wso-<resource>-single">
+  <section class="wso-<resource>-single-hero">
+    <h1 class="wso-<resource>-single-title">[wst_post_title]</h1>
+    [wst_post_thumbnail size='<image-size>']
+  </section>
+
+  <section class="wso-<resource>-single-meta">
+    [wst_if field='wso_<resource>_location' compare='!=' value='']
+    <p class="wso-<resource>-single-location">[wst_acf_text field='wso_<resource>_location']</p>
+    [/wst_if]
+  </section>
+</main>
+
+[wst_include template="flexible-content.php"]
+```
+
+Key patterns:
+
+- The Smart Template include stays the single partial (`post-types/<resource>/singles/<resource>-single.php`); the Smart Template's own Flexible Content stays empty.
+- `flexible-content.php` is included **after** the `.wso-<resource>-single` wrapper as a sibling, never inside it. It renders the Sections editors entered in the CPT post's `wso_<resource>_content` clone; with `prefix_name: 1` the field resolves like the reference CPT's clone, so the renderer needs no change.
+- One FC field, one insertion point: if Figma sandwiches a page Section between typed blocks, the work record carries that limitation; typed core first, then the FC output. No second FC field and no split typed template without an explicit maintainer decision.
+- Page Sections are never hardcoded as includes in the partial to imitate Figma — that is the gap this model closes.
+- Section-level behavior of the composed Sections routes to `frontend-section-qa`; the typed core routes to `cpt-frontend-qa`.

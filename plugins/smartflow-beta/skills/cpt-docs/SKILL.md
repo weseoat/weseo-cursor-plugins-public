@@ -20,7 +20,7 @@ Content language of the generated doc: **German**. Inside an `auto-docs` full ru
 
 - **Read-only toward the server:** REST `GET` and `GET /wp-json/wso/v1/status` on the bridge only. No CPT/taxonomy/ACF/WPGB/content writes, no cache flush.
 - **Writes only:** the doc file under `docs/post-types/` and, when needed, an allowlist entry in `.gitignore`.
-- **Work-record protection (hard):** existing work-record sections are preserved verbatim: `Work type`, `Discovery and safety status`, `Discovery sources`, `Protected existing artifacts`, detail-page decision notes, `Visual QA Targets` (including filled `Result` cells), `Frontend QA Brief`, `QA notes`, deploy state, open questions, and blockers. A missing `Visual QA Targets` skeleton may be added from the template; filled rows are never edited.
+- **Work-record protection (hard):** existing work-record sections are preserved verbatim: `Work type`, `Discovery and safety status`, `Discovery sources`, `Protected existing artifacts`, detail-page decision notes, the `Content model` decision (`typed-only` | `flexible-content-only` | `hybrid` | `not-applicable`), `Visual QA Targets` (including filled `Result` cells), `Frontend QA Brief`, `QA notes`, deploy state, open questions, and blockers. A missing `Visual QA Targets` skeleton may be added from the template; filled rows are never edited.
 - **Invent nothing.** Mark unknown values as `unbekannt` or `TODO: …`, never guess (no post_type names, ACF keys, WPGB IDs, paths, URLs, selectors). Then set `status: partial`.
 - **No secrets.** REST and bridge credentials come from the project env vars named in `PROJECT-CONTEXT.md` (default `WSO_BRIDGE_USER`, `WSO_BRIDGE_APP_PASSWORD`); never write the application password into chat, terminals visible in docs, or the doc itself.
 
@@ -93,7 +93,7 @@ WPGB grid/card IDs are project-local values — take them from the existing work
 
 ACF fields are not reliably available over plain REST. Sources in this order:
 
-1. ACF JSON groups under `themes/<child-theme>/acf-json/` with location `post_type == <post_type>` → field name, `key`, `type`, `return_format`. Cross-check that the group appears in the bridge status with `local: json`.
+1. ACF JSON groups under `themes/<child-theme>/acf-json/` with location `post_type == <post_type>` → field name, `key`, `type`, `return_format`. Cross-check that the group appears in the bridge status with `local: json`. A `clone` field pointing at the project's `[TMPL] Flexible Inhalte` group marks the content model as `flexible-content-only` (no typed detail fields, no single partial) or `hybrid` (typed fields plus the clone); typed fields without a clone on a detail-page CPT mean `typed-only`; CPTs without detail pages get `not-applicable`. Take an existing `Content model` value from the work record; derive it only when the record has none.
 2. Legacy sources when the project has no `acf-json/` yet: PHP field groups under `smart-template-builder/acf/field-groups/`, or the newest `acf_export/*.json` admin export.
 3. Card/single templates → fields actually used, derived from WST shortcodes (`[wst_acf field='…']`, `[wst_acf_file field='…']`, `[wst_post_title]`, `[wst_if field='…']`).
 
@@ -138,6 +138,7 @@ plural: <Plural-Label>
 public: <true|false>
 has_archive: <true|false>
 detail_pages: <true|false>
+content_model: <typed-only|flexible-content-only|hybrid|not-applicable>
 rest_base: <rest_base>
 entry_count: <n|unbekannt>
 taxonomies: [<wso_tax_...>]
@@ -166,6 +167,7 @@ er im Frontend sichtbar.>
 | Labels | <Singular> / <Plural> |
 | Public / sichtbar | <true|false> |
 | Detailseiten (Single) | <ja|nein> |
+| Content-Modell | <typed-only|flexible-content-only|hybrid|not-applicable> |
 | Archiv | <ja|nein> |
 | Supports | <title, thumbnail, editor, …> |
 | REST base | `<rest_base>` |
@@ -209,7 +211,8 @@ Location `post_type == wso_<resource>`) — Doku: [`<group-slug>.md`](../field-g
 
 ### Single-Template
 
-<Pfad oder „nicht vorhanden".>
+<Pfad oder „nicht vorhanden". Bei `hybrid`: Partial plus `[wst_include template="flexible-content.php"]`
+nach dem Wrapper; bei `flexible-content-only`: kein Partial, Smart-Template-Include ist `flexible-content.php`.>
 
 ## Visual QA Targets
 
