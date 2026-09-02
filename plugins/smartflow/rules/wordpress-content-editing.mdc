@@ -1,0 +1,79 @@
+---
+description: Safely edit WordPress page, post, and options content over REST when the project uses ACF Flexible Content — read first, preserve the full array, change only requested fields. Use when filling or changing Section copy, Flexible Content rows, options-page values, or other WordPress content over the REST API.
+alwaysApply: false
+---
+
+# WordPress Content Editing
+
+Use this Rule when editing WordPress page, post, or options content through the REST API in a project that uses ACF Flexible Content. The invoked workflow is the bundled `content` Skill; this Rule is the safety bar for every content write, including ones started from another Skill.
+
+## Core Model
+
+ACF Flexible Content stores page sections as an ordered array. Each item has an `acf_fc_layout` value that identifies the layout type. The Flexible Content field name, available layout names, page IDs, and clone group keys belong in `PROJECT-CONTEXT.md`. Layout definitions live in ACF Local JSON files (`acf-local-json` Rule); content values live in the WordPress database and are mutated over REST, not as tracked theme source.
+
+## Read Before Writing
+
+Before changing content:
+
+1. Confirm the target URL is the project's staging or dev site from `PROJECT-CONTEXT.md`. Stop before writes against the live URL unless the user explicitly confirmed that target.
+2. Read the page, post, or options document including its ACF data (`context=edit`).
+3. Identify the target block by page ID, array index, layout name, or visible copy.
+4. Preserve the full Flexible Content array.
+5. Change only the fields requested by the task.
+6. Verify the resulting content on the target URL after a status-bridge cache flush.
+
+## Write The Complete Array
+
+When updating a page through REST, send the complete Flexible Content array back. Do not send only the changed block.
+
+Generic REST shape (field name from `PROJECT-CONTEXT.md`, never hardcoded):
+
+```http
+POST /wp-json/wp/v2/pages/<page-id>
+```
+
+```json
+{
+  "acf": {
+    "<flexible-content-field-name>": []
+  }
+}
+```
+
+Populate the array from the read response, then apply the intended minimal edit.
+
+## Fields To Preserve
+
+Do not change these unless the user explicitly asks:
+
+- `acf_fc_layout`
+- ACFE layout metadata fields
+- Layout and style fields
+- Image and media attachment IDs
+- Button link targets, variants, and IDs
+- Nested Flexible Content structure
+
+Nested Flexible Content blocks follow the same rule: preserve the full nested array and edit only the intended fields.
+
+## Type Normalization
+
+REST reads may return values in a shape that differs from what writes accept. Before writing:
+
+- Convert ACFE toggle booleans (`acfe_flexible_toggle`) to the value shape the project accepts.
+- Keep enum fields on valid project-defined values.
+- Use attachment IDs for media fields, not URLs. New uploads go through the `wp-media-import` Skill first.
+- Preserve existing HTML patterns in rich text fields. Plain-text and HTML fields use real UTF-8 characters, not HTML entities for umlauts.
+
+## Encoding
+
+Send JSON as UTF-8 bytes with `Content-Type: application/json; charset=utf-8`. Do not round-trip the body through a mis-encoded PowerShell string.
+
+## Out Of Scope
+
+- ACF field-group definitions, new Flexible Content layouts, and WST templates — that is `wst-section-workflow` / `wst-new-post-type`.
+- CSS/SCSS — that is `frontend-section-qa` / `cpt-frontend-qa`.
+- Direct database writes and WP-CLI content writes. There is no server shell.
+
+## Work Record Notes
+
+If content edits affect a Section or CPT that has a work record in the project `docs/` layer, update that record with the page URL, the changed content fields, any layout/style fields deliberately preserved, and any visual behavior that still needs CSS or Playwright verification. Do not treat a content write as a frontend QA pass.

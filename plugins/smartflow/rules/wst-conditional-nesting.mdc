@@ -1,0 +1,37 @@
+---
+description: WST conditional shortcodes must never nest the same tag name directly; apply to WST templates in smart-template-builder
+globs:
+  - "**/smart-template-builder/**/*.php"
+alwaysApply: false
+---
+
+# WST Conditional Nesting
+
+WST shortcode conditionals use **named levels**: `wst_if` (base), `wst_if_a`, `wst_if_b`. The parser pairs open/close tags by **tag name**, not by nesting depth. **Never nest the same tag name inside itself** — pairing breaks and the block fails silently (raw `[wst_*]` in the output or missing markup).
+
+## Nesting Rules
+
+1. **Same level = same tag name = forbidden.** No `[wst_if]` inside `[wst_if]`, no `[wst_if_a]` inside `[wst_if_a]`.
+2. **Depth must use different suffixes.** The verified safe chain is `wst_if` -> `wst_if_a` -> `wst_if_b`, each level a different name. Treat skipping suffix levels (e.g. `wst_if_b` directly inside `wst_if`) as unverified runtime behavior; do not rely on it until the project has confirmed it at the runtime.
+3. **Prefer `wst_include` for shared partials.** `wst_include` isolates shortcode levels: internal conditionals in an included partial do not collide with the parent Section's `wst_if*`. Wrap variant guards around includes, not around inline copies of partial markup.
+
+## Bad Vs Good (Non-Normative Incident, 2026-06-29)
+
+**Bad** — variant guard plus inline partial markup (double `wst_if_a` in one pass):
+
+```text
+[wst_if_a field='variant' ... value='default']
+  [wst_if_a field='title' ... relation='OR']
+    [wst_if field='title']...[/wst_if]
+  [/wst_if_a]
+[/wst_if_a]
+```
+
+**Good** — the guard wraps includes; the partial keeps its own `wst_if_a` in a separate resolution step:
+
+```text
+[wst_if_a field='variant' ... value='default']
+  [wst_include template="elements/content.php" title="TMPL Inhalt"]
+  [wst_include template="elements/button/button.php" title="TMPL Button"]
+[/wst_if_a]
+```

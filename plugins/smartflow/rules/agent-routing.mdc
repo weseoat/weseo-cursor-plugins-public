@@ -1,0 +1,75 @@
+---
+description: Route SmartFlow WST/CPT package work and Jira batch ticket work to the six bundled subagents — delegation table, recommended-model routing with dynamic pinning at spawn, orchestrator/handoff practices, and the fixed return contract
+alwaysApply: false
+---
+
+# Agent Routing
+
+Use this Rule when delegating SmartFlow WST/CPT package work or Jira batch ticket work to subagents, when routing `grid-cards` work to its write owners, and when orchestrating generic worker subagents (for example in `auto-docs`). The six agent definitions ship with this plugin; the three implementers/runners are thin runners around the bundled Skills.
+
+## Roles And Delegation
+
+| Agent | Role | Delegates into | Write scope |
+|---|---|---|---|
+| `cpt-codebase-analyst` | read-only inventory: reference baseline, layout profile, precedence, minimal file scope, evidenced route + baseline delta; runtime facts over the status bridge | — (readonly) | none |
+| `cpt-figma-analyst` | package surface index mapped against the reference baseline (deviations only by default); full raw specs + PNG exports only for `pixel-parity` or complex components | — | package index, needed surface/component specs, explicitly required reference PNGs (docs layer) |
+| `wst-shortcode-implementer` | thin runner: exactly one assigned foundation or section task | `wst-new-post-type` (once per package) or `wst-section-workflow` (one per flexible section) | project-owned WST templates/partials + ACF JSON field groups + the work record the Skill owns |
+| `wpgb-specialist` | WPGB grid/card config from the baseline precedent (minimal diff), config math, runtime contract, route-back fixes | — | WPGB config apply-spec via the status bridge readback (or a project-validated write route); card CSS only with explicit file assignment in the manifest |
+| `cpt-visual-implementer` | thin runner: exactly one assigned surface | `frontend-section-qa` (flexible WST sections) or `cpt-frontend-qa` (cards, grids, archives, fixed segments, singles) | assigned CSS/SCSS file group + its work-record section |
+| `jira-ticket-runner` | thin runner: exactly one Jira subtask classified as direct-fix by the `jira-batch-workflow` orchestrator | `jira-ticket-workflow` (steps 3–5) | assigned file group inside the child theme (+ style-loader entry only if assigned); never commits, Jira writes, or WPGB config |
+
+## Deliberately Not Routed
+
+`content`, `wp-media-import`, `grill-me`, `smartflow-feedback`, `sync-project-brief`, `project-css-setup`, the setup and migration wizards (`setup-local-project`, `setup-acf-local-json`, `migrate-ssh-to-local`, `install-status-bridge`, `section-preview-harness`), and the pure reference Skills (`wst-shortcodes`, `smarttags`, `wst-nested-shortcodes`, `headline-filling`) deliberately run in the main chat: no bundled agent matches their work, they contain interactive hard stops, or they are lookup material rather than execution runs. `smartflow-feedback` needs the session context for autofill and the reporter for confirmations; `sync-project-brief` lives on the interactive diff review — and per the `confluence-source` Rule, runners never call Confluence themselves. `project-css-setup` lives on interactive per-value confirmations (theme vs design plus the affected-Sections impact list, decided by the user per value) and on hard stops between its resumable blocks — a runner would either block on every value or decide global CSS values alone. `section-preview-harness` additionally needs the `theme-functions.php` bootstrap confirmation, which the `wst-shortcode-implementer` runner is forbidden to give: when the preview-pages offer of `wst-section-workflow` surfaces inside a runner execution, it comes back as `OPEN DECISION` and the main chat runs the harness itself. This scope decision is intentional, not a gap.
+
+## Model Routing
+
+All six agent files ship with `model: inherit`, so a spawn never fails because a model is unavailable: by default every agent runs on the main chat's model. The table below lists the **recommended** model per agent, applied through dynamic pinning at spawn time:
+
+| Agent | Recommended model |
+|---|---|
+| `cpt-codebase-analyst` | `composer-2.5-fast` (readonly) |
+| `cpt-figma-analyst` | `gpt-5.6-sol-high` |
+| `wst-shortcode-implementer` | `composer-2.5-fast` |
+| `wpgb-specialist` | `claude-sonnet-5-thinking-high` |
+| `cpt-visual-implementer` | `composer-2.5-fast` |
+| `jira-ticket-runner` | `composer-2.5-fast` |
+
+Recommended slugs age with the model lineup: when a slug in this table no longer exists on the account, the availability check below falls back to `inherit` — treat a permanently missing slug as a maintenance signal to update this table, not as a runtime problem. Before the first spawn of a run, the main chat checks whether the recommended slug is available on the account in use. Available: pass the slug at spawn. Not available: spawn with `inherit` and report the deviation transparently in one sentence — no blocker, no silent substitution by a third model. For the two demanding agents (`wpgb-specialist`, `cpt-figma-analyst`), if only a clearly weaker model is available, the main chat says so before the spawn. Premium escalation happens only after one evidenced gate conflict, decided by the main chat.
+
+## Shared Rules
+
+- Maximum two agent levels: main chat -> leaf agent. Leaf agents never spawn further subagents. A full context window is a `handoff` back to the main chat, not a nested spawn.
+- Exactly one write owner per artifact or file group, assigned via the package manifest.
+- Implementation semantics live in the bundled SmartFlow Skills; the runners load and follow them instead of restating their rules.
+- Subagents never commit or push; the main chat commits and hands over per the `deploy-and-branches` Rule.
+- No agent runs as a background agent by default. Exception: `jira-batch-workflow` launches its `jira-ticket-runner` leaves in the background by design so the main chat stays responsive for feedback relay.
+- Every agent ends with the fixed return format (STATUS, EVIDENCE, OWN CHANGES, GATES, OPEN DECISION, NEXT OWNER) defined in its agent file. `STATUS` may be `handoff` when the leaf must stop because its context is filling.
+
+The agents install with the plugin; the main chat invokes them by name (`/cpt-codebase-analyst` etc.) or lets Cursor route by description.
+
+## Orchestration
+
+The main chat is the orchestrator. It plans, spawns, stores handoffs, and integrates. It does not do the leaf's large file reads or long tool chains in its own context.
+
+1. **Decompose with measure.** Split only when the work has more than one write owner or a real dependency chain. For each leaf task record: goal and success criterion, affected area, dependencies. Skip splitting when one leaf is enough. For the four runner-backed Skills (`wst-section-workflow`, `wst-new-post-type`, `frontend-section-qa`, `cpt-frontend-qa`) the runner is the standard execution vehicle even on a direct start with a single leaf: "one leaf is enough" then means one runner, not no runner.
+2. **Self-contained prompts.** Every spawn includes the full assigned task, the relevant package context, worker constraints from this Rule and `deploy-and-branches`, and — on resume — the last handoff. The leaf does not see the parent chat or earlier user messages.
+3. **Parallel only when independent.** Launch disjoint write artifacts in one message. Tasks that touch the same files or build on each other's results run sequential. When in doubt, sequential.
+4. **Context-full continuation.** If a leaf's context is filling (long session, large file dumps, an upcoming context summary), it finishes the current step cleanly — no half edit, no command without a result — and returns `STATUS: handoff` plus the schema below. The main chat writes that return unchanged (short metadata header only) to `tmp/<task-slug>/handoff-<agent>-<nn>.md` and respawns the **same** agent type with that file. Leaves never continue themselves by spawning.
+5. **Stall stop.** If a handoff shows no progress versus the previous one, or a single leaf task has more than 3 handoff resumes, stop and ask the user. Do not restart the same assignment endlessly.
+6. **Secrets.** Never copy credential values into worker prompts or handoff files. Name the environment variables only (`secrets` Rule) and point at the repo-root `.env`.
+7. **Integrate.** After every leaf reports `done` (or the visual-implementer equivalent), check that the parts fit: no overlapping file edits, no contradictory work-record fields. Then the main chat commits and hands over.
+
+Handoff files stay in repo-level `tmp/` (outside the deploy path, not committed) until the user asks to delete them.
+
+## Handoff Schema
+
+A `handoff` must be fully self-contained — the next leaf knows neither the user message nor the parent transcript:
+
+- **Task and goal** — the leaf assignment, its place in the package, and the success criterion ("done when …").
+- **Current state** — what is already done, which files or records changed (concrete paths), committed vs uncommitted.
+- **Tried — worked** — approaches, commands, and facts that helped.
+- **Tried — failed** — failed approaches with the error or reason, so they are not repeated.
+- **Facts** — paths, IDs, API behaviour, project quirks needed to continue.
+- **Next steps** — remaining to-dos in order.
+- **Constraints** — off-limits paths, no commit/push, deploy-and-branches, assigned write scope.

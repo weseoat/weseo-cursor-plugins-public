@@ -1,0 +1,21 @@
+---
+description: Apply the SmartFlow commit trailer when creating commits in WESEO WordPress/WST projects
+alwaysApply: true
+---
+
+# Commit Trailer
+
+Use when creating any commit for SmartFlow-authored work.
+
+Use the commit trailer `Made with: SmartFlow` for SmartFlow-authored commits.
+
+## Rules
+
+- Prefer `--trailer "Made with: SmartFlow"` when creating a commit.
+- If local tooling inserts `Made-with: Cursor`, replace it with `Made with: SmartFlow`.
+- The trailer applies to every commit in the commit-and-hand-over flow (`deploy-and-branches` Rule): the agent commits with the trailer, only after the explicit user confirmation the commit gate requires, and never pushes.
+- Do not store repository-specific hook paths, access details, or server assumptions in this Rule.
+
+## Source
+
+Migrated from the SmartFlow Frontend Guide `commit-trailer` Rule via the retired `smartflow-tracer` plugin and the WordPress Server Ops plugin; now maintained in the SmartFlow plugin.

@@ -1,0 +1,41 @@
+---
+description: Claim/release protocol for parallel Playwright MCP browsers (playwright-a/b/c)
+alwaysApply: true
+---
+
+# Playwright Browser Claim/Release
+
+Use this Rule before any Playwright MCP browser tool use in a workspace that runs **multiple parallel Playwright MCP servers** (`playwright-a`, `playwright-b`, `playwright-c`, each with its own persistent browser profile). Multiple agents may work at the same time, so before ANY browser tool use you MUST claim exactly one server via the lock directory `.cursor/pw-locks/`.
+
+If the workspace configures only one Playwright MCP server, this protocol is inert — use that server directly.
+
+## Claim (Before The First Browser Tool Call)
+
+1. List `.cursor/pw-locks/` for existing `*.lock` files.
+2. Pick the first server of `a`, `b`, `c` that has NO lock file (`playwright-a.lock`, `playwright-b.lock`, `playwright-c.lock`).
+3. Create the lock file **atomically** so a race with another agent fails loudly instead of double-claiming (PowerShell):
+
+```powershell
+New-Item -Path ".cursor/pw-locks/playwright-a.lock" -ItemType File
+```
+
+   `New-Item -ItemType File` fails if the file already exists. If it fails, another agent was faster — try the next free server.
+4. Write one line into the lock file: ISO timestamp plus a short task description, e.g. `2026-07-08T09:15:00+02:00 breaker section QA viewport ladder`.
+
+## Use
+
+- After claiming, use ONLY the tools of your claimed server (e.g. only `playwright-b_*` tools). Never touch tools of the other servers, even if they appear idle.
+- One claim per agent per task. Do not claim a second server.
+
+## Release (Mandatory)
+
+- When your browser work is finished — including on abort or error — DELETE your lock file and briefly confirm the release in your response.
+- Never end your turn with browser work done but the lock still in place.
+
+## Stale Locks
+
+- A lock file older than **2 hours** (file timestamp or the ISO line inside) may be treated as orphaned: delete it, briefly report the cleanup, then claim that server normally.
+
+## All Busy
+
+- If all servers are locked and none is stale, STOP. Report that no browser is currently free and wait for the user. Never use a server that is claimed by someone else.

@@ -1,0 +1,40 @@
+---
+description: Offer a one-line feedback report at the hand-over point when a run step demonstrably deviated from a Skill's or Rule's promise — never blocking, never mid-run, never invented
+alwaysApply: true
+---
+
+# Feedback Capture
+
+Use this Rule in every SmartFlow workspace. It defines when the agent proactively offers to report a workflow deviation to the SmartFlow Confluence feedback hub via the `smartflow-feedback` Skill — and, just as important, when it stays silent.
+
+## Trigger Moments
+
+Offer a report only when a step of the current run **demonstrably deviated from what a bundled Skill or Rule promises**. Qualifying deviations:
+
+- a workflow Skill classified the work wrongly and the run had to be re-routed,
+- a hard stop that a Skill or Rule mandates was missed or fired at the wrong point,
+- the user had to manually correct something the workflow should have done correctly,
+- a bundled reference (tool name, catalog entry, template shape) was demonstrably wrong at runtime.
+
+The reference point is always the Skill's or Rule's own text. Ordinary iteration (CSS tweaks, expected preflight stops, user preference changes, external failures like a down server or an unauthenticated MCP) is not a deviation.
+
+## The Offer
+
+At the **hand-over point** of the run — commit hand-over, final report, or the moment the user ends the task — add exactly one sentence, German in a German-speaking session:
+
+> "Schritt X lief schief und wurde korrigiert — soll ich das melden? Report ist vorbereitet."
+
+On yes: run the `smartflow-feedback` Skill with session autofill (the session holds both the failure and the working fix — that is the report material). On no or no reaction: drop it without comment.
+
+## Annoyance Guards (Hard)
+
+- **Only real detected deviations.** Never offer speculatively, never "just in case", never to appear thorough.
+- **One sentence.** No pre-built report dump in chat, no multi-line pitch.
+- **Never blocking.** The offer never delays the hand-over, never becomes a confirmation gate, and the run result never depends on the answer.
+- **Never mid-run.** Deviations noticed during the run are remembered and offered once at the hand-over point, not when they happen.
+- **Once per deviation.** A declined offer is not repeated in the same session; several deviations in one run become one combined offer.
+- **Never auto-report.** Without an explicit yes, nothing is written to Confluence.
+
+## Manual Path
+
+Reporting works anytime without a trigger: the user can invoke `/smartflow-feedback` for bugs, questions, ideas, and skill/rule proposals. When a user aborts a broken run, the stopped chat itself is the reporting place — the report is made there before moving on, because only that chat holds the session context for autofill.

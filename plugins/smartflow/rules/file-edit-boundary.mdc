@@ -1,0 +1,38 @@
+---
+description: Restrict edits in a SmartFlow wp-content-level repository to approved source paths
+alwaysApply: true
+---
+
+# File Edit Boundary
+
+The workspace root is the wp-content level of the project checkout. Server files are never edited in place: every change reaches the server through commit, user push, and the project deploy path. Before editing, read the project-local file boundary policy in `PROJECT-CONTEXT.md`.
+
+## Default Editable Areas
+
+- The active child theme, `themes/<child-theme>/` (commonly `themes/astra-child/`), including:
+  - the project-owned WST source under `themes/<child-theme>/smart-template-builder/` — Section templates, CPT card templates, archive/grid integration files, optional single templates, and `flexible-content.php` registrations;
+  - the ACF Local JSON field definitions under `themes/<child-theme>/acf-json/` (per the `acf-local-json` Rule: pull-before-deploy, `modified` bump, human-confirmed sync);
+  - theme styles and the style loader.
+- The repo-level project documentation layer (`docs/`) and `PROJECT-CONTEXT.md`.
+- `.cursor/` workspace configuration and the tracked `.env` (secret values only per the `secrets` Rule).
+- Temporary scratch outside the deploy path (`tmp/` or the OS temp directory) per `webroot-safety`.
+
+## Default Off-Limits Areas
+
+Do not create, edit, or delete files in these areas unless `PROJECT-CONTEXT.md` explicitly allows the exact change:
+
+- Third-party plugin code in the checkout, including the WST plugin folder `plugins/weseo-smart-template-builder/`. The WST plugin is the runtime/library; project-owned WST templates belong in the child theme path above.
+- Parent themes and third-party themes.
+- `uploads/`, `languages/`, cache, and generated directories.
+- MU plugin files: only after explicit prior user confirmation for the exact change.
+- Anything on the server directly: no SSH edits, no admin file editors, no manual hotfixes. If a served file differs from the repository, that is a deploy problem to report, not an edit target.
+
+## PHP Bootstrap Safety
+
+- Do not edit `functions.php`. It is the theme bootstrap entry point and is forbidden for agent edits even inside the otherwise editable child theme.
+- Only edit `theme-functions.php` after explicit prior user confirmation for that exact change. Do not treat project context or a broad editable theme path as blanket permission.
+- The status-bridge managed block in `js-snippets.php` is edited only through the `install-status-bridge` Skill; other `js-snippets.php` content follows the project workflow.
+
+## If A Task Needs An Exception
+
+Stop and ask for direction when the requested change is outside the approved boundary. Do not assume a plugin, upload, or runtime file can be edited because it exists in the workspace.

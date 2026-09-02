@@ -1,0 +1,100 @@
+---
+description: Use the SmartFlow status bridge (wso/v1) for deploy verification, cache flush, permalink flush, and WPGB grid/card/facet read-write, with a mandatory version comparison before every bridge use
+alwaysApply: false
+---
+
+# Status Bridge
+
+Use this Rule whenever server state of a WESEO WordPress/WST project is read or mutated through the SmartFlow status bridge: deploy verification, cache flush, permalink flush, reading ACF/WPGB/cache state, or reading and writing WP Grid Builder configuration. The bridge replaces the legacy WP-CLI cache-flush path.
+
+The bridge is a managed block in the child theme's `js-snippets.php`, installed and updated only through the `install-status-bridge` Skill. It serves the REST namespace `wso/v1`:
+
+| Route | Method | Purpose |
+|---|---|---|
+| `/wp-json/wso/v1/status` | GET | `bridge_version`, `deployed_commit`, ACF field groups, WPGB grids, cache state |
+| `/wp-json/wso/v1/flush-cache` | POST | Object cache plus detected page cache plugins |
+| `/wp-json/wso/v1/flush-permalinks` | POST | Soft rewrite-rules flush |
+| `/wp-json/wso/v1/wpgb/<type>` | GET | List WPGB items; `<type>` is `grids`, `cards`, or `facets` (id, name, slug for facets) |
+| `/wp-json/wso/v1/wpgb/<type>/<id>` | GET | Full item configuration as decoded JSON, exporter-compatible shape |
+| `/wp-json/wso/v1/wpgb/<type>` | POST | Create a WPGB item; unique name (grids/cards) or slug (facets) required; response carries the new id |
+| `/wp-json/wso/v1/wpgb/<type>/<id>` | POST | Update a WPGB item with the payload shape the GET route returns |
+| `/wp-json/wso/v1/wpgb/reindex` | POST | Run the WPGB facet indexer, for all facets or one via `facet_id` in the JSON body |
+
+The WPGB routes require bridge version >= 1.1.0. The single-item GET additionally requires **>= 1.1.1 on WP Grid Builder 2.x**: WPGB 2.x removed the exporter class the 1.1.0 GET depended on, so a 1.1.0 bridge answers 501 there while list and save keep working. Bridge 1.1.1 reads the row through `Database::query_row()` instead (the same documented internal the save path uses) and keeps the exporter branch for WPGB 1.x.
+
+## Required Project Values
+
+Read from `PROJECT-CONTEXT.md` before any bridge call:
+
+- Bridge base URL: `<site-url>/wp-json/wso/v1/`.
+- Credential environment variable names (for example `WSO_BRIDGE_USER`, `WSO_BRIDGE_APP_PASSWORD`).
+
+## Authentication
+
+Every route requires an authenticated user with `manage_options`. Authenticate with a WordPress application password passed exclusively through environment variables:
+
+```sh
+curl -sS -u "$WSO_BRIDGE_USER:$WSO_BRIDGE_APP_PASSWORD" "<site-url>/wp-json/wso/v1/status"
+```
+
+Never place the credentials in tracked files, chat, reusable plugin content, diagnostics, or screenshots.
+
+## Mandatory Version Comparison Before Every Use
+
+Do not trust any bridge response, flush, or served page until this check passes. It runs at the start of every work session that uses the bridge and again after every deploy.
+
+1. Call `GET /status` before any other bridge call.
+2. Compare `bridge_version` with `WSO_BRIDGE_VERSION` in the bundled template `skills/install-status-bridge/reference/js-snippets-status-bridge.php`. On any mismatch: stop all bridge usage, run the `install-status-bridge` Skill to update the managed block, commit, and hand over to the user for push and deploy. Do not work around an outdated bridge.
+3. When the bridge is used to verify a deploy, compare `deployed_commit` with the local `git rev-parse HEAD`. Equal hashes (or the served hash being the abbreviation of the local one) mean the deploy landed; QA against served pages may proceed.
+
+### Retry And Abort Budget
+
+The agent never pushes; after a commit it hands over and the user pushes. When `deployed_commit` does not yet match after the user reports pushing:
+
+- Re-check `GET /status` at most 3 times with a short wait between checks.
+- If the hashes still differ, abort with a clear message stating the local hash, the served hash (or `null`), and the most likely causes: push not done, deploy not run, deploy path not writing `.wso-deployed-commit`.
+- Never poll in an endless loop, and never continue QA or record a source-served verification while the hashes differ. Until they match, results stay `implementation pass, deployed verification pending`.
+
+A `deployed_commit` of `null` means the deploy path does not write the commit file; route to the `install-status-bridge` Skill (Step 4) instead of retrying.
+
+## Cache Flush
+
+After content, template, ACF, or media changes on the server, flush through the bridge instead of WP-CLI:
+
+```sh
+curl -sS -X POST -u "$WSO_BRIDGE_USER:$WSO_BRIDGE_APP_PASSWORD" "<site-url>/wp-json/wso/v1/flush-cache"
+```
+
+Verify the `flushed` list in the response. The status route reports `last_cache_flush` for cross-checking.
+
+## Permalink Flush
+
+After registering or changing CPTs, taxonomies, or rewrite-relevant settings:
+
+```sh
+curl -sS -X POST -u "$WSO_BRIDGE_USER:$WSO_BRIDGE_APP_PASSWORD" "<site-url>/wp-json/wso/v1/flush-permalinks"
+```
+
+Then verify the affected URL responds without a 404.
+
+## WPGB Read/Write
+
+The `wpgb/*` routes make WP Grid Builder grids, cards, and facets readable and writable without the admin UI. They wrap undocumented WPGB internals (`Database::save_row()`/`query_row()`, the indexer, plus the exporter on WPGB 1.x only) — after a WP Grid Builder plugin update, these routes are the first suspect when WPGB work starts failing; check the `wpgb_version` field the routes return and record the drift in the work notes.
+
+Discipline for every WPGB change through the bridge:
+
+- **Read-modify-write, always.** `GET /wpgb/<type>/<id>` first, apply the minimal diff to the returned JSON, POST the full payload back. Never construct a payload from scratch and never post a partial object — the write replaces the stored row.
+- **Create by cloning, never by invention.** A create payload starts as the `GET` of a working item of the same type on the same install; change only the name/slug plus the intended wiring. The column sets differ between WPGB versions (2.x grids have no `layout` column, cards carry `css`), so invented column lists break `save_row()`.
+- **Reference IDs are strings.** Grids store the card reference as a string id (`cards.default = "10"`, not `10`), and `grid_layout` facet references are string ids (`"7"`), never slugs. The built-in carousel UI slugs `prev-button`, `next-button`, and `page-dots` are not rows in the facets table — never treat them as bridge-addressable facets.
+- **`css` stays a string.** The GET decodes only `settings`/`layout`; a `css` value is posted back exactly as received.
+- **Prove every write with a re-read.** After each POST, `GET` the item again and confirm the changed values are present. A POST response alone is not proof.
+- **Unique identifier before create.** Grids and cards are identified by `name`, facets by `slug`. Before `POST /wpgb/<type>` without an id, check the list route for a collision; the bridge rejects duplicates with the existing id.
+- **Card before grid.** Grids reference card IDs. Create or update the card first, take the id from the response, then wire it into the grid configuration.
+- **Reindex after facet writes.** Every facet create or update is followed by `POST /wpgb/reindex` (with the `facet_id` for a targeted run); without it the facet filters on stale index data.
+- **Cache flush after writes.** Finish a WPGB write pass with `POST /flush-cache` before judging the frontend result.
+
+- 404 on `wso/v1` routes: the bridge is not installed, the deploy has not delivered it, or the REST API is blocked. Route to the `install-status-bridge` Skill; do not fall back to editing server files directly.
+- 404 only on `wpgb/*` routes while `/status` answers: the installed bridge predates 1.1.0. The mandatory version comparison catches this; route to the `install-status-bridge` Skill instead of working around it.
+- `wso_bridge_wpgb_internal_missing` (501): WP Grid Builder is inactive or its internals drifted after a plugin update. Record the reported `wpgb_version` and stop the WPGB operation; do not fall back to direct database writes or raw SQL. A 501 naming `Admin\Export` on a WPGB 2.x install means the installed bridge is 1.1.0 — the fix is the 1.1.1 managed-block update through the `install-status-bridge` Skill, never a hand-edit of the project's block and never a project-only fork of the bridge.
+- 401 or 403: credentials or the `manage_options` capability are wrong. Ask the user to re-issue the application password; never guess credentials.
+- Other errors: record the response body in the work notes and stop the affected operation instead of retrying blindly.

@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "smartflow",
   "displayName": "SmartFlow",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
   "assumptions": [
     "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
@@ -16,10 +16,318 @@
       "path": "rules/plugin-package-boundary.mdc",
       "source": "plugins/smartflow/rules/plugin-package-boundary.mdc",
       "description": "Keep required SmartFlow workflows self-contained inside the plugin package and prevent development-only path dependencies."
+    },
+    {
+      "name": "status-bridge",
+      "path": "rules/status-bridge.mdc",
+      "source": "plugins/smartflow/rules/status-bridge.mdc",
+      "description": "Use the project status bridge (REST namespace wso/v1) for deploy verification, cache flush, permalink flush, and WP Grid Builder grid/card/facet read-write (wpgb/* routes since bridge 1.1.0; the single-item GET needs >= 1.1.1 on WPGB 2.x where the exporter class is gone: read-modify-write with re-read proof, create by cloning a GET never by invented columns, string reference ids (cards.default, grid_layout facets), css never decoded, name/slug uniqueness before create, card before grid, reindex after facet writes, cache flush after write passes), and enforce the mandatory bridge version comparison and deployed-commit check before every bridge use, with a bounded retry and abort budget. The WPGB write routes wrap undocumented WPGB internals and are the first suspect after a WPGB plugin update. Replaces the legacy wp-cli-cache flush path."
+    },
+    {
+      "name": "webroot-safety",
+      "path": "rules/webroot-safety.mdc",
+      "source": "plugins/wordpress-server-ops-beta/rules/webroot-safety.mdc",
+      "description": "Keep non-source artifacts out of the deployed child theme path: the wp-content-level repository root is never served, so only the deploy path needs webroot precautions. Shrunk from the legacy full-webroot rule to the deploy-path boundary."
+    },
+    {
+      "name": "deploy-and-branches",
+      "path": "rules/deploy-and-branches.mdc",
+      "source": "plugins/smartflow/rules/deploy-and-branches.mdc",
+      "description": "SmartFlow deploy flow and branch discipline: the agent never pushes and never commits on its own - every commit is prepared (files, summary, proposed message) and happens only after an explicit user confirmation, with scoped standing mandates only where a Skill explicitly asks for one; deploy-needing work is bundled into one pass with a hard stop after the confirmed commit; the deploy is verified over the status bridge before any served QA pass. main/master/trunk are write-protected (no commit, merge, or revert there), and the prohibitions propagate explicitly into every subagent worker prompt. Absorbs the protected-branches rule from the legacy skill zip."
+    },
+    {
+      "name": "secrets",
+      "path": "rules/secrets.mdc",
+      "source": "plugins/smartflow/rules/secrets.mdc",
+      "description": "Secret handling for SmartFlow repositories: the tracked repo-root .env pushed to the private remote is a deliberate accepted decision, and secrets enter commands exclusively through environment variables, never as literals in tracked files, chat, logs, or docs."
+    },
+    {
+      "name": "acf-local-json",
+      "path": "rules/acf-local-json.mdc",
+      "source": "plugin-feedback/acf-local-json-workflow.md (proven at anton-llm-playground.at.weseo.dev, 2026-08-19)",
+      "description": "Author all project-owned ACF field definitions as Local JSON files under acf-json/ in the child theme: admin stays editable, agents write JSON with a modified bump, a human confirms every structural change with a sync click. Binding operating rules (pull-before-deploy over read-only FTP, JSON as the only agent write path, sync only after diff review) plus the empirical filename convention, the ACF Extended autosync opt-in, and the mandatory wso_ field-name prefix for CPT fields (wso_<resource>_<field>, for example wso_job_salary on a Job CPT). Structural ACF database writes stay forbidden entirely. Replaces the retired acf-php-field-groups rule and the PHP migration scaffold."
+    },
+    {
+      "name": "file-edit-boundary",
+      "path": "rules/file-edit-boundary.mdc",
+      "source": "plugins/wordpress-server-ops-beta/rules/file-edit-boundary.mdc",
+      "description": "Restrict edits in the wp-content-level repository to approved source paths: child theme incl. WST source and the ACF Local JSON definitions under acf-json/, docs layer, workspace config; WST plugin folder, third-party code, uploads, and direct server edits stay off-limits; functions.php is forbidden and theme-functions.php needs explicit confirmation."
+    },
+    {
+      "name": "commit-trailer",
+      "path": "rules/commit-trailer.mdc",
+      "source": "plugins/wordpress-server-ops-beta/rules/commit-trailer.mdc",
+      "description": "Apply the commit trailer `Made with: SmartFlow` to every SmartFlow-authored commit in the commit-and-hand-over flow."
+    },
+    {
+      "name": "css-guideline",
+      "path": "rules/css-guideline.mdc",
+      "source": "plugins/frontend-design-qa-beta/rules/css-guideline.mdc",
+      "description": "CSS and SCSS conventions for WESEO frontend implementation: tokens, selectors, rem scaling, responsive strategy, and the two proof modes injection-proof and bridge-verified served check (deployed_commit match over the status bridge) replacing the legacy source-served verification."
+    },
+    {
+      "name": "figma-to-code",
+      "path": "rules/figma-to-code.mdc",
+      "source": "plugins/frontend-design-qa-beta/rules/figma-to-code.mdc",
+      "description": "Rules for translating Figma designs into frontend code: grid translation, spacing, typography, image behavior, and Figma-comparison proof modes injection-proof and bridge-verified served check."
+    },
+    {
+      "name": "wst-php-authoring-route",
+      "path": "rules/wst-php-authoring-route.mdc",
+      "source": "Tests/rules/wst-php-authoring-route.mdc",
+      "description": "Route child-theme PHP authoring through the WST workflows and the wst-shortcode-implementer subagent; template output composes existing WST shortcodes and follows verified precedent."
+    },
+    {
+      "name": "frontend-section-qa-layout-preflight",
+      "path": "rules/frontend-section-qa-layout-preflight.mdc",
+      "source": "Tests/rules/frontend-section-qa-layout-preflight.mdc",
+      "description": "Layout preflight before the CSS pass: extract the Figma layout model (paradigm, sizes, gaps, min width, typography), run the container fit check, and fill the Playwright px measurement matrix before and after the injection proof."
+    },
+    {
+      "name": "frontend-section-qa-tablet-band",
+      "path": "rules/frontend-section-qa-tablet-band.mdc",
+      "source": "Tests/rules/frontend-section-qa-tablet-band.mdc",
+      "description": "Require the full QA viewport ladder (desktop and mobile Figma anchors plus intermediate rungs) with deliberate 768-991px tablet-band styling before any final frontend Section or CPT QA pass; rung values reconciled with PROJECT-CONTEXT.md."
+    },
+    {
+      "name": "playwright-browser-claim",
+      "path": "rules/playwright-browser-claim.mdc",
+      "source": "Tests/rules/playwright-browser-claim.mdc",
+      "description": "Claim/release protocol over .cursor/pw-locks/ for workspaces running parallel Playwright MCP servers, so concurrent agents never share or steal a browser; inert when only one Playwright server is configured."
+    },
+    {
+      "name": "wordpress-brand-tokens",
+      "path": "rules/wordpress-brand-tokens.mdc",
+      "source": "Tests/rules/wordpress-brand-tokens.mdc",
+      "description": "Enforce project brand-token usage instead of hardcoded brand colors in theme CSS and WST templates, with centralized per-brand palettes keyed to the company-taxonomy body class."
+    },
+    {
+      "name": "wordpress-taxonomies",
+      "path": "rules/wordpress-taxonomies.mdc",
+      "source": "Tests/rules/wordpress-taxonomies.mdc",
+      "description": "Author WordPress taxonomies the WESEO way: English wso_tax_ machine names, German labels allowed, CPT UI managed registration prepared for the user, code only for what CPT UI cannot do, permalink flush through the status bridge."
+    },
+    {
+      "name": "wst-conditional-nesting",
+      "path": "rules/wst-conditional-nesting.mdc",
+      "source": "Tests/rules/wst-conditional-nesting.mdc",
+      "description": "WST conditional shortcodes must never nest the same tag name directly; use the named-level chain and prefer wst_include for shared partials to avoid silent pairing failures."
+    },
+    {
+      "name": "wordpress-content-editing",
+      "path": "rules/wordpress-content-editing.mdc",
+      "source": "plugins/wordpress-server-ops-beta/rules/wordpress-content-editing.mdc",
+      "description": "Safely edit WordPress page, post, and options content over REST when the project uses ACF Flexible Content: read first, preserve the full array, change only requested fields, normalize types, UTF-8 JSON, no structural ACF or template writes."
+    },
+    {
+      "name": "agent-routing",
+      "path": "rules/agent-routing.mdc",
+      "source": "Tests/agents/README.md",
+      "description": "Route SmartFlow WST/CPT package work, Jira batch ticket work, grid-cards write routing, and generic worker orchestration to the six bundled subagents: delegation table with write scopes, recommended-model routing with dynamic pinning at spawn (agent files ship model: inherit, so spawns never fail on a missing model; available recommended slugs are passed at spawn, deviations reported in one sentence, never silently substituted), the deliberately-not-routed scope (now including smartflow-feedback and sync-project-brief as interactive main-chat Skills), the runner as the standard execution vehicle for the four runner-backed Skills even on direct starts, orchestrator/handoff practices adapted from rekursiv (self-contained prompts, context-full continuation via STATUS handoff, stall stop), and the shared fixed return contract."
+    },
+    {
+      "name": "confluence-source",
+      "path": "rules/confluence-source.mdc",
+      "source": "docs/confluence-integration-plan.md (grill-me decision log 2026-08-25, decisions 1-4)",
+      "description": "Confluence as the leading project source: the PL Umsetzung page is anchored once in PROJECT-CONTEXT.md (page ID, URL, mirror timestamp), read at exactly three points (setup-local-project mirrors, the four work-package Skills re-read fresh at run start, runners stay offline with the distilled extract in their prompt), extraction instead of template enforcement (optional text status markers and Fuer-Cursor block recognized, decision chains resolved to the newest statement), controlled refresh only through sync-project-brief, and secrets never mirrored - placeholder plus pointer instead."
+    },
+    {
+      "name": "feedback-capture",
+      "path": "rules/feedback-capture.mdc",
+      "source": "docs/confluence-integration-plan.md (grill-me decision log 2026-08-25, decision 9)",
+      "description": "Always-on trigger moments for the proactive feedback offer: when a run step demonstrably deviated from a bundled Skill's or Rule's promise (wrong classification, missed hard stop, manual user correction, wrong bundled reference), the agent offers exactly one sentence at the hand-over point and runs smartflow-feedback on yes. Hard annoyance guards: only real detected deviations, one sentence, never blocking, never mid-run, once per deviation, never auto-report."
     }
   ],
-  "skills": [],
-  "agents": [],
+  "skills": [
+    {
+      "name": "install-status-bridge",
+      "path": "skills/install-status-bridge/SKILL.md",
+      "source": "plugins/smartflow/skills/install-status-bridge/SKILL.md",
+      "description": "Install or update the versioned SmartFlow status bridge in the child theme's js-snippets.php from the bundled PHP template (wso/v1/status with bridge_version, deployed_commit, ACF field groups, WPGB grids, and cache state, plus cache flush, permalink flush, and since bridge 1.1.0 the WPGB read/write routes wpgb/<type> list, read, create, and update plus wpgb/reindex, all behind manage_options; bridge 1.1.1 adds the WPGB 2.x fallback for the single-item GET via Database::query_row because WPGB 2.x removed the exporter class): managed-block install, deployed-commit file contract, commit-and-hand-over stop, and post-deploy verification over wso/v1/status. The normal update path (marker version comparison, block replacement) rolls new bridge versions out to existing projects without extra steps."
+    },
+    {
+      "name": "setup-local-project",
+      "path": "skills/setup-local-project/SKILL.md",
+      "source": "plugins/wordpress-server-ops-beta/skills/setup-orientation/SKILL.md",
+      "description": "Guided German wizard for the complete first setup of a local SmartFlow workspace: clone the wp-content-level repository, name the folder exactly after the server hostname (DevTools Local Overrides), fill the tracked .env with the application password, run the REST test, verify Atlassian MCP with the community mcp-atlassian preflight (community mcp-atlassian server version 0.22.0 or newer as team standard - the version floor is a security requirement, local stdio only, token in the env block never in args; a working legacy Rovo server stays a functioning read variant), anchor the project's Confluence page and mirror its extract into PROJECT-CONTEXT.md per the confluence-source Rule (no page is a valid state), find and follow the current Confluence weseo-git-installer guide via search, create the read-only FTP user with .ftpaccess (verified read-works/write-denied), install the status bridge, expose post types, taxonomies, ACF field groups, and ACF options pages over REST (bundled wso/v1/options endpoints and the full connection test, absorbed from the legacy setup-wordpress-cursor skill), configure Playwright MCP, verify Figma MCP, record the current Motherboard hostname from the Erstinstallation Confluence page as Cloned from (clone model: every project starts as a Motherboard clone; do not ask the user for a master-install name) and write the css_setup pending marker pointing at the project-css-setup pass shortly before the first Section, and fill PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation."
+    },
+    {
+      "name": "setup-acf-local-json",
+      "path": "skills/setup-acf-local-json/SKILL.md",
+      "source": "plugin-feedback/acf-local-json-workflow.md (proven at anton-llm-playground.at.weseo.dev, 2026-08-19)",
+      "description": "One-time setup of the ACF Local JSON workflow in a SmartFlow project: bridge inventory (participants local false, plugin groups local php excluded), acf-json/ in the child theme without any code change, seed split from a user-driven ACF admin export (PHP json_encode style, no modified timestamps, keys reconciled), the ACF Extended acfe_autosync opt-in fix with a one-time collective sync, empirical filename-convention determination, both-direction functional proofs, and acceptance over an FTP hash comparison plus the bridge listing all participants as local json."
+    },
+    {
+      "name": "migrate-ssh-to-local",
+      "path": "skills/migrate-ssh-to-local/SKILL.md",
+      "source": "plugins/smartflow/skills/migrate-ssh-to-local/SKILL.md",
+      "description": "Self-contained one-time migration of an existing project from the legacy Remote-SSH plus WP Pusher model to the local SmartFlow model. Export stage in the SSH workspace: inventory, the ACF admin JSON export as the Local JSON seed source (nothing deleted, nothing converted), migration bundle outside the webroot. Import stage locally: setup-local-project foundation, theme and docs import with FTP diff, PROJECT-CONTEXT.md translation, WP Pusher teardown, git-installer build-up, ACF Local JSON setup via setup-acf-local-json, and bridge-verified acceptance with the project groups listed as local json."
+    },
+    {
+      "name": "project-css-setup",
+      "path": "skills/project-css-setup/SKILL.md",
+      "source": "docs/project-css-setup-plan.md (grill-me decision log 2026-08-26)",
+      "description": "Reconcile a project's global theme CSS values with its Figma design in one resumable pass: four blocks in fixed order (content widths, fonts, colors/brand tokens, buttons and global spacing), each running extract from the design, compare with the theme, per-value confirmation, injection-proofed write, and viewport-ladder verification. Reads the css_setup marker in PROJECT-CONTEXT.md (master-values mode sets directly from the design; adapted mode shows the theme-vs-design diff and the user decides per value), builds an impact map before every change (docs-layer work records plus var() consumer search; the affected-Sections list is shown in the confirmation, becomes the post-change spot-check plan, and doc gaps are written back), derives values once at the 1920 design anchor and lets the fluid rem basis scale (bundled measurement reference with the 991-at-990 Playwright caveat, 375 as second anchor, targeted per-breakpoint overrides only where a rung visually fails), flips the marker to reconciled when at minimum the widths block is done, and ends in one bundled commit with hard stop. Runs in the main chat by design (interactive per-value confirmations, deliberately not routed)."
+    },
+    {
+      "name": "wst-section-workflow",
+      "path": "skills/wst-section-workflow/SKILL.md",
+      "source": "plugins/wst-builder-beta/skills/wst-section-workflow/SKILL.md",
+      "description": "Single entry point for WST Flexible Content Section work in the local workspace: classification (new foundation, remodel, visual-only), pattern discovery with the four-source proof, Section templates plus ACF Local JSON field groups and Flexible Content wiring as tracked source, one bundled deploy pass with pull-before-deploy, commit-and-hand-over stop, bridge-verified served verification, and the human sync click for field-definition changes, Section preview pages offer, and the Section work record in the project docs layer that routes to frontend-section-qa. At run start the anchored Confluence page is re-read fresh and only the Section-relevant extract lands in the work record (clean skip without anchor, per the confluence-source Rule). On every start — direct start included — the main chat orchestrates (classification, pattern-discovery decision, work record, hard stops) while the execution run of template and ACF JSON writes runs through the wst-shortcode-implementer runner per the agent-routing Rule."
+    },
+    {
+      "name": "wst-new-post-type",
+      "path": "skills/wst-new-post-type/SKILL.md",
+      "source": "plugins/wst-builder-beta/skills/wst-new-post-type/SKILL.md",
+      "description": "Single entry point for WST Custom Post Type work in the local workspace: preflight as write gate, three delivery paths (tracked source for templates and ACF Local JSON field groups over the bundled deploy pass plus the human sync; CPT UI, taxonomy, and WPGB apply-specs for the user; bridge flushes), remodel protections, and the CPT work record in the project docs layer that routes to cpt-frontend-qa. At preflight start the anchored Confluence page is re-read fresh and only the CPT-relevant extract lands in the work-record draft (clean skip without anchor, per the confluence-source Rule). On every start — direct start included — the main chat orchestrates (classification, preflight, work record, hard stops) while the foundation execution run runs through the wst-shortcode-implementer runner and WPGB work through the wpgb-specialist, per the agent-routing Rule."
+    },
+    {
+      "name": "section-preview-harness",
+      "path": "skills/section-preview-harness/SKILL.md",
+      "source": "plugins/wst-builder-beta/skills/section-preview-harness/SKILL.md",
+      "description": "Project-local WST Section preview pages: one Section rendered in isolation under /section-preview/<section>/<variant> from Git-tracked JSON fixtures through the real WST render path, with the proven reference implementation. Adapted to the shell-less workspace: fixtures are exported over a gated REST export route and written into the repository, rewrites are flushed through the status bridge, and preview URLs count only after a bridge-verified deploy."
+    },
+    {
+      "name": "wst-shortcodes",
+      "path": "skills/wst-shortcodes/SKILL.md",
+      "source": "Tests/cpt-workflow-server/reference/SMART-TEMPLATE-HILFE.md",
+      "description": "Entry point into the bundled Smart Template Gesamthilfe catalog snapshot (SMART-TEMPLATE-HILFE.md, targeted section loads only) and owner of the four-source proof (catalog, installed runtime, project precedent, rendered HTML) that gates every WST shortcode form new to a project, including the documented open catalog discrepancies."
+    },
+    {
+      "name": "frontend-section-qa",
+      "path": "skills/frontend-section-qa/SKILL.md",
+      "source": "plugins/frontend-design-qa-beta/skills/frontend-section-qa/SKILL.md",
+      "description": "Frontend CSS/SCSS pass for a WST Section from the Section work record in the project docs layer: Playwright MCP browser QA loop with Capability Probe and Degraded Mode, injection-proofed iteration against the served page as the main mode, tracked CSS writes, the Visual QA Targets writeback, one bundled deploy pass with hard stop, bridge verification of deployed_commit with a bounded retry and abort budget, and the one-time served check that closes the work. Two-stage reaction to an unreconciled project CSS setup: warn once when PROJECT-CONTEXT.md carries css_setup pending, hard stop with a route to project-css-setup when the layout preflight measures an actual container mismatch — never Section-local compensation. On every start — direct start included — the CSS/browser-QA run executes through the cpt-visual-implementer runner per the agent-routing Rule; deploy pass, bridge verification, and commit stay with the main chat."
+    },
+    {
+      "name": "cpt-frontend-qa",
+      "path": "skills/cpt-frontend-qa/SKILL.md",
+      "source": "plugins/frontend-design-qa-beta/skills/cpt-frontend-qa/SKILL.md",
+      "description": "Frontend CSS/SCSS pass for a WST Custom Post Type from the CPT work record in the project docs layer: per-surface injection-proofed iteration (card, archive/grid, carousel/filter, WPGB output, optional single) as the main mode, the Playwright MCP browser QA loop, one bundled deploy pass with hard stop, bridge verification of deployed_commit with a bounded retry and abort budget, and the one-time served check on the display and single URLs. On every start — direct start included — the CSS/browser-QA run executes through the cpt-visual-implementer runner per the agent-routing Rule, one runner per surface; deploy pass, bridge verification, and commit stay with the main chat."
+    },
+    {
+      "name": "wp-media-import",
+      "path": "skills/wp-media-import/SKILL.md",
+      "source": "plugins/wordpress-server-ops-beta/skills/wp-media-import/SKILL.md",
+      "description": "Import local files into the WordPress Media Library over the WordPress REST API (duplicate check, filename normalization, upload, metadata, verification) with cache flushes through the status bridge and attachment IDs recorded in the affected work record. Replaces the legacy WP-CLI media import; there is no server shell in the SmartFlow workspace."
+    },
+    {
+      "name": "content",
+      "path": "skills/content/SKILL.md",
+      "source": "cursor.zip commands/content.md (Tobias Uhl), Confluence page 1871085606; plugins/wordpress-server-ops-beta/rules/wordpress-content-editing.mdc",
+      "description": "Edit WordPress page, post, and ACF options content over the REST API: mandatory pre-write backup under tmp/, full Flexible Content array round-trip, UTF-8 JSON, status-bridge cache flush, and work-record notes. Successor of the zip /content command; not for new layouts, templates, or CSS."
+    },
+    {
+      "name": "auto-docs",
+      "path": "skills/auto-docs/SKILL.md",
+      "source": "Confluence Skill-Einreichungen: [Skill] auto-docs, page 1853227009 (Tobias Uhl)",
+      "description": "Generate and maintain the project documentation under docs/ at the repository root (sections, elements, post-types, field-groups, coding-standard) as LLM-readable German Markdown through worker subagents, with a git-based delta check, PHP field-group documentation (legacy JSON-export script as fallback), README indexes, and hard protection of the work-record sections including the Visual QA Targets matrix; worker spawning follows the shared orchestration practices of the agent-routing Rule while the workers stay generic subagents. The docs layer absorbs the legacy handoff files."
+    },
+    {
+      "name": "cpt-docs",
+      "path": "skills/cpt-docs/SKILL.md",
+      "source": "Confluence Skill-Einreichungen: [Skill] cpt-docs, page 1828061204 (Tobias Uhl)",
+      "description": "Create or update the German documentation for one WST Custom Post Type at docs/post-types/<resource>.md — the CPT work record — from read-only REST and bridge discovery plus repo discovery (ACF JSON field groups, card templates, WPGB IDs from the work record or bridge), preserving the work-record sections and carrying the Visual QA Targets section. Also the post-types worker template inside an auto-docs run."
+    },
+    {
+      "name": "grid-cards",
+      "path": "skills/grid-cards/SKILL.md",
+      "source": "cursor.zip skills/grid-cards (Tobias Uhl), Confluence page 1871085606",
+      "description": "Author WST grid-card templates for WP Grid Builder under smart-template-builder/post-types/<resource>/cards/ in the child theme. Core rule: every wst_ shortcode that reads a field from the database needs id='{{post_id}}'; carries the open {{post.id}} vs {{post_id}} catalog validation, the nesting cross-reference, and the wso- markup conventions. Under orchestration, card-template PHP writes route through the wst-shortcode-implementer, WPGB grid/card configuration to the wpgb-specialist, and card CSS stays with cpt-frontend-qa, per the agent-routing Rule."
+    },
+    {
+      "name": "wst-nested-shortcodes",
+      "path": "skills/wst-nested-shortcodes/SKILL.md",
+      "source": "cursor.zip skills/verschachtelte-wst-shortcodes (Tobias Uhl), Confluence page 1871085606",
+      "description": "Suffix rules for nesting enclosing wst_ shortcodes (wst_if, wst_acf_repeater, wst_is_mobile, ...): same-named nested shortcodes break the WordPress parser silently, so nested levels get unique suffixes _a, _b, _c including else clauses and negated forms; siblings may reuse suffixes, self-closing shortcodes never need one, and the strict named-level chain from the wst-conditional-nesting Rule holds until the suffix-skip question is validated at runtime."
+    },
+    {
+      "name": "smarttags",
+      "path": "skills/smarttags/SKILL.md",
+      "source": "cursor.zip skills/smarttags (Tobias Uhl), Confluence page 1871085606",
+      "description": "SmartTag {{...}} placeholder syntax of WST: conversion commands with the exactly-one-pipe rule and & chaining, loop context id='{{post_id/<loop-name>}}' and {{row_id/...}}, nested SmartTags, attachment metadata placeholders, SmartTags as variables, and wst_foreach — with the full command list deferred to catalog section 5.24 in the wst-shortcodes snapshot."
+    },
+    {
+      "name": "headline-filling",
+      "path": "skills/headline-filling/SKILL.md",
+      "source": "cursor.zip skills/headline-befuellung (Tobias Uhl), Confluence page 1871085606",
+      "description": "Rules for filling title and subtitle fields in WST Flexible Content blocks: the Format field sets the semantic HTML tag, the Style field sets the wso- look class, heading levels are never skipped, exactly one h1 per page, and design looks that would violate the hierarchy are solved through Style, never by bending the Format."
+    },
+    {
+      "name": "grill-me",
+      "path": "skills/grill-me/SKILL.md",
+      "source": "plugins/wst-builder/skills/grill-me/SKILL.md",
+      "description": "Interview the user relentlessly about a plan or design until shared understanding, one question at a time with a recommended answer, exploring project context, docs layer, codebase, and status bridge before asking. Output is a prefilled Section or CPT work-record draft in the project docs layer (or a written decision log for non-WST plans) with explicit unresolved placeholders instead of invented values. Runs in the main chat by design; the workflow preflights of wst-section-workflow and wst-new-post-type stay authoritative. Adapted from the legacy wst-builder grill-me: handoff drafts are replaced by work-record drafts."
+    },
+    {
+      "name": "figma-page-builder",
+      "path": "skills/figma-page-builder/SKILL.md",
+      "source": "Tests/skills/figma-page-builder/SKILL.md",
+      "description": "Build or remodel a WordPress/WST page from a Figma page frame by reusing the project's existing Flexible Content Sections, WPGB surfaces, media, and global elements: parallel Figma/codebase discovery, a binding ordered page map with surface classification (global, existing-wst, existing-wpgb, content-only, structural-gap), REST content population per the content Skill with backup and fingerprint guard, bridge cache flush, and structural plus visual acceptance. At preflight the anchored Confluence page is re-read fresh for the page-relevant extract (clean skip without anchor, per the confluence-source Rule). Owns page composition, not Section development."
+    },
+    {
+      "name": "jira-ticket-workflow",
+      "path": "skills/jira-ticket-workflow/SKILL.md",
+      "source": "Tests/skills/jira-ticket-workflow/SKILL.md",
+      "description": "Process a single WESEO Jira ticket (WP-key) end to end in the local SmartFlow workspace: Atlassian MCP intake with the mandatory screenshot rule (jira_get_issue_images, never blind visual diagnosis) and a fresh run-start read of the ticket-relevant section of the anchored Confluence page (clean skip without anchor, per the confluence-source Rule), triage/routing to the bundled Skills and subagents, minimal child-theme fix, Playwright injection-proof verification with honest proof-mode reporting, German report with approval gate, then one commit per ticket (never push) and a German Jira solution comment. Jira site URL and project key come from PROJECT-CONTEXT.md."
+    },
+    {
+      "name": "jira-batch-workflow",
+      "path": "skills/jira-batch-workflow/SKILL.md",
+      "source": "Tests/skills/jira-batch-workflow/SKILL.md",
+      "description": "Orchestrate a batch of open Jira subtasks (default 10) of one parent task: JQL intake over statusCategory To Do only, screenshot-based triage, untracked statusboard under .cursor/jira-batch/, up to three parallel background jira-ticket-runner leaves with file-disjoint write ownership and chain serialization, feedback relay via resume, serialized per-ticket commits under an explicit batch commit mandate asked at intake (never push, never without the mandate or an individual confirmation), final batch review, and Jira solution comments after the user closes the review. Router and closer only; per-ticket semantics stay in jira-ticket-workflow, while model routing, the fixed return contract, and the handoff schema come from the agent-routing Rule."
+    },
+    {
+      "name": "smartflow-feedback",
+      "path": "skills/smartflow-feedback/SKILL.md",
+      "source": "docs/confluence-integration-plan.md (grill-me decision log 2026-08-25, decisions 5-9 and 11, label fallback amendment 2026-08-26)",
+      "description": "Report SmartFlow feedback to the team's Confluence feedback hub from the working chat: four entry types (Bug, Frage, Verbesserungsidee, Skill/Rule-Vorschlag), session autofill for the bug case (the reporter never provides structure, only a yes), hard redaction rules before any upload, confirmation-gated duplicate search over CQL (never auto-attach), German entry subpages with the fixed structure and the plain-text metadata block replacing labels, occurrence/regression comments that never change status, the Technischer Anhang as the maintainer handoff, and the bundled hub page ID reference. Authored against the community mcp-atlassian tool surface (team standard, version 0.22.0 or newer) with the legacy Rovo mapping alongside; runs in the main chat by design."
+    },
+    {
+      "name": "sync-project-brief",
+      "path": "skills/sync-project-brief/SKILL.md",
+      "source": "docs/confluence-integration-plan.md (grill-me decision log 2026-08-25, decision 4)",
+      "description": "Refresh the local mirror of the project's anchored Confluence page on demand: re-read the anchored PL page over the Atlassian MCP, extract per the confluence-source Rule, show a compact impact-grouped diff against the Confluence mirror block in PROJECT-CONTEXT.md (naming affected work records), and overwrite only after user confirmation - never silently, never mid-work. Anchors the page as part of the run when setup never recorded one; secrets become placeholders plus pointer; runs in the main chat by design."
+    }
+  ],
+  "agents": [
+    {
+      "name": "cpt-codebase-analyst",
+      "path": "agents/cpt-codebase-analyst.md",
+      "source": "Tests/agents/cpt-codebase-analyst.md",
+      "description": "Read-only analyst for a WST CPT package: reference baseline, Project Layout Profile, precedence, minimal file scope, and evidenced implementation route, reading runtime facts over the status bridge instead of a server shell."
+    },
+    {
+      "name": "cpt-figma-analyst",
+      "path": "agents/cpt-figma-analyst.md",
+      "source": "Tests/agents/cpt-figma-analyst.md",
+      "description": "Figma analyst for a WST CPT package: compact package surface index mapped against the reference baseline (deviations only by default), full raw specs and reference PNGs only for pixel-parity or complex surfaces, written into the project docs layer."
+    },
+    {
+      "name": "wst-shortcode-implementer",
+      "path": "agents/wst-shortcode-implementer.md",
+      "source": "Tests/agents/wst-shortcode-implementer.md",
+      "description": "Thin runner for exactly one assigned WST task via the bundled wst-new-post-type or wst-section-workflow Skill, writing only the assigned WST templates/partials, ACF JSON field groups, and the Skill's work record; never CSS, WPGB config, commits, or pushes."
+    },
+    {
+      "name": "wpgb-specialist",
+      "path": "agents/wpgb-specialist.md",
+      "source": "Tests/agents/wpgb-specialist.md",
+      "description": "WP Grid Builder specialist with a bridge-based write scope: reads WPGB config over the status bridge, writes and creates grids/cards/facets over the bridge wpgb/* routes when bridge >= 1.1.1 and PROJECT-CONTEXT.md records the route as project-validated (exact minimal apply-spec for the admin as fallback), clones the closest precedent card-before-grid with the new IDs written back as string references, derives config values from the Figma matrix, and measures grid/slider runtime without overriding it via CSS."
+    },
+    {
+      "name": "cpt-visual-implementer",
+      "path": "agents/cpt-visual-implementer.md",
+      "source": "Tests/agents/cpt-visual-implementer.md",
+      "description": "Thin runner for exactly one assigned CPT-package surface via the bundled frontend-section-qa or cpt-frontend-qa Skill, writing only the assigned CSS/SCSS file group and its work-record section, with bridge-verified served checks as the only final pass."
+    },
+    {
+      "name": "jira-ticket-runner",
+      "path": "agents/jira-ticket-runner.md",
+      "source": "Tests/agents/jira-ticket-runner.md",
+      "description": "Thin local leaf runner for exactly one Jira subtask classified as direct-fix by the jira-batch-workflow orchestrator: executes steps 3-5 of the bundled jira-ticket-workflow Skill inside its assigned file group with Playwright injection-proof verification and the fixed return format; never commits, pushes, writes to Jira, or spawns agents."
+    }
+  ],
   "commands": [],
-  "releaseNotes": "release-notes/0.1.0.md"
+  "releaseNotes": "release-notes/1.0.0.md"
 }

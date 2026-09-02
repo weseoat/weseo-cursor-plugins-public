@@ -1,0 +1,68 @@
+---
+description: Layout preflight for frontend Section QA — extract the Figma layout model and run the px measurement matrix against Playwright before the CSS pass
+globs:
+  - "**/styles/sections/**"
+alwaysApply: false
+---
+
+# Frontend Section QA — Layout Preflight
+
+Run this **before** the CSS-injection proof when a Section work record includes a Figma link.
+
+## 1. Extract The Figma Layout Model (Not Only Tokens)
+
+From Figma MCP `get_design_context` or Dev Mode, record for each breakpoint:
+
+- **Layout paradigm:** fixed intrinsic widths vs equal columns vs full-bleed grid.
+- **Main-axis sizes:** width/height of each major block (px).
+- **Gaps:** between siblings on the main axis (px) — distinguish pair gap vs column gap.
+- **Min content width:** sum of fixed blocks plus gaps.
+- **Typography:** font-size, line-height, weight per text node (not the wrapper).
+
+Store these in the Section's Visual QA Targets as measurable rows, e.g. `desktop | pill width | 384px ±2`.
+
+## 2. Container Fit Check (Mandatory When Min Width Approaches The Container)
+
+Before writing CSS, compare:
+
+| Check | Action if fail |
+|---|---|
+| Figma min width vs the project container's inner width | Do **not** map Figma to a 50/50 column split; use flex/grid with `flex: 0 0 auto` or asymmetric columns |
+| Grid gutter vs Figma gap | Prefer explicit `gap` on a flex wrapper; avoid gutter-bleed unless the work record documents the trade-off |
+| Template column classes | Note whether a CSS-only override is enough or a WST template change is required |
+| Measured container inner width vs the project's recorded content width (`PROJECT-CONTEXT.md`) | **Hard stop** — global mismatch, see below |
+
+Document the result, e.g. `figma min <x>px, container inner ~<y>px -> CSS flex override on <wrapper selector>`.
+
+**Global container mismatch = hard stop.** When the measured container inner width deviates from the content width the project records (or the design prescribes), the defect is project-level, not a Section-fit problem: do not write Section CSS that compensates for it (no widened Section wrappers, no negative margins, no Section-local container overrides). Stop the CSS pass and route to the bundled `project-css-setup` Skill; the user decides whether it runs now. When `PROJECT-CONTEXT.md` carries `css_setup: pending`, this case is expected — the earlier warn-once from `frontend-section-qa` already announced it.
+
+## 3. Playwright Measurement Matrix (Before Injection Proof)
+
+On each preview URL and viewport from the work record, run Playwright MCP `browser_evaluate` and fill the matrix.
+
+Required desktop measures (when applicable):
+
+- Primary block widths/heights (bounding rect, rounded px).
+- Gap between named siblings (`rect.right` of the first to `rect.left` of the second).
+- `getComputedStyle` for typography on the **text node** (e.g. `h3.wso-title`, not the headline wrapper).
+- Overlap check: right edge of one column minus left edge of the next must be ≤ 0.
+
+Pass criteria: each matrix row within **±2px** of Figma (±4px for radii derived from rem). If any row fails, do not set `injection proof: pass` until the layout paradigm is fixed — scaling content down to fit a too-narrow column is not an acceptable silent fallback.
+
+## 4. Injection Proof Must Re-Run The Matrix
+
+After CSS injection, re-measure the same rows. A screenshot alone is not sufficient for layout Sections.
+
+## 5. Work-Record Writeback
+
+Add to the QA notes:
+
+- `layout paradigm: <fixed-flex | equal-columns | ...>`
+- `figma-vs-live matrix: <pass | fail: row ids>`
+- Known project deltas, e.g. `figma <x>px inset, project container narrower -> documented`.
+
+## Non-Normative Incident Example (text-images-two, 2026-06-16)
+
+- Figma: 384×630 pills, 35px pair gap, **174px** image-to-text gap, 523px text column — **fixed flex**, not 50/50.
+- Wrong path: 50/50 column split plus pill shrink plus gutter-bleed produced 312px pills with an 87px gap.
+- Right path: flex wrapper with explicit `gap: 8.7rem`, fixed pill columns, `align-items: center` on the pair.
