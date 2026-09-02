@@ -146,6 +146,8 @@ The Skill searches for a structural reference by itself before asking. Sources i
 
 Only ask when no usable reference is found, when multiple references would change the structural model differently, or when the maintainer might prefer a specific reference Section.
 
+This discovery deliberately stays in the main chat: one reference Section and one design frame do not justify a discovery leaf, and the pattern-discovery decision is a main-chat responsibility (routing paragraph above). Delegate the Figma read to the `cpt-figma-analyst` only when a full raw design spec is needed — a pixel-parity target or a genuinely complex new component, per its agent file. The `cpt-codebase-analyst` is CPT-package-scoped and not part of Section runs (`agent-routing` Rule).
+
 ## Existing Section remodel: in-place default
 
 `existing-section-remodel` defaults to in-place. By default:

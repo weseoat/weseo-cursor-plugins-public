@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "smartflow-beta",
   "displayName": "SmartFlow (Beta)",
-  "version": "1.0.0",
+  "version": "1.1.0-beta.1",
   "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
   "assumptions": [
     "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
@@ -123,7 +123,7 @@
       "name": "agent-routing",
       "path": "rules/agent-routing.mdc",
       "source": "Tests/agents/README.md",
-      "description": "Route SmartFlow WST/CPT package work, Jira batch ticket work, grid-cards write routing, and generic worker orchestration to the six bundled subagents: delegation table with write scopes, recommended-model routing with dynamic pinning at spawn (agent files ship model: inherit, so spawns never fail on a missing model; available recommended slugs are passed at spawn, deviations reported in one sentence, never silently substituted), the deliberately-not-routed scope (now including smartflow-feedback and sync-project-brief as interactive main-chat Skills), the runner as the standard execution vehicle for the four runner-backed Skills even on direct starts, orchestrator/handoff practices adapted from rekursiv (self-contained prompts, context-full continuation via STATUS handoff, stall stop), and the shared fixed return contract."
+      "description": "Route SmartFlow WST/CPT package work, Jira batch ticket work, grid-cards write routing, and generic worker orchestration to the six bundled subagents: the package definitions (CPT package, package run, package manifest; package orchestration is not a separate mode — every routing statement applies on every start), delegation table with write scopes, recommended-model routing with dynamic pinning at spawn (agent files ship model: inherit, so spawns never fail on a missing model; available recommended slugs are passed at spawn, deviations reported in one sentence, never silently substituted), the deliberately-not-routed scope (now including smartflow-feedback and sync-project-brief as interactive main-chat Skills), the runner as the standard execution vehicle for the four runner-backed Skills even on direct starts plus the analyst spawn conditions of the two discovery agents, orchestrator/handoff practices adapted from rekursiv (self-contained prompts, context-full continuation via STATUS handoff, stall stop), and the shared fixed return contract."
     },
     {
       "name": "confluence-source",
@@ -173,13 +173,13 @@
       "name": "wst-section-workflow",
       "path": "skills/wst-section-workflow/SKILL.md",
       "source": "plugins/wst-builder-beta/skills/wst-section-workflow/SKILL.md",
-      "description": "Single entry point for WST Flexible Content Section work in the local workspace: classification (new foundation, remodel, visual-only), pattern discovery with the four-source proof, Section templates plus ACF Local JSON field groups and Flexible Content wiring as tracked source, one bundled deploy pass with pull-before-deploy, commit-and-hand-over stop, bridge-verified served verification, and the human sync click for field-definition changes, Section preview pages offer, and the Section work record in the project docs layer that routes to frontend-section-qa. At run start the anchored Confluence page is re-read fresh and only the Section-relevant extract lands in the work record (clean skip without anchor, per the confluence-source Rule). On every start — direct start included — the main chat orchestrates (classification, pattern-discovery decision, work record, hard stops) while the execution run of template and ACF JSON writes runs through the wst-shortcode-implementer runner per the agent-routing Rule."
+      "description": "Single entry point for WST Flexible Content Section work in the local workspace: classification (new foundation, remodel, visual-only), pattern discovery with the four-source proof, Section templates plus ACF Local JSON field groups and Flexible Content wiring as tracked source, one bundled deploy pass with pull-before-deploy, commit-and-hand-over stop, bridge-verified served verification, and the human sync click for field-definition changes, Section preview pages offer, and the Section work record in the project docs layer that routes to frontend-section-qa. At run start the anchored Confluence page is re-read fresh and only the Section-relevant extract lands in the work record (clean skip without anchor, per the confluence-source Rule). On every start — direct start included — the main chat orchestrates (classification, pattern-discovery decision, work record, hard stops) while the execution run of template and ACF JSON writes runs through the wst-shortcode-implementer runner per the agent-routing Rule; routine single-Section discovery deliberately stays in the main chat, with heavy Figma extraction delegated to the cpt-figma-analyst."
     },
     {
       "name": "wst-new-post-type",
       "path": "skills/wst-new-post-type/SKILL.md",
       "source": "plugins/wst-builder-beta/skills/wst-new-post-type/SKILL.md",
-      "description": "Single entry point for WST Custom Post Type work in the local workspace: preflight as write gate, three delivery paths (tracked source for templates and ACF Local JSON field groups over the bundled deploy pass plus the human sync; CPT UI, taxonomy, and WPGB apply-specs for the user; bridge flushes), remodel protections, and the CPT work record in the project docs layer that routes to cpt-frontend-qa. At preflight start the anchored Confluence page is re-read fresh and only the CPT-relevant extract lands in the work-record draft (clean skip without anchor, per the confluence-source Rule). On every start — direct start included — the main chat orchestrates (classification, preflight, work record, hard stops) while the foundation execution run runs through the wst-shortcode-implementer runner and WPGB work through the wpgb-specialist, per the agent-routing Rule."
+      "description": "Single entry point for WST Custom Post Type work in the local workspace: preflight as write gate, three delivery paths (tracked source for templates and ACF Local JSON field groups over the bundled deploy pass plus the human sync; CPT UI, taxonomy, and WPGB apply-specs for the user; bridge flushes), remodel protections, and the CPT work record in the project docs layer that routes to cpt-frontend-qa. At preflight start the anchored Confluence page is re-read fresh and only the CPT-relevant extract lands in the work-record draft (clean skip without anchor, per the confluence-source Rule). On every start — direct start included — the main chat orchestrates (classification, preflight, work record, hard stops) while the foundation execution run runs through the wst-shortcode-implementer runner, WPGB work through the wpgb-specialist, and the preflight discovery evidence through the cpt-codebase-analyst (skippable only against a recorded verified reference baseline) plus the cpt-figma-analyst when a design source exists, per the agent-routing Rule."
     },
     {
       "name": "section-preview-harness",
@@ -295,7 +295,7 @@
       "name": "cpt-codebase-analyst",
       "path": "agents/cpt-codebase-analyst.md",
       "source": "Tests/agents/cpt-codebase-analyst.md",
-      "description": "Read-only analyst for a WST CPT package: reference baseline, Project Layout Profile, precedence, minimal file scope, and evidenced implementation route, reading runtime facts over the status bridge instead of a server shell."
+      "description": "Read-only analyst for a WST CPT package: reference baseline, Project Layout Profile, precedence, minimal file scope, and evidenced implementation route, reading runtime facts over the status bridge instead of a server shell. Supplies the wst-new-post-type preflight evidence on every foundation or remodel start; skippable only against a recorded verified reference baseline and Project Layout Profile."
     },
     {
       "name": "cpt-figma-analyst",
@@ -329,5 +329,5 @@
     }
   ],
   "commands": [],
-  "releaseNotes": "release-notes/1.0.0.md"
+  "releaseNotes": "release-notes/1.1.0-beta.1.md"
 }

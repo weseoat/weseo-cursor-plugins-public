@@ -1,6 +1,6 @@
 {
   "name": "smartflow-beta",
-  "version": "1.0.0",
+  "version": "1.1.0-beta.1",
   "description": "WESEO SmartFlow: the complete WordPress/WST workflow in one plugin, from server-side WST Section and Custom Post Type foundations to local frontend CSS and Playwright QA. Successor to the wst-builder, frontend-design-qa, and wordpress-server-ops plugins; do not run it next to any of them. Beta channel: pre-release build for WESEO frontend beta testers; do not use in production.",
   "author": {
     "name": "WESEO"
