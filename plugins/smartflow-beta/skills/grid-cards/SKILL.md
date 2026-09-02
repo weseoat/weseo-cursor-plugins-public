@@ -102,7 +102,7 @@ New-to-the-project shortcode forms go through the four-source proof of the `wst-
 Under orchestration, per the `agent-routing` Rule:
 
 - Card-template PHP writes execute through the `wst-shortcode-implementer` runner (consistent with the `wst-php-authoring-route` Rule).
-- WPGB grid/card configuration belongs to the `wpgb-specialist`.
+- WPGB grid/card configuration belongs to the `wpgb-specialist` — who can also create and update grids/cards over the status bridge's `wso/v1/wpgb/*` routes when the project has validated that write route (admin apply-spec otherwise).
 - Card CSS stays with `cpt-frontend-qa`, whose run executes through its `cpt-visual-implementer` runner.
 
 ## Related

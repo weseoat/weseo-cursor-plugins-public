@@ -1,11 +1,11 @@
 ---
-description: Use the SmartFlow status bridge (wso/v1) for deploy verification, cache flush, and permalink flush, with a mandatory version comparison before every bridge use
+description: Use the SmartFlow status bridge (wso/v1) for deploy verification, cache flush, permalink flush, and WPGB grid/card/facet read-write, with a mandatory version comparison before every bridge use
 alwaysApply: false
 ---
 
 # Status Bridge
 
-Use this Rule whenever server state of a WESEO WordPress/WST project is read or mutated through the SmartFlow status bridge: deploy verification, cache flush, permalink flush, or reading ACF/WPGB/cache state. The bridge replaces the legacy WP-CLI cache-flush path.
+Use this Rule whenever server state of a WESEO WordPress/WST project is read or mutated through the SmartFlow status bridge: deploy verification, cache flush, permalink flush, reading ACF/WPGB/cache state, or reading and writing WP Grid Builder configuration. The bridge replaces the legacy WP-CLI cache-flush path.
 
 The bridge is a managed block in the child theme's `js-snippets.php`, installed and updated only through the `install-status-bridge` Skill. It serves the REST namespace `wso/v1`:
 
@@ -14,6 +14,13 @@ The bridge is a managed block in the child theme's `js-snippets.php`, installed 
 | `/wp-json/wso/v1/status` | GET | `bridge_version`, `deployed_commit`, ACF field groups, WPGB grids, cache state |
 | `/wp-json/wso/v1/flush-cache` | POST | Object cache plus detected page cache plugins |
 | `/wp-json/wso/v1/flush-permalinks` | POST | Soft rewrite-rules flush |
+| `/wp-json/wso/v1/wpgb/<type>` | GET | List WPGB items; `<type>` is `grids`, `cards`, or `facets` (id, name, slug for facets) |
+| `/wp-json/wso/v1/wpgb/<type>/<id>` | GET | Full item configuration as decoded JSON, exporter-compatible shape |
+| `/wp-json/wso/v1/wpgb/<type>` | POST | Create a WPGB item; unique name (grids/cards) or slug (facets) required; response carries the new id |
+| `/wp-json/wso/v1/wpgb/<type>/<id>` | POST | Update a WPGB item with the payload shape the GET route returns |
+| `/wp-json/wso/v1/wpgb/reindex` | POST | Run the WPGB facet indexer, for all facets or one via `facet_id` in the JSON body |
+
+The WPGB routes require bridge version >= 1.1.0.
 
 ## Required Project Values
 
@@ -70,8 +77,21 @@ curl -sS -X POST -u "$WSO_BRIDGE_USER:$WSO_BRIDGE_APP_PASSWORD" "<site-url>/wp-j
 
 Then verify the affected URL responds without a 404.
 
-## Failure Handling
+## WPGB Read/Write
+
+The `wpgb/*` routes make WP Grid Builder grids, cards, and facets readable and writable without the admin UI. They wrap undocumented WPGB internals (`Database::save_row()`/`query_row()`, the exporter, the indexer) — after a WP Grid Builder plugin update, these routes are the first suspect when WPGB work starts failing; check the `wpgb_version` field the routes return and record the drift in the work notes.
+
+Discipline for every WPGB change through the bridge:
+
+- **Read-modify-write, always.** `GET /wpgb/<type>/<id>` first, apply the minimal diff to the returned JSON, POST the full payload back. Never construct a payload from scratch and never post a partial object — the write replaces the stored row.
+- **Prove every write with a re-read.** After each POST, `GET` the item again and confirm the changed values are present. A POST response alone is not proof.
+- **Unique identifier before create.** Grids and cards are identified by `name`, facets by `slug`. Before `POST /wpgb/<type>` without an id, check the list route for a collision; the bridge rejects duplicates with the existing id.
+- **Card before grid.** Grids reference card IDs. Create or update the card first, take the id from the response, then wire it into the grid configuration.
+- **Reindex after facet writes.** Every facet create or update is followed by `POST /wpgb/reindex` (with the `facet_id` for a targeted run); without it the facet filters on stale index data.
+- **Cache flush after writes.** Finish a WPGB write pass with `POST /flush-cache` before judging the frontend result.
 
 - 404 on `wso/v1` routes: the bridge is not installed, the deploy has not delivered it, or the REST API is blocked. Route to the `install-status-bridge` Skill; do not fall back to editing server files directly.
+- 404 only on `wpgb/*` routes while `/status` answers: the installed bridge predates 1.1.0. The mandatory version comparison catches this; route to the `install-status-bridge` Skill instead of working around it.
+- `wso_bridge_wpgb_internal_missing` (501): WP Grid Builder is inactive or its internals drifted after a plugin update. Record the reported `wpgb_version` and stop the WPGB operation; do not fall back to direct database writes.
 - 401 or 403: credentials or the `manage_options` capability are wrong. Ask the user to re-issue the application password; never guess credentials.
 - Other errors: record the response body in the work notes and stop the affected operation instead of retrying blindly.

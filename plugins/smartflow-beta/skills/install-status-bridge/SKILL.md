@@ -7,15 +7,20 @@ description: Install or update the versioned SmartFlow status bridge in the chil
 
 Use this Skill when a project needs the SmartFlow status bridge for the first time, or when the installed bridge version is older than the bundled template version (the `status-bridge` Rule routes here on every version mismatch).
 
-The bridge is a managed PHP block inside the child theme's `js-snippets.php`. It registers the REST namespace `wso/v1` with three routes:
+The bridge is a managed PHP block inside the child theme's `js-snippets.php`. It registers the REST namespace `wso/v1` with these routes:
 
 | Route | Method | Purpose |
 |---|---|---|
 | `/wp-json/wso/v1/status` | GET | `bridge_version`, `deployed_commit`, registered ACF field groups, WP Grid Builder grids, cache state |
 | `/wp-json/wso/v1/flush-cache` | POST | Object cache plus detected page cache plugins, best effort |
 | `/wp-json/wso/v1/flush-permalinks` | POST | Soft rewrite-rules flush |
+| `/wp-json/wso/v1/wpgb/<type>` | GET | List WPGB items; `<type>` is `grids`, `cards`, or `facets` |
+| `/wp-json/wso/v1/wpgb/<type>/<id>` | GET | Full WPGB item configuration as decoded, exporter-compatible JSON |
+| `/wp-json/wso/v1/wpgb/<type>` | POST | Create a WPGB item; unique name (grids/cards) or slug (facets) required |
+| `/wp-json/wso/v1/wpgb/<type>/<id>` | POST | Update a WPGB item |
+| `/wp-json/wso/v1/wpgb/reindex` | POST | Run the WPGB facet indexer, for all facets or one via `facet_id` |
 
-Every route requires an authenticated user with `manage_options`.
+Every route requires an authenticated user with `manage_options`. The `wpgb/*` routes arrived with bridge version 1.1.0; the normal update path below (marker version comparison, block replacement) rolls them out to existing projects without extra steps. Usage discipline for the WPGB routes lives in the `status-bridge` Rule.
 
 The canonical template is bundled with this Skill: `reference/js-snippets-status-bridge.php`. Its `WSO_BRIDGE_VERSION` constant is the expected bridge version that the `status-bridge` Rule compares against.
 
