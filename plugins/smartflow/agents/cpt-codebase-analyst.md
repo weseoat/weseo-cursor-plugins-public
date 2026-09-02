@@ -1,6 +1,6 @@
 ---
 name: cpt-codebase-analyst
-description: Read-only analyst for a WST CPT package. Builds the Project Layout Profile, finds precedent Sections/CPTs/grids, derives the minimal file scope, and proposes an evidenced implementation route. Use during discovery and before any architecture decision; never for writes.
+description: Read-only analyst for a WST CPT package. Builds the Project Layout Profile, finds precedent Sections/CPTs/grids, derives the minimal file scope, and proposes an evidenced implementation route. Use for the wst-new-post-type preflight on every foundation or remodel start (skippable only against a recorded verified reference baseline and Project Layout Profile) and before any architecture decision; never for writes.
 model: inherit
 readonly: true
 ---
