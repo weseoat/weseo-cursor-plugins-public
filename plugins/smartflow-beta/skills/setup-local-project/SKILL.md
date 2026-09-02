@@ -1,6 +1,6 @@
 ---
 name: setup-local-project
-description: Guided wizard for the complete first setup of a local SmartFlow workspace for a WESEO WordPress/WST project. Use when starting a new project, re-orienting a partially set up local workspace, cloning the wp-content-level repository, naming the folder after the server hostname, filling .env with the application password, configuring the weseo-git-installer deploy to the child theme from the live Confluence guide, creating the read-only FTP user with .ftpaccess, running the REST test, installing the status bridge, exposing post types, taxonomies, ACF field groups, and options pages over REST, configuring Playwright MCP, verifying that Atlassian MCP (Rovo preflight) and Figma MCP are running, anchoring the project's Confluence page and mirroring its extract into PROJECT-CONTEXT.md, recording the current Motherboard hostname from the Erstinstallation Confluence guide as Cloned from, writing the css_setup pending marker for the later project-css-setup pass, or creating PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation.
+description: Guided wizard for the complete first setup of a local SmartFlow workspace for a WESEO WordPress/WST project. Use when starting a new project, re-orienting a partially set up local workspace, cloning the wp-content-level repository, naming the folder after the server hostname, filling .env with the application password, configuring the weseo-git-installer deploy to the child theme from the live Confluence guide, creating the read-only FTP user with .ftpaccess, running the REST test, installing the status bridge, exposing post types, taxonomies, ACF field groups, and options pages over REST, configuring Playwright MCP, verifying that Atlassian MCP (community mcp-atlassian preflight, version 0.22.0 or newer) and Figma MCP are running, anchoring the project's Confluence page and mirroring its extract into PROJECT-CONTEXT.md, recording the current Motherboard hostname from the Erstinstallation Confluence guide as Cloned from, writing the css_setup pending marker for the later project-css-setup pass, or creating PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation.
 ---
 
 # Setup Local Project
@@ -75,16 +75,43 @@ Record `rest_access: verified` (or `pending: <reason>`) in `PROJECT-CONTEXT.md`.
 
 For the full connection walkthrough (post types, sample content, options pages), run `reference/rest-connection-test.md` — either now for the basic checks, or after Step 10 once the content exposure is complete.
 
-## Step 5: Verify Atlassian MCP (Rovo Preflight)
+## Step 5: Verify Atlassian MCP (Community mcp-atlassian Preflight)
 
 The `weseo-git-installer` install walkthrough and its current status live on Confluence and are updated there, and the project's Confluence page is anchored in the next step. The wizard must confirm Atlassian MCP is actually running in this Cursor session before those steps — listing it under Settings is not enough.
 
-The team standard is the **official Atlassian Rovo MCP**, installed from the Cursor marketplace ([cursor.com/marketplace/atlassian](https://cursor.com/marketplace/atlassian)) with an OAuth 2.1 browser flow: no API token, no `mcp.json` editing. Guide a colleague without any Atlassian MCP through exactly that route. A community `mcp-atlassian` server that is already configured and working stays a valid variant — do not tear it down; but never guide a new install toward the token-based community server, and flag an API token sitting in a server's command line as an anti-pattern to correct (secrets belong in env blocks, never in `args`).
+The team standard is the **community `mcp-atlassian` server** ([github.com/sooperset/mcp-atlassian](https://github.com/sooperset/mcp-atlassian)), **version 0.22.0 or newer**. It replaces the official Atlassian Rovo MCP as the standard because the Rovo surface is too limited for the SmartFlow workflow (12 Confluence tools, no label or attachment tools, whole-body page update only); the community server carries the full Jira and Confluence tool surface. An already installed and working Rovo server stays a functioning read variant — do not tear it down mid-project; but guide every new install to the community server, and offer the switch when a Rovo-only workspace hits a missing capability.
 
-Do not write Atlassian credentials, OAuth tokens, or cloud IDs into `.cursor/mcp.json`, `.env`, chat, or `PROJECT-CONTEXT.md`. Prefer a **user-level** server so every project workspace inherits it; a project-level server whose name contains `atlassian` is also acceptable. Record the observed server identifier, never secrets.
+**The version floor is a security requirement, not a preference.** Versions below 0.17.0 carry a chained SSRF and path-traversal RCE (CVE-2026-27826, CVE-2026-27825); only 0.22.0 closed the remaining audit findings (attachment path traversal / arbitrary file read, DNS rebinding against the SSRF fix, unauthenticated HTTP transport credential fallback). Operating constraints that keep the fixed version safe:
 
-1. Probe the MCP catalog for any server whose name contains `atlassian`. Treat `needsAuth`, `error`, and `loading` as not ready. If `needsAuth`, ask the user to complete OAuth under `Settings` -> `Tools & MCP`, then re-probe. If the server is missing, guide the user through the marketplace install + OAuth above, then restart or reconnect.
-2. When the server is usable, discover the tool schema and map the operations by name — the Rovo server (`searchConfluenceUsingCql`, `getConfluencePage`, ...) and the community server (`confluence_search`, `confluence_get_page`, ...) expose different tool names. Then run cheap live reads — not writes:
+- Run the server **locally over stdio** (the default). Never start the HTTP/SSE transports (`--transport streamable-http` / `sse`) on a reachable port — the published attack chains target HTTP deployments.
+- Enforce the floor in the server spec itself, so an old cached version can never start: `uvx --from "mcp-atlassian>=0.22.0" mcp-atlassian`.
+- The API token belongs in the `env` block of the server entry, **never in `args`** (process lists leak arguments). Flag a token sitting in a command line as an anti-pattern to correct.
+
+Guide a colleague without any Atlassian MCP through this route: create an Atlassian API token (id.atlassian.com -> Security -> API tokens), then add the server to the **user-level** `mcp.json` (preferred, so every project workspace inherits it; a project-level entry in the untracked `.cursor/mcp.json` is also acceptable):
+
+```json
+{
+  "mcpServers": {
+    "mcp-atlassian": {
+      "command": "uvx",
+      "args": ["--from", "mcp-atlassian>=0.22.0", "mcp-atlassian"],
+      "env": {
+        "CONFLUENCE_URL": "https://<team>.atlassian.net/wiki",
+        "CONFLUENCE_USERNAME": "<atlassian-email>",
+        "CONFLUENCE_API_TOKEN": "<api-token>",
+        "JIRA_URL": "https://<team>.atlassian.net",
+        "JIRA_USERNAME": "<atlassian-email>",
+        "JIRA_API_TOKEN": "<api-token>"
+      }
+    }
+  }
+}
+```
+
+The user fills the token values themselves; `uvx` requires an installed `uv` (ask the user to install it if missing). Do not write Atlassian credentials, tokens, or cloud IDs into any tracked file, `.env`, chat, or `PROJECT-CONTEXT.md` — the user-level `mcp.json` env block is the only sanctioned token location. Record the observed server identifier, never secrets.
+
+1. Probe the MCP catalog for any server whose name contains `atlassian`. Treat `needsAuth`, `error`, and `loading` as not ready. If the server is missing or broken, guide the user through the community install above, then restart or reconnect.
+2. When the server is usable, discover the tool schema and map the operations by name — the community server (`confluence_search`, `confluence_get_page`, ...) and a legacy Rovo server (`searchConfluenceUsingCql`, `getConfluencePage`, ...) expose different tool names. Then run cheap live reads — not writes:
    - **Confluence (required for this setup):** a CQL/text search with a short query such as `git-installer` (space `Frontend` when the tool allows a space filter). Success is a search response, not a specific page ID. Do not copy page bodies into `PROJECT-CONTEXT.md` during this health check; the only sanctioned page-content mirror is the controlled extract of Step 6.
    - **Jira:** a one-result issue search, or a project listing.
 3. Record in `PROJECT-CONTEXT.md`:

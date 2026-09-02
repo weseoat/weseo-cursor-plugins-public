@@ -1,6 +1,6 @@
 # WST New Post Type Examples
 
-These examples are non-normative. They show reusable structure only; replace names, labels, fields, selectors, and paths with values from `PROJECT-CONTEXT.md` and the current brief.
+These examples are non-normative. They show reusable structure only; replace names, labels, fields, selectors, and paths with values from `PROJECT-CONTEXT.md` and the current brief. ACF field names always carry the `wso_<resource>_` prefix per the `acf-local-json` Rule (a Job CPT's salary field is `wso_job_salary`, never `job_salary`).
 
 Keep generated field keys, WPGB IDs, target URLs, and rewrite slugs in the concrete CPT work record. Completed CPT work routes to `cpt-frontend-qa`; Section-level layouts that display CPT content route their Section behavior to `frontend-section-qa`. Every WST shortcode form new to the project needs the four-source proof through the bundled `wst-shortcodes` Skill.
 
@@ -11,9 +11,9 @@ Use this shape when the CPT has no public detail page and the card mostly displa
 ```php
 [wst_post_thumbnail size='<image-size>' url='0']
 
-[wst_if field='<link-type-field>' compare='!=' value='no-link']
+[wst_if field='wso_<resource>_link_type' compare='!=' value='no-link']
 <a class="wso-absolute-link"
-   href="[wst_acf field='<link-url-field>']"
+   href="[wst_acf field='wso_<resource>_link_url']"
    aria-label="[wst_post_title]"></a>
 [/wst_if]
 ```
@@ -38,8 +38,8 @@ Use this shape when the CPT has public detail pages and the card links to the si
   <div class="wso-<resource>-card-body">
     <h3 class="wso-<resource>-card-title wso-h4">[wst_post_title]</h3>
 
-    [wst_if field='<summary-field>' compare='!=' value='']
-    <p class="wso-<resource>-card-summary">[wst_acf field='<summary-field>']</p>
+    [wst_if field='wso_<resource>_summary' compare='!=' value='']
+    <p class="wso-<resource>-card-summary">[wst_acf field='wso_<resource>_summary']</p>
     [/wst_if]
 
     <a class="button secondary-button wso-<resource>-card-link"

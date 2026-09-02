@@ -40,19 +40,19 @@ If a hub page cannot be found by ID, re-orient over the space page tree or a CQL
 
 ## MCP Surface
 
-The team standard is the **official Atlassian Rovo MCP** (Cursor marketplace install, OAuth). Discover the workspace's Atlassian MCP surface at run start and map the five operations this Skill needs; never guess tool names.
+The team standard is the **community `mcp-atlassian` server** (version 0.22.0 or newer, per the `setup-local-project` preflight). Discover the workspace's Atlassian MCP surface at run start and map the five operations this Skill needs; never guess tool names.
 
-| Operation | Rovo MCP (documented) | Community `mcp-atlassian` |
+| Operation | Community `mcp-atlassian` | Legacy Rovo MCP |
 | --- | --- | --- |
-| Read a page | `getConfluencePage` | `confluence_get_page` |
-| List subpages of a hub page | `getConfluencePageDescendants` | `confluence_get_page_children` |
-| Create the entry subpage | `createConfluencePage` | `confluence_create_page` |
-| Add an occurrence comment | `createConfluenceFooterComment` | `confluence_add_comment` |
-| Duplicate search (CQL) | `searchConfluenceUsingCql` | `confluence_search` |
+| Read a page | `confluence_get_page` | `getConfluencePage` |
+| List subpages of a hub page | `confluence_get_page_children` | `getConfluencePageDescendants` |
+| Create the entry subpage | `confluence_create_page` | `createConfluencePage` |
+| Add an occurrence comment | `confluence_add_comment` | `createConfluenceFooterComment` |
+| Duplicate search (CQL) | `confluence_search` | `searchConfluenceUsingCql` |
 
-The Rovo server exposes **no label and no attachment tools**, and its page update is whole-body only. Therefore: no labels (the metadata block below replaces them), no attachments (v1 is text-only), and **never edit the hub pages' overview tables** — table rows, labels, and status changes are maintainer curation, not intake.
+Intake stays deliberately narrow even though the community server has label and attachment tools: no labels (the metadata block below replaces them at intake time), no attachments (v1 is text-only), and **never edit the hub pages' overview tables** — table rows, labels, and status changes are maintainer curation, not intake. On a workspace still running only the legacy Rovo server, these limits are also technical (Rovo has no label or attachment tools and only whole-body page updates).
 
-If no Atlassian MCP is available or it needs auth, stop and guide the reporter to the marketplace install + OAuth (`Settings` -> `Tools & MCP`); do not fall back to REST calls or manual copy-paste pages.
+If no Atlassian MCP is available or it needs auth, stop and guide the reporter through the community `mcp-atlassian` install from the `setup-local-project` preflight (version floor 0.22.0, token in the env block); do not fall back to REST calls or manual copy-paste pages.
 
 ## Workflow
 

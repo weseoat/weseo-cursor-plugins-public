@@ -161,7 +161,7 @@ Add a taxonomy only when the content model requires grouping, filtering, admin c
 
 Create one JSON group file under `themes/<child-theme>/acf-json/` (named per the installation's filename convention from `PROJECT-CONTEXT.md`) whose location rule targets the new CPT, per the `acf-local-json` Rule: fresh stable `group_`/`field_` keys, `acfe_autosync` containing `"json"`, and a `modified` timestamp so the admin offers the sync. See `reference.md` for the shape. If the project has no `acf-json/` setup yet, run the bundled `setup-acf-local-json` Skill first.
 
-Recommended structure: a tab field for admin organization, content fields specific to the CPT, optional tabs for complex CPTs, field names prefixed with the CPT naming convention when the project does that already. Prefer core post title, thumbnail, editor, excerpt, and taxonomy terms before duplicating data in ACF fields.
+Recommended structure: a tab field for admin organization, content fields specific to the CPT, optional tabs for complex CPTs. Field names always carry the `wso_<resource>_` prefix per the `acf-local-json` Rule: a salary field on a Job CPT is `wso_job_salary`, never `job_salary` or `salary`. Prefer core post title, thumbnail, editor, excerpt, and taxonomy terms before duplicating data in ACF fields.
 
 The field group ships with the deploy pass. After the bridge-verified deploy and the human sync in the admin, `GET /status` must list it with `local: "json"`.
 

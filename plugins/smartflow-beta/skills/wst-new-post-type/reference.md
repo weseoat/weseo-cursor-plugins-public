@@ -152,7 +152,7 @@ Field group conventions:
 - Every group and field carries a stable explicit fresh key; never reuse a key for a different field, never rename saved fields casually (data migration, explicit user decision).
 - For `existing-cpt-remodel`, reuse the existing field group and field keys by default; add fields only when the approved work record requires them.
 - Prefer core post fields before adding duplicate ACF fields.
-- Keep field names stable and prefixed consistently with the CPT.
+- Field names always carry the `wso_<resource>_` prefix (`wso_job_salary` on a Job CPT, never `job_salary`); keep them stable — retrofitting the prefix onto already saved fields is a data migration requiring an explicit user decision.
 - `acfe_autosync` must contain `"json"` and `modified` must exceed the database state, otherwise the admin offers no sync. The group stays editable in the admin; after deploy plus sync, `GET /status` lists it with `local: "json"`.
 
 Common field types:

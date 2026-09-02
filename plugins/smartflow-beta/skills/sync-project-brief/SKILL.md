@@ -12,7 +12,7 @@ This Skill runs in the main chat and is never delegated to a subagent (see the `
 ## Preconditions
 
 1. **Anchor:** read the Confluence block in `PROJECT-CONTEXT.md` (page ID, URL, last mirror timestamp). If no anchor is recorded, this counts as "the first Skill that needs it" per the `confluence-source` Rule: ask the user for the project's Confluence link once, derive the page ID from the URL (`.../pages/<page_id>/<title>`), and record the anchor as part of this run. If the user has no link, stop — a project without a Confluence page has nothing to sync.
-2. **MCP:** discover the workspace's Atlassian MCP surface and map the read operations by schema — never guess tool names. Needed here: get a page by ID (Rovo `getConfluencePage` / community `confluence_get_page`). If no Atlassian MCP is available or it needs auth, stop and guide the user to the marketplace install + OAuth (`Settings` -> `Tools & MCP`); there is no fallback read path.
+2. **MCP:** discover the workspace's Atlassian MCP surface and map the read operations by schema — never guess tool names. Needed here: get a page by ID (community `confluence_get_page` / legacy Rovo `getConfluencePage`). If no Atlassian MCP is available or it needs auth, stop and guide the user through the community `mcp-atlassian` install from the `setup-local-project` preflight (version floor 0.22.0, token in the env block); there is no fallback read path.
 3. **Never mid-work:** if a work-package run (Section, CPT, page build, Jira ticket) is currently in progress in this session, finish or pause it first. A mirror overwrite must not change the working basis of a running task; the run keeps its run-start extract until it completes.
 
 ## Workflow

@@ -29,7 +29,8 @@ Use this Rule when creating or changing any ACF field definition: Section field 
 ## Keys, Names, And Filenames
 
 - Every group, field, and layout carries a stable explicit key (`group_<uniqid>`, `field_<uniqid>`); generate a fresh unique key for every new definition.
-- Never reuse an existing key for a different field, and never rename a saved field's `name` or `key` casually — stored content references both. Treat key or name changes as data migrations requiring an explicit user decision.
+- **CPT field names always carry the `wso_` prefix.** Every new field in a CPT field group is named `wso_<resource>_<field>`: a salary field on a Job CPT is `wso_job_salary`, never `job_salary` or `salary`. This keeps WESEO-owned meta keys collision-free against core, plugins, and themes and makes them recognizable in templates, REST responses, and exports.
+- Never reuse an existing key for a different field, and never rename a saved field's `name` or `key` casually — stored content references both. Treat key or name changes as data migrations requiring an explicit user decision; that applies equally to retrofitting the `wso_` prefix onto already saved unprefixed fields.
 - **The filename convention can differ per installation** (for example `group-<hex>.json` instead of `group_<hex>.json`, caused by an `acf/json/save_file_name` transformation). Read the empirically determined convention from `PROJECT-CONTEXT.md`; if it is not recorded, determine it per the `setup-acf-local-json` Skill before creating files.
 - Duplicate files with the same group key are dangerous: ACF loads the last file read, so a stale file can shadow the fresh one. Never leave two files carrying the same key.
 
