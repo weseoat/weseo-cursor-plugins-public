@@ -84,7 +84,7 @@ Key patterns:
 
 ## Optional single template shell
 
-Use this shell only for CPTs with public detail pages.
+Use this shell only for CPTs with public detail pages. The partial renders only through the Smart Template assignment (user creates a `smart_template` post, assigns it to the CPT, and pastes the `[wst_include]` one-liner into its top-level code editor — see the Skill's step 4.7 and the reference apply-spec); it is never found through the WordPress template hierarchy.
 
 ```php
 <?php if (! defined('ABSPATH')) exit; ?>
@@ -96,6 +96,10 @@ Use this shell only for CPTs with public detail pages.
   </section>
 
   <section class="wso-<resource>-single-content">
+    [wst_if field='wso_<resource>_description' compare='!=' value='']
+    [wst_acf_wysiwyg field='wso_<resource>_description']
+    [/wst_if]
+
     [wst_post_excerpt words='5000' fallback='1' html='1']
   </section>
 </main>
@@ -105,4 +109,5 @@ Key patterns:
 
 - Single templates are skipped for non-detail CPTs.
 - The shell establishes hooks and semantic regions.
+- ACF fields use typed shortcodes (`[wst_acf_text]`, `[wst_acf_wysiwyg]`, …) or the `field_…` key: generic `[wst_acf]` resolves empty in the Smart Template include context. `[wst_post_*]` and `[wst_if]` work normally.
 - Final layout, typography, media behavior, and Playwright verification are owned by the frontend pass.

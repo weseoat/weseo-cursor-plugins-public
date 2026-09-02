@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "smartflow",
   "displayName": "SmartFlow",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
   "assumptions": [
     "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
@@ -179,7 +179,7 @@
       "name": "wst-new-post-type",
       "path": "skills/wst-new-post-type/SKILL.md",
       "source": "plugins/wst-builder-beta/skills/wst-new-post-type/SKILL.md",
-      "description": "Single entry point for WST Custom Post Type work in the local workspace: preflight as write gate, three delivery paths (tracked source for templates and ACF Local JSON field groups over the bundled deploy pass plus the human sync; CPT UI, taxonomy, and WPGB apply-specs for the user; bridge flushes), remodel protections, and the CPT work record in the project docs layer that routes to cpt-frontend-qa. At preflight start the anchored Confluence page is re-read fresh and only the CPT-relevant extract lands in the work-record draft (clean skip without anchor, per the confluence-source Rule). On every start — direct start included — the main chat orchestrates (classification, preflight, work record, hard stops) while the foundation execution run runs through the wst-shortcode-implementer runner, WPGB work through the wpgb-specialist, and the preflight discovery evidence through the cpt-codebase-analyst (skippable only against a recorded verified reference baseline) plus the cpt-figma-analyst when a design source exists, per the agent-routing Rule."
+      "description": "Single entry point for WST Custom Post Type work in the local workspace: preflight as write gate, three delivery paths (tracked source for templates and ACF Local JSON field groups over the bundled deploy pass plus the human sync; CPT UI, taxonomy, WPGB, and Smart Template single-assignment apply-specs for the user; bridge flushes), remodel protections, and the CPT work record in the project docs layer that routes to cpt-frontend-qa. CPT detail pages render only through the Smart Template assignment (single partial plus the wst_include one-liner in the Smart Template's top-level code editor), never through the WordPress template hierarchy or theme-functions.php workarounds; single partials use typed ACF shortcodes because generic wst_acf resolves empty in the include context. At preflight start the anchored Confluence page is re-read fresh and only the CPT-relevant extract lands in the work-record draft (clean skip without anchor, per the confluence-source Rule). On every start — direct start included — the main chat orchestrates (classification, preflight, work record, hard stops) while the foundation execution run runs through the wst-shortcode-implementer runner, WPGB work through the wpgb-specialist, and the preflight discovery evidence through the cpt-codebase-analyst (skippable only against a recorded verified reference baseline) plus the cpt-figma-analyst when a design source exists, per the agent-routing Rule."
     },
     {
       "name": "section-preview-harness",
@@ -203,7 +203,7 @@
       "name": "cpt-frontend-qa",
       "path": "skills/cpt-frontend-qa/SKILL.md",
       "source": "plugins/frontend-design-qa-beta/skills/cpt-frontend-qa/SKILL.md",
-      "description": "Frontend CSS/SCSS pass for a WST Custom Post Type from the CPT work record in the project docs layer: per-surface injection-proofed iteration (card, archive/grid, carousel/filter, WPGB output, optional single) as the main mode, the Playwright MCP browser QA loop, one bundled deploy pass with hard stop, bridge verification of deployed_commit with a bounded retry and abort budget, and the one-time served check on the display and single URLs. On every start — direct start included — the CSS/browser-QA run executes through the cpt-visual-implementer runner per the agent-routing Rule, one runner per surface; deploy pass, bridge verification, and commit stay with the main chat."
+      "description": "Frontend CSS/SCSS pass for a WST Custom Post Type from the CPT work record in the project docs layer: per-surface injection-proofed iteration (card, archive/grid, carousel/filter, WPGB output, optional single) as the main mode, the Playwright MCP browser QA loop, one bundled deploy pass with hard stop, bridge verification of deployed_commit with a bounded retry and abort budget, and the one-time served check on the display and single URLs. Generic theme output on a single URL means the Smart Template assignment is pending — an admin step handed to the user, never a CSS debugging round. On every start — direct start included — the CSS/browser-QA run executes through the cpt-visual-implementer runner per the agent-routing Rule, one runner per surface; deploy pass, bridge verification, and commit stay with the main chat."
     },
     {
       "name": "wp-media-import",
@@ -329,5 +329,5 @@
     }
   ],
   "commands": [],
-  "releaseNotes": "release-notes/1.1.0.md"
+  "releaseNotes": "release-notes/1.2.0.md"
 }

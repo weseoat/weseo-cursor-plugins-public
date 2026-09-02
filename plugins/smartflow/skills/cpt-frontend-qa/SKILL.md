@@ -111,6 +111,8 @@ If a visual decision requires a new project token or shared card pattern, record
 
 If browser QA shows a problem CSS cannot legitimately fix, hard stop for that finding: record the defect (URL, selector, expected DOM, observed DOM, console or PHP symptom) as a server blocker in the work record, at most add a clearly marked interim shim, and route back to `wst-new-post-type` for CPT/taxonomy/ACF/WPGB foundation issues or `wst-section-workflow` for Section-level WST/ACF issues. Ask the user for OK before another workflow starts. This is the normal path, not an escalation.
 
+Known non-bug on single URLs: when the CPT single URL renders only the generic theme output and the expected single selector (usually `.wso-<resource>-single`) is absent, the Smart Template assignment for the CPT single view is missing or incomplete (see `wst-new-post-type`, single template foundation) — WST projects never render single partials through the WordPress template hierarchy. That is a pending admin step, not a CSS or template defect: do not start a debugging round; record `injection proof: blocked: smart-template-assignment-pending` for the single surface, hand over to the user with the assignment apply-spec reference, and continue with the other surfaces.
+
 Stale markup, rendered data, generated CSS, WPGB output, or cache state is recorded with URL, selector, expected and observed result; cache flushes go through the bridge (`POST /flush-cache`), not through server commands.
 
 ## 4. The Bundled Deploy Pass (Hard Stop)

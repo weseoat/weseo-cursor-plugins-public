@@ -1,6 +1,6 @@
 ---
 name: wst-new-post-type
-description: Plan, classify, and execute WST Custom Post Type work in the local SmartFlow workspace. Use for any new CPT foundation, existing CPT remodel, CPT/WPGB/card preflight, taxonomy or ACF CPT changes, optional single templates, or the CPT work record. Templates and ACF Local JSON field groups are authored as tracked source and reach the server through the bundled deploy pass (field definitions go live after the human sync in the admin); CPT UI and WPGB configuration are prepared as exact apply-specs for the user. CPT visual-only changes route to the bundled cpt-frontend-qa Skill.
+description: Plan, classify, and execute WST Custom Post Type work in the local SmartFlow workspace. Use for any new CPT foundation, existing CPT remodel, CPT/WPGB/card preflight, taxonomy or ACF CPT changes, optional single templates, or the CPT work record. Templates and ACF Local JSON field groups are authored as tracked source and reach the server through the bundled deploy pass (field definitions go live after the human sync in the admin); CPT UI, WPGB, and Smart Template single-assignment configuration are prepared as exact apply-specs for the user (CPT detail pages render only through the Smart Template assignment, never through the WordPress template hierarchy). CPT visual-only changes route to the bundled cpt-frontend-qa Skill.
 ---
 
 # WST New Post Type
@@ -26,6 +26,7 @@ Do not perform any write operation before the CPT preflight has produced a concr
 - For `existing-cpt-remodel`, do not create a new CPT, taxonomy, ACF JSON group, WPGB grid/card, card template, archive integration, single template, CSS file, or style loader entry unless the confirmed work record explicitly says the remodel requires a new artifact. Preserve existing registered post type, rewrite behavior, taxonomy names, field keys, WPGB IDs, template paths, and selectors by default.
 - Structural ACF database writes are forbidden without exception (`acf-local-json` Rule): field definitions are JSON files in `acf-json/`, never `acf-field`/`acf-field-group` posts; structural changes go live only through deploy plus the human sync click. Field key or name changes on saved fields are data migrations needing an explicit user decision.
 - `functions.php` is forbidden; `theme-functions.php` and MU plugin files require explicit prior user confirmation for the exact change (`file-edit-boundary` Rule).
+- Never build a theme-hierarchy or filter workaround for CPT detail pages: no `single-<resource>.php`/`page.php` in the child theme, no `template_include` snippet in `theme-functions.php`. The single rendering path is the Smart Template assignment (step 4.7); its admin steps belong to the user.
 - Never write project-owned CPT artifacts under `plugins/weseo-smart-template-builder/`; they live in the child theme under `themes/<child-theme>/smart-template-builder/`.
 - Built-in hard stop of every deploy pass: after committing, stop and hand over per the `deploy-and-branches` Rule. The agent never pushes.
 
@@ -117,9 +118,10 @@ New WST CPT Foundation:
 - [ ] Prepare WP Grid Builder card and grid apply-spec (wpgb-specialist under orchestration)
 - [ ] Create card template foundation (four-source proof for new shortcode forms)
 - [ ] Create optional single template foundation
+- [ ] Prepare Smart Template assignment apply-spec when detail pages exist (single rendering path)
 - [ ] Document CSS hooks and CSS path in the work record (no CSS from this Skill)
 - [ ] Deploy pass: commit with trailer, HARD STOP, user pushes, bridge-verify deployed_commit
-- [ ] User applies CPT UI / taxonomy / WPGB apply-specs in the admin
+- [ ] User applies CPT UI / taxonomy / WPGB / Smart Template apply-specs in the admin
 - [ ] Flush permalinks through the bridge after registration; flush caches after template/field changes
 - [ ] Served verification
 - [ ] Complete the CPT work record and route to cpt-frontend-qa
@@ -206,6 +208,22 @@ themes/<child-theme>/smart-template-builder/post-types/<resource>/singles/<resou
 
 Keep markup compatible with existing WST element, row, wrap, and typography patterns; establish stable `.wso-<resource>-single` hooks; record required local CSS and QA expectations in the work record. If no public detail page exists, record that decision so the frontend pass does not look for a single view.
 
+**How the single template actually renders — the Smart Template assignment.** WST projects have no `single.php`/`page.php` in the child theme; the WordPress template hierarchy does not pick up CPT detail pages, and the partial above is never found automatically. The established rendering path is a Smart Template assignment, split between agent and user:
+
+1. The agent authors the partial above — pure shortcode/HTML markup, same convention as Section and card partials. That file is the only place the agent builds and commits the detail page.
+2. The user creates a Smart Template in wp-admin (post type `smart_template`, e.g. title "CPT - <singular-label>", category "Post Types") and assigns it to the CPT under **Smart Template → Settings → Post Types → <CPT> → Template Assignment**.
+3. In that Smart Template the user enables the **top-level code editor** and pastes exactly one include, delivered ready-made by the agent:
+
+```php
+[wst_include template="post-types/<resource>/singles/<resource>-single.php"]
+```
+
+The Smart Template's Flexible Content field stays empty; the include belongs in the top-level code editor, **not** in a code-editor Section. Only with this assignment does the CPT single URL render the partial (WST replaces the output through its `template_include`/`the_content` mechanism).
+
+Never solve the rendering yourself: no `single-<resource>.php` in the theme, no `template_include` workaround in `theme-functions.php`, no assumption the partial is auto-discovered. Steps 2–3 go to the user as an admin apply-spec (shape in [`reference.md`](reference.md)); the work record captures the Smart Template post ID and assignment status once applied. `smart_template` posts are not reachable over REST (`show_in_rest = false`); the agent can read-verify the assignment over XML-RPC (`wp.getPost` with the Application Password) via the metas `smart_template_code_editor_enabled` / `smart_template_code_editor_content`.
+
+**ACF shortcode pitfall in the include context:** generic `[wst_acf field='<field-name>']` resolves empty inside the single partial (ACF strict resolution over `get_field_object()`). Use typed shortcodes (`[wst_acf_text]`, `[wst_acf_wysiwyg]`, …) or the field key (`field_…`) in CPT single partials. `[wst_post_*]` shortcodes and `[wst_if]` conditionals work normally.
+
 ## 5. CSS hooks belong in the work record
 
 This Skill records CSS hook expectations; it does not create or edit CSS or SCSS. Capture in the work record:
@@ -224,6 +242,7 @@ After the deploy, the sync, and the admin apply-specs are done:
 - Flush permalinks through the bridge after CPT/taxonomy registration or rewrite changes; verify affected URLs respond without a 404.
 - Flush caches through the bridge after template, field, or content changes.
 - Verify: the CPT appears in the admin (user confirms) and in `GET /wp-json/wp/v2/types` when REST-exposed; taxonomy UI appears only when expected; `GET /status` lists the field group with `local: "json"` and the WPGB grid; card template markup renders without PHP errors on a page embedding the grid; public single URLs work only when intended; expected card/single CSS hooks exist in rendered markup.
+- Single-URL expectation: until the user has created and assigned the Smart Template (4.7), the CPT single URL shows only the generic theme output. That is a pending admin step, not a code bug — hand the apply-spec over instead of debugging the partial. After the user reports the assignment, verify the single URL renders the partial (stable `.wso-<resource>-single` hook present in the served markup); read-verify the assignment over XML-RPC when needed.
 
 Record the results in the work record under `QA notes`. Until the bridge confirms the deployed commit, results stay `implementation pass, deployed verification pending`.
 
