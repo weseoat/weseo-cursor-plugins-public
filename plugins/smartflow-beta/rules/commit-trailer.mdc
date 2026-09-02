@@ -13,7 +13,7 @@ Use the commit trailer `Made with: SmartFlow` for SmartFlow-authored commits.
 
 - Prefer `--trailer "Made with: SmartFlow"` when creating a commit.
 - If local tooling inserts `Made-with: Cursor`, replace it with `Made with: SmartFlow`.
-- The trailer applies to every commit in the commit-and-hand-over flow (`deploy-and-branches` Rule): the agent commits with the trailer and never pushes.
+- The trailer applies to every commit in the commit-and-hand-over flow (`deploy-and-branches` Rule): the agent commits with the trailer, only after the explicit user confirmation the commit gate requires, and never pushes.
 - Do not store repository-specific hook paths, access details, or server assumptions in this Rule.
 
 ## Source

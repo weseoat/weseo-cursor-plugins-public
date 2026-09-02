@@ -1,6 +1,6 @@
 ---
 name: jira-batch-workflow
-description: Orchestrates a batch of open Jira subtasks (default 10) of one parent task in the local SmartFlow workspace - JQL intake, screenshot-based triage, statusboard, up to three parallel jira-ticket-runner subagents with file-disjoint write ownership, feedback relay via resume, automatic serialized per-ticket commits (never push), final batch review, and Jira solution comments. Use when the user hands over a parent task key and wants its open subtasks processed as a batch ("Subtasks abarbeiten", "Ticket-Batch").
+description: Orchestrates a batch of open Jira subtasks (default 10) of one parent task in the local SmartFlow workspace - JQL intake, screenshot-based triage, statusboard, up to three parallel jira-ticket-runner subagents with file-disjoint write ownership, feedback relay via resume, serialized per-ticket commits under an explicit batch commit mandate (never push, never without the mandate or an individual confirmation), final batch review, and Jira solution comments. Use when the user hands over a parent task key and wants its open subtasks processed as a batch ("Subtasks abarbeiten", "Ticket-Batch").
 ---
 
 # Jira Batch Workflow (local orchestrator)
@@ -11,8 +11,9 @@ SmartFlow workspace (no server shell, no served docroot). This Skill is a
 semantics (intake, screenshot rule, diagnosis, implementation, Playwright
 verification, report format) live in the bundled `jira-ticket-workflow`
 Skill. The main chat owns only: ticket selection, triage, the
-statusboard, slot scheduling, feedback relay, the automatic per-ticket
-commits, and the final batch review with Jira closing.
+statusboard, slot scheduling, feedback relay, the per-ticket commits
+under the batch commit mandate, and the final batch review with Jira
+closing.
 
 Delegation is strictly two levels: main chat → `jira-ticket-runner`
 leaf agents. Runners never spawn further agents, never commit, never
@@ -32,15 +33,25 @@ write to Jira.
    are never touched — someone else may own them. If the JQL returns
    a ticket whose live status turns out not to be open at spawn time,
    skip it and note the skip on the board.
-3. Create the statusboard at `.cursor/jira-batch/<parent-key>.md`
+3. Ask for the **batch commit mandate** once, in German: may the main
+   chat commit each ticket on the recorded working branch as soon as
+   its runner returns a pass? Per the commit gate in the
+   `deploy-and-branches` Rule this is the scoped standing confirmation
+   for exactly these per-ticket commits, valid for this run only —
+   never a push, never anything outside the batch. Record the answer
+   in the board header. Without the mandate, finished tickets end at
+   `implemented` and every commit is proposed individually at the
+   final review (step 6).
+4. Create the statusboard at `.cursor/jira-batch/<parent-key>.md`
    (untracked, never committed, deleted at batch closure). One row per
    ticket: key (linked), short title, status, suspected target
    file(s), slot/agent, proof mode, open question / user feedback.
    Statuses: `queued` / `needs-routing` / `running` / `iterating` /
-   `committed` / `blocked` / `skipped`.
-4. If the board file already exists for this parent, this is a
+   `implemented` / `committed` / `blocked` / `skipped`.
+5. If the board file already exists for this parent, this is a
    **resume**: reconstruct the batch state from the board instead of
-   restarting finished tickets.
+   restarting finished tickets (including the recorded mandate answer;
+   if the header carries none, ask now).
 
 ## 2. Triage round (main chat, read-only)
 
@@ -89,12 +100,15 @@ sharing a file form a **chain** on one slot, strictly serialized.
   assigned file group), the no-push/no-commit prohibitions per the
   `deploy-and-branches` Rule, and the pointer to load the bundled
   `jira-ticket-workflow` Skill steps 3–5.
-- When a runner returns with a pass, the main chat **commits the
-  ticket immediately** (step 5), then frees the slot and starts the
-  next queued ticket with disjoint files. **Chain rule:** within a
-  file chain, ticket n+1 starts only after ticket n's commit exists,
-  otherwise the diffs of two tickets mix in one file. Because commits
-  are automatic, chains never wait on the user.
+- When a runner returns with a pass and the batch commit mandate is
+  granted, the main chat **commits the ticket right away** (step 5),
+  then frees the slot and starts the next queued ticket with disjoint
+  files. **Chain rule:** within a file chain, ticket n+1 starts only
+  after ticket n's commit exists, otherwise the diffs of two tickets
+  mix in one file. Under the mandate, chains never wait on the user;
+  without it, ticket n+1 in a chain waits until the user confirms
+  ticket n's proposed commit — parallel slots on disjoint files keep
+  running either way.
 
 ## 4. Reports, feedback relay, iteration
 
@@ -121,12 +135,16 @@ sharing a file form a **chain** on one slot, strictly serialized.
   `needs-routing` with the runner's diagnosis attached; the slot is
   refilled.
 
-## 5. Automatic per-ticket commit (main chat only)
+## 5. Per-ticket commit under the batch mandate (main chat only)
 
-There is **no per-ticket approval gate**: as soon as a runner returns
-a pass, the main chat commits — the user reviews everything at the end
-(step 6) and can re-steer individual agents then. Commits run
-**centrally and serially** in the main chat, per ticket:
+The commit authorization is the **batch commit mandate from intake**
+(the scoped standing confirmation per the `deploy-and-branches` commit
+gate): with the mandate, the main chat commits as soon as a runner
+returns a pass — the user reviews everything at the end (step 6) and
+can re-steer individual agents then. Without the mandate, the board
+row goes to `implemented` and the commit is proposed at the final
+review; nothing is ever committed silently. Commits run **centrally
+and serially** in the main chat, per ticket:
 
 1. **Git:** stage **only the files of this ticket** (from the board /
    runner report; never `git add -A` — other tickets' edits may sit in
@@ -143,11 +161,15 @@ written here — they wait for the final review.
 
 ## 6. Final review, Jira closing, batch closure
 
-- When every row is terminal (`committed`, `needs-routing`, `blocked`,
-  `skipped`), post the final board overview in German: per ticket the
-  compact result (Ursache, Fix, Commit-Hashes, Proof-Mode) plus the
-  reminder that all fixes are deploy-pending until the user pushes and
-  the status bridge confirms the deployed commit.
+- When every row is terminal (`committed`, `implemented`,
+  `needs-routing`, `blocked`, `skipped`), post the final board overview
+  in German: per ticket the compact result (Ursache, Fix,
+  Commit-Hashes, Proof-Mode) plus the reminder that all fixes are
+  deploy-pending until the user pushes and the status bridge confirms
+  the deployed commit.
+- Rows still at `implemented` (batch ran without the mandate): propose
+  each pending commit — files, summary, message — and commit on the
+  user's confirmation, serialized per ticket in chain order.
 - The user reviews the results and may still steer individual tickets
   ("WP-x: …") — those iterate via step 4 and get follow-up commits.
 - Once the user closes the review (e.g. "passt", "fertig"), write per
@@ -166,6 +188,9 @@ written here — they wait for the final review.
   triage round is binding.
 - Runners never commit, never push, never write to Jira, never spawn
   agents.
+- The main chat never commits without the batch commit mandate or an
+  individual per-commit confirmation (`deploy-and-branches` commit
+  gate); nothing is ever pushed.
 - Never invent JQL beyond the parent-key pattern, ACF keys, WPGB IDs,
   selectors, URLs, or paths.
 - No temp artifacts in the deploy path; the board file in `.cursor/`

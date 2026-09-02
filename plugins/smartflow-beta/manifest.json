@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "smartflow-beta",
   "displayName": "SmartFlow (Beta)",
-  "version": "0.14.0-beta.1",
+  "version": "0.15.0-beta.1",
   "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
   "assumptions": [
     "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
@@ -33,7 +33,7 @@
       "name": "deploy-and-branches",
       "path": "rules/deploy-and-branches.mdc",
       "source": "plugins/smartflow/rules/deploy-and-branches.mdc",
-      "description": "SmartFlow deploy flow and branch discipline: the agent commits and hands over with a hard stop and never pushes; deploy-needing work is bundled into one pass; the deploy is verified over the status bridge before any served QA pass. main/master/trunk are write-protected (no commit, merge, or revert there), and the prohibitions propagate explicitly into every subagent worker prompt. Absorbs the protected-branches rule from the legacy skill zip."
+      "description": "SmartFlow deploy flow and branch discipline: the agent never pushes and never commits on its own - every commit is prepared (files, summary, proposed message) and happens only after an explicit user confirmation, with scoped standing mandates only where a Skill explicitly asks for one; deploy-needing work is bundled into one pass with a hard stop after the confirmed commit; the deploy is verified over the status bridge before any served QA pass. main/master/trunk are write-protected (no commit, merge, or revert there), and the prohibitions propagate explicitly into every subagent worker prompt. Absorbs the protected-branches rule from the legacy skill zip."
     },
     {
       "name": "secrets",
@@ -275,7 +275,7 @@
       "name": "jira-batch-workflow",
       "path": "skills/jira-batch-workflow/SKILL.md",
       "source": "Tests/skills/jira-batch-workflow/SKILL.md",
-      "description": "Orchestrate a batch of open Jira subtasks (default 10) of one parent task: JQL intake over statusCategory To Do only, screenshot-based triage, untracked statusboard under .cursor/jira-batch/, up to three parallel background jira-ticket-runner leaves with file-disjoint write ownership and chain serialization, feedback relay via resume, automatic serialized per-ticket commits (never push), final batch review, and Jira solution comments after the user closes the review. Router and closer only; per-ticket semantics stay in jira-ticket-workflow, while model routing, the fixed return contract, and the handoff schema come from the agent-routing Rule."
+      "description": "Orchestrate a batch of open Jira subtasks (default 10) of one parent task: JQL intake over statusCategory To Do only, screenshot-based triage, untracked statusboard under .cursor/jira-batch/, up to three parallel background jira-ticket-runner leaves with file-disjoint write ownership and chain serialization, feedback relay via resume, serialized per-ticket commits under an explicit batch commit mandate asked at intake (never push, never without the mandate or an individual confirmation), final batch review, and Jira solution comments after the user closes the review. Router and closer only; per-ticket semantics stay in jira-ticket-workflow, while model routing, the fixed return contract, and the handoff schema come from the agent-routing Rule."
     },
     {
       "name": "smartflow-feedback",
