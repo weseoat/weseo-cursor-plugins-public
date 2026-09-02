@@ -196,6 +196,34 @@ themes/<child-theme>/smart-template-builder/post-types/<resource>/singles/<resou
 
 Do not place them under `plugins/weseo-smart-template-builder/` (WST runtime/library; off-limits without a recorded project-source exception). Do not hardcode WPGB IDs in card templates, reusable references, or plugin docs.
 
+## Smart Template single assignment (apply-spec for the user)
+
+CPT detail pages render only through a Smart Template assignment — the WordPress template hierarchy never finds the single partial (WST projects have no `single.php`/`page.php` in the child theme). The agent authors the partial and the include one-liner; the admin steps are the user's. Apply-spec shape:
+
+```text
+Smart Template apply-spec: single view for wso_<resource>
+1. Create a Smart Template (post type smart_template), e.g. title
+   "CPT - <singular-label>", category "Post Types".
+2. Assign it to the CPT: Smart Template → Settings → Post Types →
+   <CPT> → Template Assignment.
+3. Enable the top-level code editor in that Smart Template and paste
+   exactly this include (Flexible Content field stays empty; the include
+   goes in the top-level code editor, not in a code-editor Section):
+
+   [wst_include template="post-types/<resource>/singles/<resource>-single.php"]
+
+After applying: I verify the single URL renders the partial
+(.wso-<resource>-single present in the served markup).
+```
+
+Verification notes:
+
+- `smart_template` posts are not REST-exposed (`show_in_rest = false`). Read-verify the assignment over XML-RPC (`wp.getPost` with the Application Password); the relevant metas are `smart_template_code_editor_enabled` and `smart_template_code_editor_content`.
+- Record the Smart Template post ID and assignment status in the work record and `PROJECT-CONTEXT.md` once applied.
+- Until the assignment exists, the single URL shows the generic theme output — a pending admin step, not a code bug.
+
+Shortcode caution inside the single partial (include context): generic `[wst_acf field='<field-name>']` resolves empty there (ACF strict resolution over `get_field_object()`). Use typed shortcodes (`[wst_acf_text]`, `[wst_acf_wysiwyg]`, …) or the `field_…` key. `[wst_post_*]` shortcodes and `[wst_if]` conditionals work normally.
+
 ## Protected existing artifacts
 
 Fill this during the `existing-cpt-remodel` preflight before any write:
@@ -233,6 +261,8 @@ Common card data (catalog entry: the bundled `wst-shortcodes` Skill; every form 
 
 WPGB placeholder caution: `{{post.id}}` vs `{{post_id}}` in card context is an open validation (see `wst-shortcodes`); prove the resolving spelling on the project before relying on it.
 
+Single-partial caution: inside the Smart Template include context (CPT single partials), generic `[wst_acf field='…']` resolves empty — use typed shortcodes or the `field_…` key; see the Smart Template single assignment section above.
+
 ## CPT work record skeleton
 
 The CPT work record lives in the project docs layer (default `docs/post-types/<resource>.md`) and is separate from Section work records. Sections to maintain:
@@ -248,7 +278,8 @@ Registered post type, labels, admin visibility, detail-page decision (URL slug o
 archive/search behavior, taxonomy decision (wso_tax_* or explicit no), display target
 
 ## Apply-specs
-CPT UI settings (applied yes/no), taxonomy settings + fixed terms, WPGB spec + generated IDs
+CPT UI settings (applied yes/no), taxonomy settings + fixed terms, WPGB spec + generated IDs,
+Smart Template single assignment (post ID, applied yes/no) when detail pages exist
 
 ## ACF
 ACF JSON group file, field names, unresolved field questions
