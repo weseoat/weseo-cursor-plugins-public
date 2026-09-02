@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "smartflow-beta",
   "displayName": "SmartFlow (Beta)",
-  "version": "0.16.0-beta.1",
+  "version": "0.16.0-beta.2",
   "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
   "assumptions": [
     "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
@@ -21,7 +21,7 @@
       "name": "status-bridge",
       "path": "rules/status-bridge.mdc",
       "source": "plugins/smartflow/rules/status-bridge.mdc",
-      "description": "Use the project status bridge (REST namespace wso/v1) for deploy verification, cache flush, permalink flush, and WP Grid Builder grid/card/facet read-write (wpgb/* routes since bridge 1.1.0: read-modify-write with re-read proof, name/slug uniqueness before create, card before grid, reindex after facet writes, cache flush after write passes), and enforce the mandatory bridge version comparison and deployed-commit check before every bridge use, with a bounded retry and abort budget. The WPGB write routes wrap undocumented WPGB internals and are the first suspect after a WPGB plugin update. Replaces the legacy wp-cli-cache flush path."
+      "description": "Use the project status bridge (REST namespace wso/v1) for deploy verification, cache flush, permalink flush, and WP Grid Builder grid/card/facet read-write (wpgb/* routes since bridge 1.1.0; the single-item GET needs >= 1.1.1 on WPGB 2.x where the exporter class is gone: read-modify-write with re-read proof, create by cloning a GET never by invented columns, string reference ids (cards.default, grid_layout facets), css never decoded, name/slug uniqueness before create, card before grid, reindex after facet writes, cache flush after write passes), and enforce the mandatory bridge version comparison and deployed-commit check before every bridge use, with a bounded retry and abort budget. The WPGB write routes wrap undocumented WPGB internals and are the first suspect after a WPGB plugin update. Replaces the legacy wp-cli-cache flush path."
     },
     {
       "name": "webroot-safety",
@@ -143,7 +143,7 @@
       "name": "install-status-bridge",
       "path": "skills/install-status-bridge/SKILL.md",
       "source": "plugins/smartflow/skills/install-status-bridge/SKILL.md",
-      "description": "Install or update the versioned SmartFlow status bridge in the child theme's js-snippets.php from the bundled PHP template (wso/v1/status with bridge_version, deployed_commit, ACF field groups, WPGB grids, and cache state, plus cache flush, permalink flush, and since bridge 1.1.0 the WPGB read/write routes wpgb/<type> list, read, create, and update plus wpgb/reindex, all behind manage_options): managed-block install, deployed-commit file contract, commit-and-hand-over stop, and post-deploy verification over wso/v1/status. The normal update path (marker version comparison, block replacement) rolls new bridge versions out to existing projects without extra steps."
+      "description": "Install or update the versioned SmartFlow status bridge in the child theme's js-snippets.php from the bundled PHP template (wso/v1/status with bridge_version, deployed_commit, ACF field groups, WPGB grids, and cache state, plus cache flush, permalink flush, and since bridge 1.1.0 the WPGB read/write routes wpgb/<type> list, read, create, and update plus wpgb/reindex, all behind manage_options; bridge 1.1.1 adds the WPGB 2.x fallback for the single-item GET via Database::query_row because WPGB 2.x removed the exporter class): managed-block install, deployed-commit file contract, commit-and-hand-over stop, and post-deploy verification over wso/v1/status. The normal update path (marker version comparison, block replacement) rolls new bridge versions out to existing projects without extra steps."
     },
     {
       "name": "setup-local-project",
@@ -313,7 +313,7 @@
       "name": "wpgb-specialist",
       "path": "agents/wpgb-specialist.md",
       "source": "Tests/agents/wpgb-specialist.md",
-      "description": "WP Grid Builder specialist with a bridge-based write scope: reads WPGB config over the status bridge, writes and creates grids/cards/facets over the bridge wpgb/* routes when bridge >= 1.1.0 and PROJECT-CONTEXT.md records the route as project-validated (exact minimal apply-spec for the admin as fallback), clones the closest precedent card-before-grid with the new IDs written back, derives config values from the Figma matrix, and measures grid/slider runtime without overriding it via CSS."
+      "description": "WP Grid Builder specialist with a bridge-based write scope: reads WPGB config over the status bridge, writes and creates grids/cards/facets over the bridge wpgb/* routes when bridge >= 1.1.1 and PROJECT-CONTEXT.md records the route as project-validated (exact minimal apply-spec for the admin as fallback), clones the closest precedent card-before-grid with the new IDs written back as string references, derives config values from the Figma matrix, and measures grid/slider runtime without overriding it via CSS."
     },
     {
       "name": "cpt-visual-implementer",
@@ -329,5 +329,5 @@
     }
   ],
   "commands": [],
-  "releaseNotes": "release-notes/0.16.0-beta.1.md"
+  "releaseNotes": "release-notes/0.16.0-beta.2.md"
 }

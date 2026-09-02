@@ -20,20 +20,23 @@
  * - POST /wp-json/wso/v1/wpgb/<type>/<id>  update a WPGB item
  * - POST /wp-json/wso/v1/wpgb/reindex      reindex WPGB facets (all, or one via facet_id)
  *
- * The wpgb routes wrap undocumented WP Grid Builder internals
- * (Includes\Database::save_row()/query_row(), Admin\Export, Includes\Indexer).
- * When an internal class or method is missing -- plugin inactive or internals
- * drifted after a WPGB update -- the routes answer with a clear error carrying
- * `wpgb_version` instead of guessing.
+ * The wpgb routes wrap undocumented WP Grid Builder internals. On every
+ * WPGB version: Includes\Database::save_row()/query_row() and
+ * Includes\Indexer. The single-item GET additionally uses Admin\Export on
+ * WPGB 1.x where that class exists; WPGB 2.x removed it, so the GET falls
+ * back to Database::query_row() with the settings/layout columns
+ * JSON-decoded. When an internal class or method is missing -- plugin
+ * inactive or internals drifted after a WPGB update -- the routes answer
+ * with a clear error carrying `wpgb_version` instead of guessing.
  *
  * Every route requires an authenticated user with the `manage_options`
  * capability (use a WordPress application password).
  */
 
-/* WSO STATUS BRIDGE BEGIN v1.1.0 -- managed block, update only through the install-status-bridge Skill */
+/* WSO STATUS BRIDGE BEGIN v1.1.1 -- managed block, update only through the install-status-bridge Skill */
 
 if ( ! defined( 'WSO_BRIDGE_VERSION' ) ) {
-	define( 'WSO_BRIDGE_VERSION', '1.1.0' );
+	define( 'WSO_BRIDGE_VERSION', '1.1.1' );
 }
 
 if ( ! function_exists( 'wso_bridge_permission_check' ) ) {
@@ -314,6 +317,30 @@ if ( ! function_exists( 'wso_bridge_wpgb_identifier' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wso_bridge_wpgb_decode_json_columns' ) ) {
+	/**
+	 * Decode the settings and layout columns of a WPGB row for the response.
+	 * Only valid JSON arrays/objects are decoded; other strings stay as they
+	 * are. css is never decoded: save_row() re-encodes only settings/layout,
+	 * so a decoded css would break the GET -> POST round trip.
+	 */
+	function wso_bridge_wpgb_decode_json_columns( $row ) {
+		foreach ( array( 'settings', 'layout' ) as $column ) {
+			if ( empty( $row[ $column ] ) || ! is_string( $row[ $column ] ) ) {
+				continue;
+			}
+
+			$decoded = json_decode( $row[ $column ], true );
+
+			if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
+				$row[ $column ] = $decoded;
+			}
+		}
+
+		return $row;
+	}
+}
+
 if ( ! function_exists( 'wso_bridge_wpgb_list_handler' ) ) {
 	/**
 	 * GET /wpgb/<grids|cards|facets>: id and name (plus slug for facets) of
@@ -376,35 +403,68 @@ if ( ! function_exists( 'wso_bridge_wpgb_list_handler' ) ) {
 
 if ( ! function_exists( 'wso_bridge_wpgb_get_handler' ) ) {
 	/**
-	 * GET /wpgb/<type>/<id>: full configuration of one item as decoded JSON,
-	 * in the same shape the WPGB exporter produces (settings/layout decoded).
-	 * A body in this shape can be POSTed back for the round trip.
+	 * GET /wpgb/<type>/<id>: full configuration of one item as decoded JSON.
+	 * On WPGB 1.x the admin exporter produces the row; WPGB 2.x removed the
+	 * Export class, so the row is read through Database::query_row() and the
+	 * settings/layout columns are JSON-decoded. Both paths return the same
+	 * shape, and a body in this shape can be POSTed back for the round trip.
 	 */
 	function wso_bridge_wpgb_get_handler( $request ) {
 		$params = $request->get_url_params();
 		$type   = $params['type'];
 		$id     = (int) $params['id'];
 
-		if ( ! class_exists( 'WP_Grid_Builder\Admin\Export' ) ) {
-			return wso_bridge_wpgb_internal_missing( 'WP_Grid_Builder\Admin\Export' );
+		// WPGB 1.x: the admin exporter still exists there, keep using it.
+		if ( class_exists( 'WP_Grid_Builder\Admin\Export' ) ) {
+			$export = new WP_Grid_Builder\Admin\Export();
+
+			if ( method_exists( $export, 'export_items' ) ) {
+				$exported = (array) $export->export_items(
+					array(
+						'action' => 'wpgb_export',
+						'page'   => 'wpgb-' . $type,
+						'type'   => $type,
+						'ids'    => $id,
+					)
+				);
+
+				if ( empty( $exported[ $type ] ) ) {
+					return new WP_Error(
+						'wso_bridge_wpgb_not_found',
+						sprintf( 'No %s item with id %d.', $type, $id ),
+						array(
+							'status'       => 404,
+							'wpgb_version' => wso_bridge_wpgb_version(),
+						)
+					);
+				}
+
+				return rest_ensure_response(
+					array(
+						'wpgb_version' => wso_bridge_wpgb_version(),
+						'type'         => $type,
+						'id'           => $id,
+						$type          => array_values( (array) $exported[ $type ] ),
+					)
+				);
+			}
 		}
 
-		$export = new WP_Grid_Builder\Admin\Export();
-
-		if ( ! method_exists( $export, 'export_items' ) ) {
-			return wso_bridge_wpgb_internal_missing( 'WP_Grid_Builder\Admin\Export::export_items' );
+		// WPGB 2.x: no exporter; read the row through the same documented
+		// internal the save path already relies on.
+		if ( ! class_exists( 'WP_Grid_Builder\Includes\Database' )
+			|| ! method_exists( 'WP_Grid_Builder\Includes\Database', 'query_row' ) ) {
+			return wso_bridge_wpgb_internal_missing( 'WP_Grid_Builder\Includes\Database::query_row()' );
 		}
 
-		$exported = (array) $export->export_items(
+		$row = WP_Grid_Builder\Includes\Database::query_row(
 			array(
-				'action' => 'wpgb_export',
-				'page'   => 'wpgb-' . $type,
-				'type'   => $type,
-				'ids'    => $id,
+				'from' => $type,
+				'id'   => $id,
 			)
 		);
 
-		if ( empty( $exported[ $type ] ) ) {
+		if ( ! is_array( $row ) || empty( $row['id'] ) ) {
 			return new WP_Error(
 				'wso_bridge_wpgb_not_found',
 				sprintf( 'No %s item with id %d.', $type, $id ),
@@ -420,7 +480,7 @@ if ( ! function_exists( 'wso_bridge_wpgb_get_handler' ) ) {
 				'wpgb_version' => wso_bridge_wpgb_version(),
 				'type'         => $type,
 				'id'           => $id,
-				$type          => array_values( (array) $exported[ $type ] ),
+				$type          => array( wso_bridge_wpgb_decode_json_columns( $row ) ),
 			)
 		);
 	}
