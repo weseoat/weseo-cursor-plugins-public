@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "smartflow-beta",
   "displayName": "SmartFlow (Beta)",
-  "version": "1.3.0",
+  "version": "1.4.0-beta.1",
   "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
   "assumptions": [
     "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
@@ -33,7 +33,7 @@
       "name": "deploy-and-branches",
       "path": "rules/deploy-and-branches.mdc",
       "source": "plugins/smartflow/rules/deploy-and-branches.mdc",
-      "description": "SmartFlow deploy flow and branch discipline: the agent never pushes and never commits on its own - every commit is prepared (files, summary, proposed message) and happens only after an explicit user confirmation, with scoped standing mandates only where a Skill explicitly asks for one; deploy-needing work is bundled into one pass with a hard stop after the confirmed commit; the deploy is verified over the status bridge before any served QA pass. main/master/trunk are write-protected (no commit, merge, or revert there), and the prohibitions propagate explicitly into every subagent worker prompt. Absorbs the protected-branches rule from the legacy skill zip."
+      "description": "SmartFlow deploy flow and branch discipline: the agent never pushes and never commits on its own - every commit is prepared (files, summary, proposed message) and happens only after an explicit user confirmation, with scoped standing mandates only where a Skill explicitly asks for one; deploy-needing work is bundled into one pass with a hard stop after the confirmed commit; the deploy is verified over the status bridge before any served QA pass. main/master/trunk are write-protected (no commit, merge, or revert there), and the prohibitions propagate explicitly into every subagent worker prompt. Recognizes the legacy support state 'Working branch: master - user commits' (recorded by setup-ticket-ready): the agent prepares the commit and hands over, the colleague commits and pushes - never a per-ticket contradiction stop. Absorbs the protected-branches rule from the legacy skill zip."
     },
     {
       "name": "secrets",
@@ -149,7 +149,13 @@
       "name": "setup-local-project",
       "path": "skills/setup-local-project/SKILL.md",
       "source": "plugins/wordpress-server-ops-beta/skills/setup-orientation/SKILL.md",
-      "description": "Guided German wizard for the complete first setup of a local SmartFlow workspace: clone the wp-content-level repository, name the folder exactly after the server hostname (DevTools Local Overrides), fill the tracked .env with the application password, run the REST test, verify Atlassian MCP with the community mcp-atlassian preflight (community mcp-atlassian server version 0.22.0 or newer as team standard - the version floor is a security requirement, local stdio only, token in the env block never in args; a working legacy Rovo server stays a functioning read variant), anchor the project's Confluence page and mirror its extract into PROJECT-CONTEXT.md per the confluence-source Rule (no page is a valid state), find and follow the current Confluence weseo-git-installer guide via search, create the read-only FTP user with .ftpaccess (verified read-works/write-denied), install the status bridge, expose post types, taxonomies, ACF field groups, and ACF options pages over REST (bundled wso/v1/options endpoints and the full connection test, absorbed from the legacy setup-wordpress-cursor skill), configure Playwright MCP, verify Figma MCP, record the current Motherboard hostname from the Erstinstallation Confluence page as Cloned from (clone model: every project starts as a Motherboard clone; do not ask the user for a master-install name) and write the css_setup pending marker pointing at the project-css-setup pass shortly before the first Section, and fill PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation."
+      "description": "Guided German wizard for the complete first setup of a local SmartFlow workspace: clone the wp-content-level repository, name the folder exactly after the server hostname (DevTools Local Overrides), fill the tracked .env with the application password, run the REST test, verify Atlassian MCP with the community mcp-atlassian preflight (community mcp-atlassian server version 0.22.0 or newer as team standard - the version floor is a security requirement, local stdio only, token in the env block never in args; a working legacy Rovo server stays a functioning read variant), anchor the project's Confluence page and mirror its extract into PROJECT-CONTEXT.md per the confluence-source Rule (no page is a valid state), find and follow the current Confluence weseo-git-installer guide via search, create the read-only FTP user with .ftpaccess (verified read-works/write-denied), install the status bridge, expose post types, taxonomies, ACF field groups, and ACF options pages over REST (bundled wso/v1/options endpoints and the full connection test, absorbed from the legacy setup-wordpress-cursor skill), configure Playwright MCP, verify Figma MCP, record the current Motherboard hostname from the Erstinstallation Confluence page as Cloned from (clone model: every project starts as a Motherboard clone; do not ask the user for a master-install name) and write the css_setup pending marker pointing at the project-css-setup pass shortly before the first Section, and fill PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation. For pure support work the bundled setup-ticket-ready lite track is enough; this wizard resumes a lite-prepared project at its pending: Voll-Setup markers."
+    },
+    {
+      "name": "setup-ticket-ready",
+      "path": "skills/setup-ticket-ready/SKILL.md",
+      "source": "Confluence Skill-Einreichungen: [Skill] setup-ticket-ready, page 1971191811 (grill-me decision log, Fandler WP-42325)",
+      "description": "Bring a project to a ticket-ready state in minutes as the lite setup track of setup-local-project: only the six mandatory gates without which no support ticket works (repo clone with hostname folder, .env plus REST test with manage_options, minimal PROJECT-CONTEXT.md with URLs, theme path, deploy path, Jira key, and working branch, working-branch resolution including the recognized legacy state 'Working branch: master - user commits', Atlassian MCP with Jira as the blocking surface, Playwright MCP). On-first-need gates (status bridge, Figma MCP, Confluence anchor) are recorded as pending: on first need and set up the moment a ticket needs them; the consciously excluded full-setup gates (git-installer, read-only FTP, options REST, .wso-deployed-commit, css_setup marker) stay pending: Voll-Setup so setup-local-project can resume there without a break. Resumable, same PROJECT-CONTEXT.md schema, runs standalone or as step 0 gate check of jira-ticket-workflow; deploy proof without a bridge runs over the marker-based served check."
     },
     {
       "name": "setup-acf-local-json",
@@ -269,7 +275,7 @@
       "name": "jira-ticket-workflow",
       "path": "skills/jira-ticket-workflow/SKILL.md",
       "source": "Tests/skills/jira-ticket-workflow/SKILL.md",
-      "description": "Process a single WESEO Jira ticket (WP-key) end to end in the local SmartFlow workspace: Atlassian MCP intake with the mandatory screenshot rule (jira_get_issue_images, never blind visual diagnosis) and a fresh run-start read of the ticket-relevant section of the anchored Confluence page (clean skip without anchor, per the confluence-source Rule), triage/routing to the bundled Skills and subagents, minimal child-theme fix, Playwright injection-proof verification with honest proof-mode reporting, German report with approval gate, then one commit per ticket (never push) and a German Jira solution comment. Jira site URL and project key come from PROJECT-CONTEXT.md."
+      "description": "Process a single WESEO Jira ticket (WP-key) end to end in the local SmartFlow workspace: step 0 gate check that routes open mandatory gates to the bundled setup-ticket-ready Skill (the colleague only pastes the ticket link), Atlassian MCP intake with the mandatory screenshot rule (jira_get_issue_images, never blind visual diagnosis) and a fresh run-start read of the ticket-relevant section of the anchored Confluence page (clean skip without anchor, per the confluence-source Rule), triage/routing to the bundled Skills and subagents, minimal child-theme fix, Playwright injection-proof verification with honest proof-mode reporting (marker-verified served check on projects without a bridge or with deployed_commit null), German report with approval gate, then one commit per ticket (never push; in the legacy 'master - user commits' state the agent only prepares and the colleague commits) and a calm, plainly worded German Jira solution comment with hash and file paths in the work record instead of the ticket. Jira site URL and project key come from PROJECT-CONTEXT.md."
     },
     {
       "name": "jira-batch-workflow",
@@ -329,5 +335,5 @@
     }
   ],
   "commands": [],
-  "releaseNotes": "release-notes/1.3.0.md"
+  "releaseNotes": "release-notes/1.4.0-beta.1.md"
 }

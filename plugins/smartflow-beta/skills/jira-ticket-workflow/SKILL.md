@@ -1,6 +1,6 @@
 ---
 name: jira-ticket-workflow
-description: Processes a single WESEO Jira ticket (WP-xxxxx) for the current WordPress/WST project end to end - fetch the issue via the Atlassian MCP including mandatory screenshot viewing, combine it with the user's extra instructions, triage/route the work (direct fix, subagent, or bundled workflow Skill), implement a minimal fix inside the child theme, verify injection-proof via Playwright, report in German, and after user approval commit per ticket (never push) and write a Jira solution comment. Use whenever the user shares a Jira ticket URL or WP-key ("Schau dir das Ticket an", "fixe das", ticket abarbeiten).
+description: Processes a single WESEO Jira ticket (WP-xxxxx) for the current WordPress/WST project end to end - step 0 gate check that routes open mandatory gates to the bundled setup-ticket-ready Skill, fetch the issue via the Atlassian MCP including mandatory screenshot viewing, combine it with the user's extra instructions, triage/route the work (direct fix, subagent, or bundled workflow Skill), implement a minimal fix inside the child theme, verify injection-proof via Playwright (marker-verified served check on projects without a bridge), report in German, and after user approval commit per ticket (never push; in the legacy "master - user commits" state prepare only and the colleague commits) and write a calm, plainly worded German Jira solution comment. Use whenever the user shares a Jira ticket URL or WP-key ("Schau dir das Ticket an", "fixe das", ticket abarbeiten).
 ---
 
 # Jira Ticket Workflow
@@ -15,6 +15,19 @@ server shell, no served docroot). Saved edits are never live: they reach
 the server only through the commit-and-hand-over flow
 (`deploy-and-branches` Rule). Read the Jira site URL and project key from
 `PROJECT-CONTEXT.md`; never hardcode them.
+
+## 0. Gate Check
+
+Before intake, read `PROJECT-CONTEXT.md`. If the file is missing, or any
+of the six mandatory gates of the bundled `setup-ticket-ready` Skill is
+missing or `pending` (repo cloned with the hostname folder, `.env` plus
+REST test, minimal project context, working branch resolved, Atlassian
+MCP, Playwright MCP), run `setup-ticket-ready` first — only the open
+gates — then continue with intake in the same run. The colleague only has
+to remember one thing: paste the ticket link. On-first-need gates (status
+bridge, Figma MCP, Confluence anchor) are checked when a step of this run
+actually needs them, and set up immediately at that point. The gate check
+never forces the full `setup-local-project` wizard.
 
 ## 1. Intake
 
@@ -126,6 +139,16 @@ verify in the real browser, release the lock.
   deploy ran, and the status bridge confirms `deployed_commit` matches
   the local commit (`status-bridge` Rule). Flush caches through the
   bridge when the served read is stale.
+- **No bridge / `deployed_commit: null`** (typical for projects prepared
+  only by `setup-ticket-ready`): the served check runs over a **marker**.
+  While implementing, remember one unambiguous marker the fix introduces
+  (a new CSS variable, a class, a changed text). After the user reports
+  the push/deploy, check the served stylesheet or markup for the marker.
+  Marker missing → almost always page cache → ask the user to flush the
+  cache in the WordPress admin, then re-check. Until the marker is
+  served, the status stays `implementation pass, deployed verification
+  pending`; afterwards report it as a marker-verified served pass, never
+  as bridge-verified.
 - Use Section preview pages (`/section-preview/<section>/<variant>/`)
   when a page-independent check is enough — but remember previews are
   nocache and skip cache/Delay-JS bug classes.
@@ -134,7 +157,7 @@ verify in the real browser, release the lock.
   ticket is a layout/responsive change across bands.
 
 State plainly which proof mode was achieved (injection-proof vs
-bridge-verified served vs code-only).
+bridge-verified served vs marker-verified served vs code-only).
 
 ## 6. Report and approval gate
 
@@ -154,10 +177,22 @@ iterate from step 3.
    `Fix - WP-45755 image-boxes swiper slidesPerView auto (mobile left
    alignment)`, with the trailer per the `commit-trailer` Rule.
    Never push; hand over per the `deploy-and-branches` Rule.
+   In the legacy state `Working branch: master — user commits`
+   (`deploy-and-branches` Rule), the agent does not commit at all:
+   prepare the staged file list and the proposed commit message with
+   trailer, hand over, and let the colleague commit and push. For the
+   Jira comment, read `git rev-parse HEAD` after the colleague's commit —
+   or write the comment without a hash when the colleague closes out.
 2. **Jira:** write a short German solution comment via
-   `jira_add_comment` (cause, fix, where verified — including that the
-   deploy is pending until the push — commit hash). Never transition
-   the ticket status.
+   `jira_add_comment`. Support-ticket standard tone: no addressee,
+   simple language, informative, calm — what was wrong, what is
+   different now, a link to the affected page, and what is still
+   pending (for example that the change goes live with the next push or
+   after the cache flush). Technical detail only when it triggers an
+   action for the reader. Commit hash and file paths belong in the work
+   record, not in the ticket. Do not ask the user about the tone; a
+   deviation comes as a chat instruction. Never transition the ticket
+   status.
 3. **Records:** if the ticket closes or changes an item tracked in the
    project backlog or an affected work record's QA/status section,
    update it.
