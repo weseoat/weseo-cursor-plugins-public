@@ -124,7 +124,7 @@ When the CSS pass is complete across all in-scope surfaces:
 
 ## 5. Bridge Verification With Bounded Retries
 
-After the user reports pushing, verify per the `status-bridge` Rule: `GET /wp-json/wso/v1/status`, `bridge_version` comparison first, then `deployed_commit` against the local `git rev-parse HEAD`. On mismatch re-check at most 3 times with a short wait; if the hashes still differ, abort with a clear message naming the local hash, the served hash (or `null`), and the likely causes (push not done, deploy not run, deploy path not writing `.wso-deployed-commit`), set `deploy state: aborted: hash-mismatch`, and keep results at `implementation pass, deployed verification pending`. Never poll endlessly and never run the served check while the hashes differ. `deployed_commit: null` routes to `install-status-bridge` instead of retrying.
+After the user reports pushing, verify per the `status-bridge` Rule: `GET /wp-json/wso/v1/status`, `bridge_version` comparison first, then `deployed_commit` against the local `git rev-parse HEAD`. On mismatch re-check at most 3 times with a short wait; if the hashes still differ, abort with a clear message naming the local hash, the served hash (or `null`), and the likely causes (push not done, deploy not run, deploy path not writing the `.wso-deployed-commit` marker file), set `deploy state: aborted: hash-mismatch`, and keep results at `implementation pass, deployed verification pending`. Never poll endlessly and never run the served check while the hashes differ. `deployed_commit: null` routes to `install-status-bridge` instead of retrying.
 
 ## 6. One-Time Served Check
 

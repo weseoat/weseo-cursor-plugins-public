@@ -7,7 +7,9 @@ alwaysApply: false
 
 Use this Rule whenever server state of a WESEO WordPress/WST project is read or mutated through the SmartFlow status bridge: deploy verification, cache flush, permalink flush, reading ACF/WPGB/cache state, or reading and writing WP Grid Builder configuration. The bridge replaces the legacy WP-CLI cache-flush path.
 
-The bridge is a managed block in the child theme's `js-snippets.php`, installed and updated only through the `install-status-bridge` Skill. It serves the REST namespace `wso/v1`:
+In plain terms: the bridge is a small PHP block in the child theme that gives the agent a few protected REST endpoints, so it can verify that a deploy landed, flush cache and permalinks, and read/write WP Grid Builder configuration without any server access. When a user meets the term for the first time, explain it in German per the "What The Bridge Is" section of the `install-status-bridge` Skill; two names there are easy to misread — `deployed_commit` is a field in the status response, and `.wso-deployed-commit` is the plain-text marker **file** the deploy path writes on the server (not a CSS class, despite the `.wso-` shape).
+
+Technically, the bridge is a managed block in the child theme's `js-snippets.php`, installed and updated only through the `install-status-bridge` Skill. It serves the REST namespace `wso/v1`:
 
 | Route | Method | Purpose |
 |---|---|---|
@@ -52,10 +54,10 @@ Do not trust any bridge response, flush, or served page until this check passes.
 The agent never pushes; after a commit it hands over and the user pushes. When `deployed_commit` does not yet match after the user reports pushing:
 
 - Re-check `GET /status` at most 3 times with a short wait between checks.
-- If the hashes still differ, abort with a clear message stating the local hash, the served hash (or `null`), and the most likely causes: push not done, deploy not run, deploy path not writing `.wso-deployed-commit`.
+- If the hashes still differ, abort with a clear message stating the local hash, the served hash (or `null`), and the most likely causes: push not done, deploy not run, deploy path not writing the `.wso-deployed-commit` marker file.
 - Never poll in an endless loop, and never continue QA or record a source-served verification while the hashes differ. Until they match, results stay `implementation pass, deployed verification pending`.
 
-A `deployed_commit` of `null` means the deploy path does not write the commit file; route to the `install-status-bridge` Skill (Step 4) instead of retrying.
+A `deployed_commit` of `null` means the deploy path does not write the `.wso-deployed-commit` marker file; route to the `install-status-bridge` Skill (Step 4) instead of retrying.
 
 ## Cache Flush
 

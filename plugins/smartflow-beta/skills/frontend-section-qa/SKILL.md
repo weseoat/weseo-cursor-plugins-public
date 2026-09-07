@@ -147,7 +147,7 @@ When the CSS pass is complete — injection proof passed, ladder verified, matri
 
 1. Commit the tracked CSS/SCSS (plus generated CSS) and the updated work record together on the project branch, with the `Made with: SmartFlow` trailer. Set `deploy state: committed-awaiting-push` and `final status: implementation-pass-pending-deploy`.
 2. HARD STOP. Hand over with: the commit hash, the changed files with real project paths, a one-line statement of what the deploy will deliver, and the resume line `report back once you have pushed`. The agent never pushes.
-3. The user pushes; the project deploy path delivers the child theme subdirectory and writes `.wso-deployed-commit`.
+3. The user pushes; the project deploy path delivers the child theme subdirectory and writes the `.wso-deployed-commit` marker file.
 
 ## 5. Bridge Verification With Bounded Retries
 
@@ -155,7 +155,7 @@ After the user reports pushing, verify the deploy over the status bridge per the
 
 1. `GET /wp-json/wso/v1/status` (credentials only through the project env vars). First compare `bridge_version` against the bundled template; on mismatch stop bridge usage and route to `install-status-bridge`.
 2. Compare `deployed_commit` with the local `git rev-parse HEAD`. Equal hashes (or the served hash being the abbreviation of the local one) mean the deploy landed.
-3. When the hashes do not match yet: re-check at most 3 times with a short wait between checks. If they still differ, abort with a clear message naming the local hash, the served hash (or `null`), and the most likely causes — push not done, deploy not run, deploy path not writing `.wso-deployed-commit`. Set `deploy state: aborted: hash-mismatch` and keep `final status: implementation-pass-pending-deploy`. Never poll in an endless loop, and never run the served check or record any served result while the hashes differ.
+3. When the hashes do not match yet: re-check at most 3 times with a short wait between checks. If they still differ, abort with a clear message naming the local hash, the served hash (or `null`), and the most likely causes — push not done, deploy not run, deploy path not writing the `.wso-deployed-commit` marker file. Set `deploy state: aborted: hash-mismatch` and keep `final status: implementation-pass-pending-deploy`. Never poll in an endless loop, and never run the served check or record any served result while the hashes differ.
 4. A `deployed_commit` of `null` means the deploy path does not write the commit file; route to the `install-status-bridge` Skill instead of retrying.
 
 On match, set `deploy state: bridge-verified: <hash>` and continue.

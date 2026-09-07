@@ -7,7 +7,18 @@ description: Install or update the versioned SmartFlow status bridge in the chil
 
 Use this Skill when a project needs the SmartFlow status bridge for the first time, or when the installed bridge version is older than the bundled template version (the `status-bridge` Rule routes here on every version mismatch).
 
-The bridge is a managed PHP block inside the child theme's `js-snippets.php`. It registers the REST namespace `wso/v1` with these routes:
+## What The Bridge Is — Explain This Before Installing
+
+The target user is a frontend or design colleague who has never heard the term. Before the first install step, and whenever another Skill sends a user here for the first time, explain the bridge in plain German in a few sentences — not with the route table. Use this wording as the basis:
+
+> Die **Status-Bridge** ist ein kleiner PHP-Block, den SmartFlow in die Datei `js-snippets.php` deines Child-Themes einbaut. Er stellt WordPress ein paar zusätzliche REST-Endpunkte unter `/wp-json/wso/v1/` zur Verfügung, die nur mit deinem Application Password erreichbar sind. Damit kann der Agent ohne Server-Zugang drei Dinge tun: **prüfen, ob dein Deploy wirklich am Server angekommen ist** (er vergleicht den deployten Commit mit deinem lokalen Stand), **den Cache und die Permalinks leeren**, und **WP Grid Builder Grids, Cards und Facets lesen und schreiben**. Die Bridge verändert nichts am Frontend deiner Seite und ist kein Plugin — sie wird wie jede andere Theme-Datei per Commit und Push deployt und bekommt bei jedem SmartFlow-Update, das sie braucht, eine neue Version.
+
+Two terms the user meets in the next steps need the same clarity at their first mention:
+
+- `deployed_commit` is a **field in the bridge's status response**: the hash of the commit that is currently deployed on the server.
+- `.wso-deployed-commit` is a **plain-text file** in the child theme root that the deploy path writes on the server (one line, that hash). The bridge reads it to fill `deployed_commit`. Despite the `.wso-` shape it is **not a CSS class or selector** — say this explicitly, because the name looks exactly like the project's `.wso-…` CSS hooks.
+
+Technically, the bridge is a managed PHP block inside the child theme's `js-snippets.php`. It registers the REST namespace `wso/v1` with these routes:
 
 | Route | Method | Purpose |
 |---|---|---|
@@ -58,7 +69,7 @@ Copy the managed block from `reference/js-snippets-status-bridge.php` — everyt
 
 ## Step 4: Wire The Deployed-Commit Contract
 
-The status route reports `deployed_commit` from the file `.wso-deployed-commit` in the child theme root (one line, the full or abbreviated hash of the deployed commit).
+The status route reports `deployed_commit` from the plain-text file `.wso-deployed-commit` in the child theme root (one line, the full or abbreviated hash of the deployed commit). When you tell the user about this step, name it as a **file** (a deploy marker the installer writes on the server), never just by its bare name — `.wso-deployed-commit` is not a CSS class, and colleagues read the `.wso-` prefix as one.
 
 - The project deploy path must write this file on every deploy. Record the concrete mechanism in `PROJECT-CONTEXT.md` (for example a post-deploy step of the git installer).
 - The file is written on the server by the deploy path. Do not commit a `.wso-deployed-commit` file from the local repo; a locally committed hash would be stale by definition (a commit cannot contain its own hash).
@@ -103,6 +114,7 @@ Update `PROJECT-CONTEXT.md` with:
 
 ## Checklist
 
+- [ ] Bridge explained to the user in plain language before the install (what it is, what the agent can do with it, that `.wso-deployed-commit` is a file).
 - [ ] `js-snippets.php` located and confirmed as a loaded project-owned include.
 - [ ] Install state detected via the `WSO STATUS BRIDGE BEGIN` marker.
 - [ ] Managed block installed or replaced from the bundled template, nothing else changed.

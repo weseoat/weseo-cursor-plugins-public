@@ -149,7 +149,7 @@ Deployment is push-based: the user pushes to Bitbucket, and the `weseo-git-insta
 3. Apply these SmartFlow workspace contracts on top of the Confluence UI steps — they are not a substitute for the page:
    - Repository URL: the project repository from Step 1.
    - Target directory: `./wp-content/themes/<child-theme>/`.
-   - The installer must write the deployed commit hash to `.wso-deployed-commit` in the child theme root on every deploy. If the Confluence page or the plugin cannot yet do that, record it as an open item — deploy verification over the bridge cannot pass until it is wired.
+   - The installer must write the deployed commit hash into the plain-text **file** `.wso-deployed-commit` in the child theme root on every deploy (one line, the hash). This is the first time the user meets that name — say explicitly that it is a file, not a CSS class, because it looks exactly like the project's `.wso-…` CSS hooks. German wording for the user: „Die **Datei** `.wso-deployed-commit` im Child-Theme-Root (eine Zeile, der Hash des deployten Commits) wird vom Deploy-Weg geschrieben und später von der Status-Bridge gelesen, um den deployten Commit gegen deinen lokalen Stand zu prüfen. Es ist kein CSS-Hook, sondern eine Deploy-Marker-Datei." If the Confluence page or the plugin cannot yet write it, record it as an open item — deploy verification over the bridge cannot pass until it is wired.
    - The agent never pushes; the user pushes.
 4. Credentials named on the Confluence page (LastPass notes, Bitbucket API keys) are entered by the user in the WordPress admin. Never retrieve, paste, or record those values in chat, `.env`, or `PROJECT-CONTEXT.md`.
 
@@ -186,7 +186,9 @@ Record `ftp_read_access: verified read-only` (or `pending: <reason>`) plus the F
 
 ## Step 9: Install The Status Bridge
 
-Run the bundled `install-status-bridge` Skill. It installs the versioned managed block in the child theme's `js-snippets.php`, wires the deployed-commit contract from Step 7, commits with the SmartFlow trailer, and makes the hard stop so the user pushes and the git installer deploys.
+Start with the **Was passiert / Warum** block: explain what the status bridge is in plain German before anything is installed, using the wording in the `install-status-bridge` Skill ("What The Bridge Is"). In one breath: a small PHP block in the child theme's `js-snippets.php` that gives the agent a few protected REST endpoints under `/wp-json/wso/v1/`, so it can verify that a deploy landed, flush cache and permalinks, and read/write WP Grid Builder configuration — without any server access, deployed like every other theme file. Do not assume the user knows the term.
+
+Then run the bundled `install-status-bridge` Skill. It installs the versioned managed block in the child theme's `js-snippets.php`, wires the deployed-commit contract from Step 7 (the `.wso-deployed-commit` marker file), commits with the SmartFlow trailer, and makes the hard stop so the user pushes and the git installer deploys.
 
 After the user confirms the push and the deploy ran, verify over `GET <site-url>/wp-json/wso/v1/status` per the `status-bridge` Rule: `bridge_version` equals `WSO_BRIDGE_VERSION` from the bundled template, and `deployed_commit` equals the local `git rev-parse HEAD`. This doubles as the first end-to-end test of the whole deploy chain: commit -> user push -> git installer -> bridge.
 

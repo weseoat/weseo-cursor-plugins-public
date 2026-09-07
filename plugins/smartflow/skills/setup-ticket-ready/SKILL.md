@@ -138,7 +138,7 @@ current ticket needs them — never worked around. Record each as
 
 | Gate | Needed when | Route |
 |---|---|---|
-| Status bridge | WPGB read/write, cache/permalink flush, bridge-verified deploy checks | bundled `install-status-bridge` Skill (needs a deployable commit path — in the legacy state the colleague commits/pushes the bridge install) |
+| Status bridge | WPGB read/write, cache/permalink flush, bridge-verified deploy checks | bundled `install-status-bridge` Skill — explain first what the bridge is, in plain German per its "What The Bridge Is" section (needs a deployable commit path — in the legacy state the colleague commits/pushes the bridge install) |
 | Figma MCP | the ticket references a design | `setup-local-project` Step 12 |
 | Confluence anchor | project-context questions the ticket text cannot answer | `setup-local-project` Step 6 |
 
@@ -147,8 +147,10 @@ current ticket needs them — never worked around. Record each as
 These belong to the full `setup-local-project` run and are consciously not
 part of ticket readiness: `weseo-git-installer` configuration, the
 read-only FTP user with `.ftpaccess`, ACF options REST exposure, the
-`.wso-deployed-commit` contract, and the `css_setup` marker pass. Record
-them as `pending: Voll-Setup` in `PROJECT-CONTEXT.md` and move on.
+deploy-marker **file** `.wso-deployed-commit` (written by the installer,
+read by the status bridge — not a CSS class), and the `css_setup` marker
+pass. Record them as `pending: Voll-Setup` in `PROJECT-CONTEXT.md` and
+move on.
 
 ## Deploy Proof Without A Bridge
 
