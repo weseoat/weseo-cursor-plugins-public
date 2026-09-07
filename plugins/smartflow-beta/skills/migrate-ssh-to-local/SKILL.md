@@ -99,7 +99,7 @@ Order matters: the two deploy mechanisms must never race on the same theme direc
 
 ### 2.5 Set Up ACF Local JSON
 
-With the deploy chain and the bridge working, run the bundled `setup-acf-local-json` Skill: bridge inventory, `acf-json/` in the child theme, seed split from the admin JSON export saved in 1.2, the ACF Extended `acfe_autosync` opt-in fix with a one-time collective sync, empirical filename-convention determination, both-direction proofs, and the FTP hash acceptance. Record the ACF model and the filename convention in `PROJECT-CONTEXT.md`.
+With the deploy chain and the bridge working, run the bundled `setup-acf-local-json` Skill: bridge inventory, `acf-json/` in the child theme, seed split from the admin JSON export saved in 1.2, the ACF Extended autosync opt-in fix with a one-time collective sync, empirical determination of the canonical write format (filename, unicode escaping, autosync shape, newlines), both-direction proofs, and the FTP hash acceptance. Record the ACF model and the canonical write format in `PROJECT-CONTEXT.md`.
 
 ### 2.6 Acceptance And Retirement
 

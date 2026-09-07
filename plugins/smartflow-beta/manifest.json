@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "smartflow-beta",
   "displayName": "SmartFlow (Beta)",
-  "version": "1.4.0-beta.1",
+  "version": "1.4.0",
   "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
   "assumptions": [
     "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
@@ -45,7 +45,7 @@
       "name": "acf-local-json",
       "path": "rules/acf-local-json.mdc",
       "source": "plugin-feedback/acf-local-json-workflow.md (proven at anton-llm-playground.at.weseo.dev, 2026-08-19)",
-      "description": "Author all project-owned ACF field definitions as Local JSON files under acf-json/ in the child theme: admin stays editable, agents write JSON with a modified bump, a human confirms every structural change with a sync click. Binding operating rules (pull-before-deploy over read-only FTP, JSON as the only agent write path, sync only after diff review) plus the empirical filename convention, the ACF Extended autosync opt-in, and the mandatory wso_ field-name prefix for CPT fields (wso_<resource>_<field>, for example wso_job_salary on a Job CPT). Structural ACF database writes stay forbidden entirely. Replaces the retired acf-php-field-groups rule and the PHP migration scaffold."
+      "description": "Author all project-owned ACF field definitions as Local JSON files under acf-json/ in the child theme: admin stays editable, agents write JSON with a modified bump, a human confirms every structural change with a sync click. Binding operating rules (pull-before-deploy over read-only FTP, JSON as the only agent write path, sync only after diff review) plus the ACF 6 encode style as default (raw UTF-8, escaped slashes, LF plus trailing newline, one-pass serialization; a differing write format recorded in PROJECT-CONTEXT.md wins), the ACF Extended autosync opt-in (nested acfe.autosync default, legacy top-level acfe_autosync recognized, never guessed), the empirical per-installation write-format determination, and the mandatory wso_ field-name prefix for CPT fields (wso_<resource>_<field>, for example wso_job_salary on a Job CPT). Structural ACF database writes stay forbidden entirely. Replaces the retired acf-php-field-groups rule and the PHP migration scaffold."
     },
     {
       "name": "file-edit-boundary",
@@ -161,7 +161,7 @@
       "name": "setup-acf-local-json",
       "path": "skills/setup-acf-local-json/SKILL.md",
       "source": "plugin-feedback/acf-local-json-workflow.md (proven at anton-llm-playground.at.weseo.dev, 2026-08-19)",
-      "description": "One-time setup of the ACF Local JSON workflow in a SmartFlow project: bridge inventory (participants local false, plugin groups local php excluded), acf-json/ in the child theme without any code change, seed split from a user-driven ACF admin export (PHP json_encode style, no modified timestamps, keys reconciled), the ACF Extended acfe_autosync opt-in fix with a one-time collective sync, empirical filename-convention determination, both-direction functional proofs, and acceptance over an FTP hash comparison plus the bridge listing all participants as local json."
+      "description": "One-time setup of the ACF Local JSON workflow in a SmartFlow project: bridge inventory (participants local false, plugin groups local php excluded), acf-json/ in the child theme without any code change plus the gitattributes eol=lf recommendation, seed split from a user-driven ACF admin export (ACF 6 encode style with raw UTF-8 and escaped slashes, one-pass serialization, no modified timestamps, keys reconciled), the ACF Extended autosync opt-in fix (nested acfe.autosync default, legacy top-level shape recognized) with a one-time collective sync, empirical determination of the canonical write format at the first admin save (filename, unicode escaping, autosync shape, newlines - recorded in PROJECT-CONTEXT.md), both-direction functional proofs, and acceptance over an FTP hash comparison plus the bridge listing all participants as local json."
     },
     {
       "name": "migrate-ssh-to-local",
@@ -335,5 +335,5 @@
     }
   ],
   "commands": [],
-  "releaseNotes": "release-notes/1.4.0-beta.1.md"
+  "releaseNotes": "release-notes/1.4.0.md"
 }

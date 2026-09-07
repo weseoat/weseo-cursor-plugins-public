@@ -194,7 +194,7 @@ For `existing-section-remodel`, do not re-confirm the slug if a single existing 
 
 All ACF work is Local JSON authoring per the `acf-local-json` Rule; see [`reference.md`](reference.md) for the concrete shapes.
 
-- The Section field group is one JSON file under `acf-json/` with a stable fresh `group_<unique>` key and stable `field_<unique>` keys for every field, `acfe_autosync` containing `"json"`, and a `modified` timestamp above the database state.
+- The Section field group is one JSON file under `acf-json/` with a stable fresh `group_<unique>` key and stable `field_<unique>` keys for every field, the ACFE autosync opt-in containing `"json"` (nested `acfe.autosync` by default, or the shape `PROJECT-CONTEXT.md` records), and a `modified` timestamp above the database state.
 - The Flexible Content layout entry and the seamless clone child field are added by editing the JSON file of the Page-Builder Flexible Content container (with its own `modified` bump; if the container has no JSON source yet — the bridge reports it `local: false` — stop: the `setup-acf-local-json` Skill must run first).
 - Generate the layout key once and record it immediately in the work record. The clone child field references it exactly through `parent_layout`.
 - Standard clone settings: `type=clone`, `clone=[<section-field-group-key>]`, `display=seamless`, `prefix_name=1`, `prefix_label=0`, `parent_layout=<layout-key>`, `acfe_save_meta=1` when the project uses ACF Extended save-meta behavior.
@@ -245,7 +245,7 @@ New WST FC Section:
 - [ ] Execution Plan announced
 - [ ] Create Section template at themes/<child-theme>/smart-template-builder/sections/<section-slug>.php (never under plugins/weseo-smart-template-builder/)
 - [ ] Every new WST shortcode form four-source-proven (wst-shortcodes)
-- [ ] Create the Section ACF JSON group file under acf-json/ (fresh stable keys, acfe_autosync includes "json", modified bump — acf-local-json Rule)
+- [ ] Create the Section ACF JSON group file under acf-json/ (fresh stable keys, autosync opt-in includes "json" — nested acfe.autosync by default, modified bump — acf-local-json Rule)
 - [ ] Add the Flexible Content layout entry and clone child field in the FC container's JSON file (own modified bump; parent_layout matches the layout key exactly)
 - [ ] Register the Section in flexible-content.php
 - [ ] Document CSS hooks and CSS path in the work record (no CSS file from this Skill)

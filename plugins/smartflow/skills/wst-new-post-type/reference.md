@@ -163,7 +163,7 @@ For `existing-cpt-remodel`, preserve the existing taxonomy name, hierarchy, publ
 
 ## ACF field group shape (JSON)
 
-One JSON file per field group under `themes/<child-theme>/acf-json/`, named per the installation's filename convention from `PROJECT-CONTEXT.md`, formatted in the PHP `json_encode` style ACF writes itself (4-space indentation, `\/` escaping, `\uXXXX` for non-ASCII), per the `acf-local-json` Rule. The location rule targets the registered post type:
+One JSON file per field group under `themes/<child-theme>/acf-json/`, named per the installation's filename convention from `PROJECT-CONTEXT.md`, formatted in the encode style ACF 6.x writes itself (4-space indentation, `\/` escaping, raw UTF-8 for non-ASCII, LF + trailing newline — if `PROJECT-CONTEXT.md` records a different write format, use that), per the `acf-local-json` Rule. The location rule targets the registered post type:
 
 ```json
 {
@@ -197,7 +197,9 @@ One JSON file per field group under `themes/<child-theme>/acf-json/`, named per 
     "label_placement": "top",
     "instruction_placement": "label",
     "active": true,
-    "acfe_autosync": ["json"],
+    "acfe": {
+        "autosync": ["json"]
+    },
     "modified": <unix-timestamp>
 }
 ```
@@ -208,7 +210,7 @@ Field group conventions:
 - For `existing-cpt-remodel`, reuse the existing field group and field keys by default; add fields only when the approved work record requires them.
 - Prefer core post fields before adding duplicate ACF fields.
 - Field names always carry the `wso_<resource>_` prefix (`wso_job_salary` on a Job CPT, never `job_salary`); keep them stable — retrofitting the prefix onto already saved fields is a data migration requiring an explicit user decision.
-- `acfe_autosync` must contain `"json"` and `modified` must exceed the database state, otherwise the admin offers no sync. The group stays editable in the admin; after deploy plus sync, `GET /status` lists it with `local: "json"`.
+- The autosync opt-in must contain `"json"` and `modified` must exceed the database state, otherwise the admin offers no sync. Nested `acfe.autosync` is the current ACFE default; if `PROJECT-CONTEXT.md` records the legacy top-level `acfe_autosync` shape for this installation, use that. The group stays editable in the admin; after deploy plus sync, `GET /status` lists it with `local: "json"`.
 
 Common field types:
 

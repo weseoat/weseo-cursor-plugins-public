@@ -116,6 +116,9 @@ Record all layouts registered in `flexible-content.php`. Add project-specific la
 
 | Reference | Value | Notes |
 |-----------|-------|-------|
+| ACF JSON filename convention | `<group-file-pattern>` | Determined empirically at the first admin save (`setup-acf-local-json`), e.g. `group-<hex>.json` or `group_<hex>.json` |
+| ACF JSON encode style | `<raw-utf8-or-uXXXX>` | ACF 6 default: raw UTF-8, `\/` escaped, 4-space indent, LF + trailing newline |
+| ACF autosync shape | `<nested-acfe.autosync-or-top-level-acfe_autosync>` | Never guessed — read from a file the installation wrote itself |
 | Flexible Content field key | `<fc-field-key>` | `<notes>` |
 | Flexible Content field post ID | `<fc-post-id>` | `<notes>` |
 | Flexible Content group key | `<fc-group-key>` | `<notes>` |

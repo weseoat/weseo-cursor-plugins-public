@@ -36,8 +36,10 @@ Use this Rule when creating or changing any ACF field definition: Section field 
 
 ## Format And Tooling Pitfalls
 
-- Emulate the PHP `json_encode` style ACF writes itself: 4-space indentation, `\/` escaping, `\uXXXX` for non-ASCII. This keeps diffs minimal when ACF rewrites the file after an admin save.
-- **ACF Extended makes JSON writing per group opt-in:** the group setting `acfe_autosync` must contain `"json"`. Groups created before `acf-json/` existed have it empty — saving then silently writes nothing. Keep the setting present in every group file.
+- Emulate the encode style ACF 6.x writes itself (`JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE`): 4-space indentation, `\/` escaping for slashes, **raw UTF-8 for non-ASCII** (umlauts stay literal, no `\uXXXX`), LF line endings with a trailing newline. This keeps diffs minimal when ACF rewrites the file after an admin save. If `PROJECT-CONTEXT.md` records a different empirically determined write format for this installation, that format wins.
+- **Serialize in one pass:** exactly one `json_decode` followed by one `json_encode`. A two-stage pipeline double-encodes and produces triple-escaped slashes (`6\\\/12` instead of `6\/12`) that corrupt stored values.
+- **ACF Extended makes JSON writing per group opt-in:** the group's autosync setting must contain `"json"`. Current ACFE writes it nested as `"acfe": { "autosync": ["json"] }` (the default to author); older ACFE versions write a top-level `"acfe_autosync": ["json"]`. Never guess the shape — read it from `PROJECT-CONTEXT.md` or from a file the installation wrote itself (determined per the `setup-acf-local-json` Skill). Groups created before `acf-json/` existed have the opt-in empty — saving then silently writes nothing. Keep the setting present in every group file.
+- Recommend `acf-json/*.json text eol=lf` in the project repository's `.gitattributes` (repo-level file, not plugin content) so Windows checkouts do not break the byte-level FTP comparison.
 - **Deploy removal behavior:** `weseo-git-installer` removes repo-deleted or renamed files from the server (verified). With any other deploy tool, verify this once — otherwise stale files can shadow fresh ones.
 - **FTP comparisons use content hashes, never timestamps:** directory mtimes do not change on overwrite, and FTP listing modes can mix UTC and local time.
 

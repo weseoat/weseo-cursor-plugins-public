@@ -20,7 +20,7 @@ The exact group keys are project-local values: read them from the JSON sources u
 
 Create one JSON group file for the Section-specific editor fields only when `Work type` is `new-section-foundation` or the confirmed work record explicitly requires a new field group. For an `existing-section-remodel`, reuse the existing field group and field keys by default.
 
-The group is cloned into the Flexible Content layout and needs no location rule. One file per group under `acf-json/`, named per the installation's filename convention from `PROJECT-CONTEXT.md`, formatted in the PHP `json_encode` style ACF writes itself (4-space indentation, `\/` escaping, `\uXXXX` for non-ASCII):
+The group is cloned into the Flexible Content layout and needs no location rule. One file per group under `acf-json/`, named per the installation's filename convention from `PROJECT-CONTEXT.md`, formatted in the encode style ACF 6.x writes itself (4-space indentation, `\/` escaping, raw UTF-8 for non-ASCII, LF + trailing newline — if `PROJECT-CONTEXT.md` records a different write format, use that):
 
 ```json
 {
@@ -46,12 +46,14 @@ The group is cloned into the Flexible Content layout and needs no location rule.
     ],
     "location": [],
     "active": true,
-    "acfe_autosync": ["json"],
+    "acfe": {
+        "autosync": ["json"]
+    },
     "modified": <unix-timestamp>
 }
 ```
 
-`acfe_autosync` must contain `"json"` and `modified` must exceed the database state, otherwise the admin offers no sync (`acf-local-json` Rule). Button clone, layout clone, and Section-specific fields follow the same field shape.
+The autosync opt-in must contain `"json"` and `modified` must exceed the database state, otherwise the admin offers no sync (`acf-local-json` Rule). Nested `acfe.autosync` is the current ACFE default; if `PROJECT-CONTEXT.md` records the legacy top-level `acfe_autosync` shape for this installation, use that. Button clone, layout clone, and Section-specific fields follow the same field shape.
 
 Key discipline (`acf-local-json` Rule): every group, field, and layout carries a stable explicit fresh key. Never reuse an existing key for a different field, and never rename a saved field's `name` or `key` casually — stored content references both; such changes are data migrations needing an explicit user decision.
 

@@ -41,6 +41,8 @@ Forbidden on `main`/`master`/`trunk`, in addition to the global push ban:
 
 Read operations (`git log`, `git diff`, `git show`, checkout for inspection) stay allowed. Commits on the recorded working branch are the normal flow. If `PROJECT-CONTEXT.md` records `main`, `master`, or `trunk` as the working branch, stop and have the user resolve the contradiction before committing anything.
 
+**Recognized legacy state: `Working branch: master — user commits`.** Some legacy projects deploy `master` directly (typically WP Pusher) and have no separate working branch. When `PROJECT-CONTEXT.md` records exactly this state (any protected branch name plus the `— user commits` qualifier), it is not a contradiction to resolve per ticket: the agent **never commits** in this state. Instead it prepares the commit — staged file list, change summary, proposed commit message with the SmartFlow trailer — and hands over; the colleague commits and pushes themselves. All other protections stay in force: no merge, no revert, no push, no branch creation. The state is recorded once by `setup-ticket-ready` (or the maintainer), not re-negotiated per ticket.
+
 ## Subagents
 
 When delegating to subagents, put these prohibitions explicitly into the worker prompt. No worker prompt may allow a push, a commit, or a merge into `main`, `master`, or `trunk`, or force one indirectly through verification requirements (for example a served or bridge-verified check that only the user's push can satisfy). Commits stay in the main chat and always pass the confirmation gate below. Deploy steps end for every agent with "committed on the working branch, hand-over to the user".
