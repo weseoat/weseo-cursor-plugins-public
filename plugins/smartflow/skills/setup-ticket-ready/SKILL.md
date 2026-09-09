@@ -148,9 +148,11 @@ These belong to the full `setup-local-project` run and are consciously not
 part of ticket readiness: `weseo-git-installer` configuration, the
 read-only FTP user with `.ftpaccess`, ACF options REST exposure, the
 deploy-marker **file** `.wso-deployed-commit` (written by the installer,
-read by the status bridge — not a CSS class), and the `css_setup` marker
-pass. Record them as `pending: Voll-Setup` in `PROJECT-CONTEXT.md` and
-move on.
+read by the status bridge — not a CSS class), the `css_setup` marker
+pass, the `docs/` layer generation (first `auto-docs` run, gate
+`docs_layer`), and the ACF Local JSON setup (`setup-acf-local-json`,
+gate `acf_local_json`). Record them as `pending: Voll-Setup` in
+`PROJECT-CONTEXT.md` and move on.
 
 ## Deploy Proof Without A Bridge
 

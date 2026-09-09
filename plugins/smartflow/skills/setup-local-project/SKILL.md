@@ -1,6 +1,6 @@
 ---
 name: setup-local-project
-description: Guided wizard for the complete first setup of a local SmartFlow workspace for a WESEO WordPress/WST project. Use when starting a new project, re-orienting a partially set up local workspace, cloning the wp-content-level repository, naming the folder after the server hostname, filling .env with the application password, configuring the weseo-git-installer deploy to the child theme from the live Confluence guide, creating the read-only FTP user with .ftpaccess, running the REST test, installing the status bridge, exposing post types, taxonomies, ACF field groups, and options pages over REST, configuring Playwright MCP, verifying that Atlassian MCP (community mcp-atlassian preflight, version 0.22.0 or newer) and Figma MCP are running, anchoring the project's Confluence page and mirroring its extract into PROJECT-CONTEXT.md, recording the current Motherboard hostname from the Erstinstallation Confluence guide as Cloned from, writing the css_setup pending marker for the later project-css-setup pass, or creating PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation.
+description: Guided wizard for the complete first setup of a local SmartFlow workspace for a WESEO WordPress/WST project. Use when starting a new project, re-orienting a partially set up local workspace, cloning the wp-content-level repository, naming the folder after the server hostname, filling .env with the application password, configuring the weseo-git-installer deploy to the child theme from the live Confluence guide, creating the read-only FTP user with .ftpaccess, running the REST test, installing the status bridge, exposing post types, taxonomies, ACF field groups, and options pages over REST, configuring Playwright MCP, verifying that Atlassian MCP (community mcp-atlassian preflight, version 0.22.0 or newer) and Figma MCP are running, anchoring the project's Confluence page and mirroring its extract into PROJECT-CONTEXT.md, recording the current Motherboard hostname from the Erstinstallation Confluence guide as Cloned from, writing the css_setup pending marker for the later project-css-setup pass, running the first auto-docs pass to establish the project docs/ layer, setting up the ACF Local JSON workflow via setup-acf-local-json as the closing gates, or creating PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation.
 ---
 
 # Setup Local Project
@@ -81,7 +81,7 @@ For the full connection walkthrough (post types, sample content, options pages),
 
 The `weseo-git-installer` install walkthrough and its current status live on Confluence and are updated there, and the project's Confluence page is anchored in the next step. The wizard must confirm Atlassian MCP is actually running in this Cursor session before those steps — listing it under Settings is not enough.
 
-The team standard is the **community `mcp-atlassian` server** ([github.com/sooperset/mcp-atlassian](https://github.com/sooperset/mcp-atlassian)), **version 0.22.0 or newer**. It replaces the official Atlassian Rovo MCP as the standard because the Rovo surface is too limited for the SmartFlow workflow (12 Confluence tools, no label or attachment tools, whole-body page update only); the community server carries the full Jira and Confluence tool surface. An already installed and working Rovo server stays a functioning read variant — do not tear it down mid-project; but guide every new install to the community server, and offer the switch when a Rovo-only workspace hits a missing capability.
+The team standard is the **community `mcp-atlassian` server** ([github.com/sooperset/mcp-atlassian](https://github.com/sooperset/mcp-atlassian)), **version 0.22.0 or newer**. It replaces the official Atlassian Rovo MCP as the standard because the Rovo surface is too limited for the SmartFlow workflow (12 Confluence tools, no label or attachment tools, whole-body page update only); the community server carries the full Jira and Confluence tool surface. An already installed and working Rovo server is never torn down silently mid-project; during setup, a detected Rovo server triggers the active keep-or-switch question in step 1 below. Guide every new install to the community server, and offer the switch when a Rovo-only workspace hits a missing capability.
 
 **The version floor is a security requirement, not a preference.** Versions below 0.17.0 carry a chained SSRF and path-traversal RCE (CVE-2026-27826, CVE-2026-27825); only 0.22.0 closed the remaining audit findings (attachment path traversal / arbitrary file read, DNS rebinding against the SSRF fix, unauthenticated HTTP transport credential fallback). Operating constraints that keep the fixed version safe:
 
@@ -112,12 +112,13 @@ Guide a colleague without any Atlassian MCP through this route: create an Atlass
 
 The user fills the token values themselves; `uvx` requires an installed `uv` (ask the user to install it if missing). Do not write Atlassian credentials, tokens, or cloud IDs into any tracked file, `.env`, chat, or `PROJECT-CONTEXT.md` — the user-level `mcp.json` env block is the only sanctioned token location. Record the observed server identifier, never secrets.
 
-1. Probe the MCP catalog for any server whose name contains `atlassian`. Treat `needsAuth`, `error`, and `loading` as not ready. If the server is missing or broken, guide the user through the community install above, then restart or reconnect.
+1. Probe the MCP catalog for any server whose name contains `atlassian`. Treat `needsAuth`, `error`, and `loading` as not ready. Classify a found server by type from its tool names: the community server exposes `confluence_search`, `confluence_get_page`, ...; an official Rovo server exposes `searchConfluenceUsingCql`, `getConfluencePage`, .... If the server is missing or broken, guide the user through the community install above, then restart or reconnect.
+   - **Found Rovo server:** put the choice to the user **before** the health check — keep Rovo, or switch to the community `mcp-atlassian` >= 0.22.0 — with a one-sentence rationale (the community server carries the full Jira and Confluence tool surface including labels and attachments, and its version floor >= 0.22.0 reflects the audited security state; Rovo stays a functioning but limited read variant). Proceed with the chosen server; a switch follows the community install route above.
 2. When the server is usable, discover the tool schema and map the operations by name — the community server (`confluence_search`, `confluence_get_page`, ...) and a legacy Rovo server (`searchConfluenceUsingCql`, `getConfluencePage`, ...) expose different tool names. Then run cheap live reads — not writes:
    - **Confluence (required for this setup):** a CQL/text search with a short query such as `git-installer` (space `Frontend` when the tool allows a space filter). Success is a search response, not a specific page ID. Do not copy page bodies into `PROJECT-CONTEXT.md` during this health check; the only sanctioned page-content mirror is the controlled extract of Step 6.
    - **Jira:** a one-result issue search, or a project listing.
 3. Record in `PROJECT-CONTEXT.md`:
-   - `atlassian_mcp: ready` when the Confluence search succeeded, plus the server identifier and whether Jira also responded.
+   - `atlassian_mcp: ready` when the Confluence search succeeded, plus the server identifier, the server type as decided in step 1 (`server: community`, or `server: rovo (kept by user)` after an explicit keep decision), and whether Jira also responded.
    - `atlassian_mcp: pending: <reason>` with the next action when the server is missing, still in `needsAuth`/`error`, or Confluence search failed.
 
 Confluence is the setup-blocking surface: do not continue to the anchor and git-installer steps while it is unresolved, unless the user consciously records `pending` and accepts that the installer cannot be guided from Confluence and the project page cannot be anchored. A Jira-only result is not enough. Jira failure with a working Confluence search may be recorded as a note; it does not block the following steps.
@@ -159,12 +160,18 @@ Go-live: follow the go-live section of the found page as currently written. Reco
 
 ## Step 8: Create The Read-Only FTP User With `.ftpaccess`
 
-Server read access (inspecting served files, parent theme, plugin templates) runs over a dedicated FTP user that is scoped to `wp-content` and hard-limited to read.
+Server read access (inspecting served files, parent theme, plugin templates) runs over a dedicated FTP user that is scoped to `wp-content` and hard-limited to read. The current team SOP for creating that user and its `.ftpaccess` lives on Confluence and is updated there. **Do not bake a page ID or a parallel setup recipe into this Skill.** Find the current guide with Atlassian MCP and follow that page — the same pattern as Step 7.
 
-Guide the user through the hosting panel:
-
-1. Create an additional FTP user whose root directory is the server's `wp-content` directory.
-2. Place a `.ftpaccess` file in that FTP user's root directory that denies writes and allows reads for exactly this user (writing this file requires the main FTP/admin access, not the new user):
+1. Locate the guide:
+   - If `PROJECT-CONTEXT.md` already records an `ftp_guide` page ID from a previous run, try `confluence_get_page` on that ID first.
+   - Otherwise — and whenever that ID 404s — `confluence_search` in space `Frontend` for `ftpaccess` (and `FTP Zugang einschränken` if needed). Prefer the hit whose title is about restricting or limiting FTP access.
+   - One clear hit: `confluence_get_page` on that ID and continue.
+   - Several plausible hits: list title + URL in German and ask which one to use. Do not guess.
+   - No hit: stop. Ask the user for the current Confluence URL. Do not invent setup steps and do not continue this step without a page.
+2. Guide the user through **that** page. Be explicit about who does what — the SOP and this Skill's "no server shell" line are not in conflict:
+   - **Creating** the FTP user and the `.ftpaccess` file follows the Confluence SOP over the hosting main login (hosting panel plus SSH/`nano`, executed by the user at their own terminal, credentials from the hosting panel — never in chat, never in `.env`). "No server shell" binds the agent; this one-time setup step belongs to the user.
+   - **Verifying** runs from this workspace over the new read-only user via FTPS (below) — the agent still never gets a shell.
+3. Only if the found page does not show the `.ftpaccess` content, fall back to this block (denies writes, allows reads for exactly this user; writing this file requires the main FTP/admin access, not the new user):
 
 ```text
 <Limit WRITE>
@@ -175,14 +182,31 @@ Guide the user through the hosting panel:
 </Limit>
 ```
 
-3. Ask the user to add the credentials to the repo-root `.env`, default names `WSO_FTP_USER` and `WSO_FTP_PASSWORD`; the FTP host is a non-secret fact for `PROJECT-CONTEXT.md`.
+4. Ask the user to add the credentials to the repo-root `.env`, default names `WSO_FTP_USER` and `WSO_FTP_PASSWORD`; the FTP host is a non-secret fact for `PROJECT-CONTEXT.md`.
 
-Verify both directions before recording the gate:
+Verify both directions from the workspace before recording the gate — over FTPS, secrets only through environment variables (per the `secrets` Rule), analogous to the REST `curl` in Step 4:
 
-- Read works: list a directory and download one known file over the new user.
-- Write is denied: attempt to upload a small scratch file and confirm the server rejects it. If the upload succeeds, the limit is not effective — stop, fix the `.ftpaccess` placement or syntax with the user, delete the scratch file, and re-test.
+- Read works — list the FTP root (the server's `wp-content`):
 
-Record `ftp_read_access: verified read-only` (or `pending: <reason>`) plus the FTP host and variable names in `PROJECT-CONTEXT.md`.
+```sh
+curl -sS --ssl-reqd -u "$WSO_FTP_USER:$WSO_FTP_PASSWORD" "ftp://<ftp-host>/"
+```
+
+- Read works — download one known file (for example the child theme's `style.css`):
+
+```sh
+curl -sS --ssl-reqd -u "$WSO_FTP_USER:$WSO_FTP_PASSWORD" "ftp://<ftp-host>/themes/<child-theme>/style.css" -o tmp/ftp-read-probe.css
+```
+
+- Write is denied — upload a small scratch file from `tmp/` and confirm the server rejects it:
+
+```sh
+curl -sS --ssl-reqd -u "$WSO_FTP_USER:$WSO_FTP_PASSWORD" -T tmp/ftp-write-probe.txt "ftp://<ftp-host>/ftp-write-probe.txt"
+```
+
+The upload **must fail** (typically a `550`-class refusal, curl exit code 25). If it succeeds, the limit is not effective — stop, fix the `.ftpaccess` placement or syntax with the user per the found page, delete the uploaded file, and re-test. Delete the local scratch files in `tmp/` afterwards.
+
+Record `ftp_read_access: verified read-only` (or `pending: <reason>`) plus the FTP host and variable names, and `ftp_guide` as the Confluence page ID, URL, and title **as found this run**, in `PROJECT-CONTEXT.md`.
 
 ## Step 9: Install The Status Bridge
 
@@ -260,17 +284,39 @@ Do not declare setup complete while this gate is unresolved unless the user choo
 - The CSS-values marker `css_setup: pending`, with the pointer that the bundled `project-css-setup` Skill should run shortly before the first Section (it reconciles the master's CSS values with this project's design and flips the marker to `reconciled (<date>)`). Setup does not run that pass — at setup time the Figma design is often not final.
 - Server hostname (equals the local folder name) and the reason for the naming (DevTools Local Overrides).
 - Child theme path and WST source path (`wp-content/themes/<child-theme>/smart-template-builder/`).
-- Working branch and deploy branch; deploy path `weseo-git-installer` with target directory and Bitbucket registration status; the pending go-live deregistration step; `git_installer_guide` and `erstinstallation_guide` (Confluence page ID, URL, and title as fetched).
+- Working branch and deploy branch; deploy path `weseo-git-installer` with target directory and Bitbucket registration status; the pending go-live deregistration step; `git_installer_guide`, `ftp_guide`, and `erstinstallation_guide` (Confluence page ID, URL, and title as fetched).
 - Bridge base URL (`<site-url>/wp-json/wso/v1/`), installed bridge version, and the deployed-commit write mechanism (or its open item).
 - The Confluence block from Step 6: page ID, URL, mirror timestamp, and the extracted values (or `confluence_anchor: none`).
 - Credential environment variable names (`WSO_BRIDGE_USER`, `WSO_BRIDGE_APP_PASSWORD`, `WSO_FTP_USER`, `WSO_FTP_PASSWORD`) with purposes — names only, never values.
 - FTP host and the verified read-only status.
 - REST exposure state: post types and taxonomies with `show_in_rest`, REST-exposed ACF field groups, and the reachable options-page slugs under `wso/v1/options/` (or the open item).
-- `rest_access`, `rest_exposure`, `ftp_read_access`, `playwright_mcp`, `atlassian_mcp`, `confluence_anchor`, and `figma_mcp` gate statuses.
+- `rest_access`, `rest_exposure`, `ftp_read_access`, `playwright_mcp`, `atlassian_mcp`, `confluence_anchor`, and `figma_mcp` gate statuses, plus the closing gates `docs_layer` and `acf_local_json` (Steps 14 and 15).
 - Location of the project `docs/` layer and `tmp/` policy (gitignored scratch space).
 - Setup completion status per step (`done`, `pending: <reason>`, `skipped: <reason>`).
 
 Never store real tokens, application passwords, token-bearing URLs, or any secret values.
+
+## Step 14: Generate The Docs Layer (First auto-docs Run)
+
+The project `docs/` layer at the repository root is where every later Section and CPT work record lives; the SmartFlow workflow Skills read it first. Establish it now with a first run of the bundled `auto-docs` Skill:
+
+1. Run `auto-docs` as a full run: build the target inventory from the repo, generate the missing docs (sections, elements, post-types, field-groups, coding-standard) with README indexes, one worker subagent per element per that Skill.
+2. When the project uses an allowlist `.gitignore`, make sure `docs/` is fully released (`!/docs/`, `!/docs/**`).
+3. On a fresh Motherboard clone the inventory is mostly master content — that is fine: the run documents what exists, and later Section/CPT builds keep the layer current through the auto-docs auto-trigger. Element docs may be deferred to a marked follow-up run when the user prefers a short first pass; record that in the gate reason.
+
+Record `docs_layer: done` (or `pending: <reason>` with the next action) in `PROJECT-CONTEXT.md`.
+
+## Step 15: Set Up ACF Local JSON
+
+Move the project's ACF field definitions from database-only into the versioned Local JSON workflow now, while both preconditions from this wizard are in place: the status bridge (Step 9) and the read-only FTP user (Step 8).
+
+Route to the bundled `setup-acf-local-json` Skill: bridge inventory of the participant groups, `acf-json/` in the child theme, seed from the user-driven admin export, the ACF Extended autosync opt-in fix, empirical write-format determination at the first admin save, both-direction proofs, and the FTP-plus-bridge acceptance. That Skill carries its own commit-and-hand-over stops per the `deploy-and-branches` Rule.
+
+Record the gate in `PROJECT-CONTEXT.md`:
+
+- `acf_local_json: done` — acceptance reached (the bridge lists every participant group as `local: "json"`).
+- `acf_local_json: pending: Export fehlt` (or another concrete reason with the next action) when the run cannot finish yet.
+- `acf_local_json: skipped: <reason>` only after an explicit user decision — never silently.
 
 ## Final Verification
 
@@ -283,12 +329,14 @@ Walk the gates once more and confirm each has a recorded outcome:
 - [ ] Atlassian MCP running: server identifier recorded, Confluence search succeeded.
 - [ ] Confluence anchor resolved: page anchored and extract mirrored into `PROJECT-CONTEXT.md`, or `confluence_anchor: none` consciously recorded.
 - [ ] `weseo-git-installer` configured from the Confluence guide found this run (repo, deploy branch, child theme target, Bitbucket registration); deployed-commit mechanism recorded.
-- [ ] Read-only FTP user verified: read works, write denied by `.ftpaccess`.
+- [ ] Read-only FTP user created from the Confluence guide found this run (`ftp_guide` recorded) and verified over FTPS: read works, write denied by `.ftpaccess`.
 - [ ] Status bridge installed and bridge-verified after the first deploy (`bridge_version` and `deployed_commit` match).
 - [ ] REST exposure done: relevant post types, taxonomies, and ACF field groups reachable over REST; options-page endpoints probed and installed if needed.
 - [ ] Playwright MCP ready, verification loop done.
 - [ ] Figma MCP running: server identifier recorded, `whoami` succeeded.
 - [ ] `Cloned from` recorded from the current Motherboard hostname on the Erstinstallation Confluence page (not user-supplied); `css_setup: pending` marker written, with the `project-css-setup` pointer for the pass shortly before the first Section.
+- [ ] Docs layer established: first `auto-docs` run done (`docs_layer: done`), or `pending` with reason and next action.
+- [ ] ACF Local JSON workflow set up over `setup-acf-local-json` (`acf_local_json: done`), or `pending`/`skipped` recorded by explicit user decision.
 - [ ] `PROJECT-CONTEXT.md` complete, including deploy branch and bridge version.
 
 If a required gate is unresolved, ask the user whether to fix it now, consciously record it as `pending` with reason and next action, or stop. Do not declare setup complete while required gates are unresolved. End with a short German summary: what the project is ready for now, and which points remain open.

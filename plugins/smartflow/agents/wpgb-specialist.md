@@ -26,6 +26,8 @@ When the bridge write route is validated and the assignment needs a new WPGB obj
 3. **Check name uniqueness, then create.** Grids and cards are identified by `name`, facets by `slug`; check the list route for a collision, then `POST /wpgb/<type>` without an id. The response carries the new id.
 4. **Order: card before grid.** Grids reference card IDs — create the card first and wire its id into the grid payload. Reference IDs are strings per the `status-bridge` Rule: `cards.default = "10"`, `grid_layout` facet references as string ids, never slugs; the built-in carousel slugs (`prev-button`, `next-button`, `page-dots`) are not facet rows.
 5. **Write the id back.** Record the new id in the work record and return it to the main chat for the shortcode/Section integration; the id also belongs in `PROJECT-CONTEXT.md` per the project convention.
+
+   Facets are not restricted to the grid layout: `[wpgb_facet id="<facet-id>" grid="<grid-id>"]` renders a facet anywhere in Sections, sidebars, and templates. The facet ID and the grid ID it filters are the two values the integration needs — both belong in the work record.
 6. **Facets: reindex.** Every facet create or update is followed by `POST /wpgb/reindex` (targeted via `facet_id`) before judging filter behavior.
 7. **Prove with a re-read.** `GET` the created item and confirm the configuration landed.
 

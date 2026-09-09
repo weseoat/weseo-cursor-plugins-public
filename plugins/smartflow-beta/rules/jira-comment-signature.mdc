@@ -1,0 +1,22 @@
+---
+description: Append the SmartFlow signature line to every automatically created Jira comment in WESEO WordPress/WST projects
+alwaysApply: true
+---
+
+# Jira Comment Signature
+
+Use when writing any Jira comment as part of SmartFlow-authored work.
+
+End every automatically created Jira comment with its own last line: `– erstellt mit SmartFlow`.
+
+## Rules
+
+- Applies to every comment the agent creates or edits over `jira_add_comment` and `jira_edit_comment`: solution comments, transition and occurrence notes, and worklog comments.
+- The signature is a separate last line after the comment body, exactly `– erstellt mit SmartFlow`.
+- Never append it twice: when editing a comment that already ends with the signature line, keep the single line.
+- Does not apply to Confluence comments — those follow their own intake format (`smartflow-feedback` Skill).
+- Do not store repository- or project-specific values in this Rule.
+
+## Source
+
+Confluence Verbesserungsidee (SmartFlow feedback hub, page 1982857256); signature wording decided by the maintainer for release 1.5.0.

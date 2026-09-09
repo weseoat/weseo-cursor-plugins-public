@@ -1,5 +1,5 @@
 ---
-description: SmartFlow deploy flow and branch discipline — the agent never pushes and never commits without explicit user confirmation; deploys are bundled and bridge-verified
+description: SmartFlow deploy flow and branch discipline — the agent never pushes unprompted (explicit per-request user instruction can allow a push on a non-protected branch) and never commits without explicit user confirmation; deploys are bundled and bridge-verified
 alwaysApply: true
 ---
 
@@ -13,11 +13,13 @@ Repository (wp-content level, private remote) -> user-confirmed local commit -> 
 
 `docs/`, `.cursor/`, `.env`, `tmp/`, and other repo-level files never reach the server.
 
-## The Agent Never Pushes
+## The Agent Never Pushes (By Default)
 
-- No `git push`, no remote branch creation or deletion, no force operations, no remote tags, under any circumstances.
-- After committing server-relevant work: hard stop. Hand over with the commit hash and a short statement of what the deploy will deliver. The user pushes; the deploy path delivers the child theme.
-- After the user reports pushing, verify the deploy over the status bridge (`deployed_commit` against local `git rev-parse HEAD`) with the bounded retry and abort budget from the `status-bridge` Rule. Never record a served or final QA pass while the hashes differ.
+- No `git push`, no remote branch creation or deletion, no force operations, no remote tags — unless the user explicitly instructs a push in the current chat for the exact commit/branch at hand.
+- This exception never applies to `main`, `master`, or `trunk` (see Protected Branches below) — those stay push-forbidden even with explicit instruction.
+- The exception is per request, not a standing mandate: a general task instruction never authorizes a push, and one explicit "push it" does not carry over to later commits in the same session.
+- Default behavior unchanged: after committing server-relevant work, hard stop. Hand over with the commit hash and a short statement of what the deploy will deliver. The user pushes; the deploy path delivers the child theme. The agent does not push unless and until the user says so explicitly.
+- After the push — whether the user pushed or the user explicitly instructed the agent to push — verify the deploy over the status bridge (`deployed_commit` against local `git rev-parse HEAD`) with the bounded retry and abort budget from the `status-bridge` Rule. Never record a served or final QA pass while the hashes differ.
 
 ## Bundle Deploy Phases
 

@@ -175,7 +175,8 @@ written here — they wait for the final review.
 - Once the user closes the review (e.g. "passt", "fertig"), write per
   committed ticket the short German solution comment via
   `jira_add_comment` (Ursache, Fix, wo verifiziert — lokal
-  injection-proof, Deploy ausstehend — Commit-Hashes). Never
+  injection-proof, Deploy ausstehend — Commit-Hashes), with the
+  signature line per the `jira-comment-signature` Rule. Never
   transition ticket statuses.
 - Verify all Playwright locks are released, then delete
   `.cursor/jira-batch/<parent-key>.md`.
@@ -190,7 +191,9 @@ written here — they wait for the final review.
   agents.
 - The main chat never commits without the batch commit mandate or an
   individual per-commit confirmation (`deploy-and-branches` commit
-  gate); nothing is ever pushed.
+  gate); pushes only under the explicit per-request push exception of
+  the `deploy-and-branches` Rule — the batch mandate never covers a
+  push.
 - Never invent JQL beyond the parent-key pattern, ACF keys, WPGB IDs,
   selectors, URLs, or paths.
 - No temp artifacts in the deploy path; the board file in `.cursor/`

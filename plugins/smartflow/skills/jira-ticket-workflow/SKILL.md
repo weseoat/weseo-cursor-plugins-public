@@ -191,8 +191,9 @@ iterate from step 3.
    after the cache flush). Technical detail only when it triggers an
    action for the reader. Commit hash and file paths belong in the work
    record, not in the ticket. Do not ask the user about the tone; a
-   deviation comes as a chat instruction. Never transition the ticket
-   status.
+   deviation comes as a chat instruction. The comment ends with the
+   signature line per the `jira-comment-signature` Rule. Never
+   transition the ticket status.
 3. **Records:** if the ticket closes or changes an item tracked in the
    project backlog or an affected work record's QA/status section,
    update it.

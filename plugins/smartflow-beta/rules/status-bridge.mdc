@@ -93,6 +93,7 @@ Discipline for every WPGB change through the bridge:
 - **Unique identifier before create.** Grids and cards are identified by `name`, facets by `slug`. Before `POST /wpgb/<type>` without an id, check the list route for a collision; the bridge rejects duplicates with the existing id.
 - **Card before grid.** Grids reference card IDs. Create or update the card first, take the id from the response, then wire it into the grid configuration.
 - **Reindex after facet writes.** Every facet create or update is followed by `POST /wpgb/reindex` (with the `facet_id` for a targeted run); without it the facet filters on stale index data.
+- **Facet integration is shortcode-based.** A created facet is not bound to the grid layout: `[wpgb_facet id="<facet-id>" grid="<grid-id>"]` renders it in Sections, sidebars, and templates. Facet ID and grid ID are the two integration values — record both in the work record.
 - **Cache flush after writes.** Finish a WPGB write pass with `POST /flush-cache` before judging the frontend result.
 
 - 404 on `wso/v1` routes: the bridge is not installed, the deploy has not delivered it, or the REST API is blocked. Route to the `install-status-bridge` Skill; do not fall back to editing server files directly.
