@@ -1,0 +1,14 @@
+---
+description: Hard gate for the four runner-backed SmartFlow Skills — wst-section-workflow, wst-new-post-type, frontend-section-qa, cpt-frontend-qa execute only inside their runner agent; the main chat spawns, never executes, with the non-reasons list, the re-route check after a context break, and the prompt split
+alwaysApply: true
+---
+
+# Runner Gate
+
+The four runner-backed Skills — `wst-section-workflow` and `wst-new-post-type` (runner `wst-shortcode-implementer`), `frontend-section-qa` and `cpt-frontend-qa` (runner `cpt-visual-implementer`) — execute **only** inside their runner agent. The main chat orchestrates: it prepares the work record, spawns exactly one runner per Section or surface with a self-contained prompt (Skill name, Section/surface, work-record path, write scope, proof mode), waits for the fixed return, integrates, and runs the deploy pass and commit gate. Details, models, and the handoff schema live in the `agent-routing` Rule.
+
+- **Hard stop before the first executing action.** Before the first CSS/SCSS write, the first WST template or ACF JSON write, or the first Playwright tool call of one of these Skills: if the current agent is not the runner, stop and spawn. A loaded Skill body is the runner's to-do list, not the main chat's.
+- **Non-reasons** for skipping the runner: the Skill text is already loaded; Figma or DOM material is already in context; the user said "nur Styling" or "klein" (that is a classification, not a size); allowed main-chat work (discovery, `content`, work-record creation) already happened; "one leaf is enough" (one leaf means one runner, not no runner).
+- **Re-route check after a context break.** At the start of a continuation turn: if a runner-backed Skill is active and this is not the runner, spawn — even when the summary describes a half-finished file. The current file state goes into the runner prompt as input ("Resume with current file state"); the runner continues, it does not start over.
+- **Prompt split.** Mixed requests (REST content plus CSS, discovery plus template) are split: the main-chat parts run in the main chat, each runner-backed part is its own spawn.
+- Runners never commit, push, or spawn; hard stops come back as `OPEN DECISION` and the main chat decides with the user.

@@ -25,6 +25,13 @@ triage, approval, Git, or Jira closing — those belong to the main chat.
 3. Read the relevant Section/CPT work record in the project `docs/`
    layer, `PROJECT-CONTEXT.md`, and the project learnings caveats
    before editing, per the ticket Skill.
+4. For a comparison ticket („gleich breit wie", „wie im Intro", „selber
+   Abstand wie"): measure target **and** reference on the served DOM
+   before any hypothesis (walk up from the visible box to the element
+   that carries the property; note the values), and write the
+   one-sentence acceptance criterion (element, property, target value,
+   viewport) per step 3 of the ticket Skill. Your fix must move the
+   measured value; step 5 re-measures it.
 
 ## Write scope
 
@@ -34,6 +41,13 @@ triage, approval, Git, or Jira closing — those belong to the main chat.
 - Never: files outside the assigned group, `functions.php`,
   `theme-functions.php`, MU plugins, the WST plugin folder, WPGB
   configuration, commits, pushes, Jira writes, ticket transitions.
+- Working Tree Discipline (`deploy-and-branches` Rule): you never
+  `git restore`, `git checkout --`, `git stash`, `git clean`, or
+  otherwise discard changes you did not make in this run — not even in
+  your assigned files (a colleague may have open work there: report it
+  under `OPEN DECISION` instead of overwriting or reverting it). Files
+  outside your scope that look changed are reported by path, not
+  touched.
 - No subagents; you are a leaf agent and never spawn further agents.
   If your context is filling, finish the current step cleanly and
   return `STATUS: handoff` with the schema from the `agent-routing`
@@ -57,10 +71,16 @@ triage, approval, Git, or Jira closing — those belong to the main chat.
 
 If diagnosis shows the ticket is NOT a local direct fix (root cause in
 WPGB config, WST PHP beyond trivial params, work that needs its own
-workflow Skill, or the fix would exceed your write scope): stop
-editing, revert your partial edits in the assigned files, release the
-Playwright lock, and return `route-back` with your full diagnosis — it
-feeds the later correct routing.
+workflow Skill, or the fix would exceed your write scope), **or the
+ticket intent is ambiguous** (two readings lead to different fixes and
+screenshot plus measurement do not decide): stop editing, revert
+**only your own** partial edits in the assigned files (never anything
+that was there before you started), release the Playwright lock, and
+return `route-back` with your full diagnosis — for ambiguity with both
+readings and a recommendation under `OPEN DECISION: ambiguous intent`.
+Never guess one reading and report it as a pass. Reverted edits are
+still listed under `OWN CHANGES` so the orchestrator can reconcile the
+working tree.
 
 ## Return format (fixed)
 
@@ -72,10 +92,14 @@ the orchestrator can assemble the per-ticket report without rewriting.
 STATUS: <pass-pending-deploy | route-back | blocked | handoff>
 TICKET: <WP-key>
 EVIDENCE: <Ursache: root cause, one or two sentences, German.
-  Verifikation: proof mode, viewports checked, remaining caveats.>
-OWN CHANGES: <files/blocks edited with code reference, or none>
+  Verifikation: proof mode, viewports checked, acceptance sentence with
+  measured before/after values for comparison tickets, remaining
+  caveats.>
+OWN CHANGES: <every file touched in this run with code reference —
+  including edits you reverted again (marked "reverted") — or none>
 GATES: <Playwright lock released: yes | n/a (no browser use);
-  assigned write scope respected: yes>
-OPEN DECISION: <open question / route-back diagnosis, or none>
+  assigned write scope respected: yes; foreign changes untouched: yes>
+OPEN DECISION: <open question / route-back diagnosis / "ambiguous
+  intent" with both readings and a recommendation, or none>
 NEXT OWNER: <main chat>
 ```

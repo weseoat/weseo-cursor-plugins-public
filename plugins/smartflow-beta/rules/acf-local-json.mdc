@@ -1,5 +1,5 @@
 ---
-description: Author ACF field definitions as Local JSON files in the child theme's acf-json/ directory with human-confirmed sync; structural ACF database writes are forbidden
+description: Author ACF field definitions as Local JSON files in the child theme's acf-json/ directory with human-confirmed sync (pull-before-deploy hook, real-time modified, clone/tab pattern, admin hand-over text, editor-only effects never verifiable agent-side); structural ACF database writes are forbidden
 globs:
   - "**/acf-json/**/*.json"
 alwaysApply: false
@@ -21,10 +21,10 @@ Use this Rule when creating or changing any ACF field definition: Section field 
 
 ## Binding Operating Rules
 
-1. **Pull-before-Deploy:** before every commit that will be deployed, pull the **complete** `acf-json/` directory listing from the server into the repository over read-only FTP — never only known filenames. This prevents a deploy from overwriting newer server JSONs (colleague changes) and keeps newly named files visible.
+1. **Pull-before-Deploy:** before every commit that will be deployed, pull the **complete** `acf-json/` directory listing from the server into the repository over read-only FTP — never only known filenames. This prevents a deploy from overwriting newer server JSONs (colleague changes), keeps newly named files visible, and — with deploy tools that remove repo-foreign theme files (WP Pusher, `weseo-git-installer`) — is the only thing that stops the next push from deleting a JSON that ACFE autosync or "Sync to database" wrote on the server. **Standard implementation is the pre-commit hook** installed by `setup-acf-local-json` Step 8 (`.githooks/pre-commit`, activated per clone with `git config core.hooksPath .githooks`): it mirrors the server folder into the repository and stages the result on every commit, whoever commits. The manual pull stays the fallback for projects without the hook (`acf_json_pull_hook` missing in `PROJECT-CONTEXT.md`). Either way the step ends with the **`modified` guard**: no `acf-json/*.json` may carry a `modified` greater than the current time — a hit stops the commit with the filename (see Rule 3).
 2. **JSON files are the only agent write path** for field definitions. Structural ACF database writes stay forbidden without exception: no `acf_update_field()` on definitions, no direct `$wpdb` writes to `acf-field`/`acf-field-group` posts, no import scripts against the database. The legacy clone-source data-loss hazard stays structurally closed.
-3. **Sync detection runs over `modified`.** Every agent change needs a `modified` bump (Unix timestamp greater than the database state), otherwise no sync hint appears in the admin. Seed files without `modified` conversely produce no false sync hints.
-4. **Sync only after diff review** is the team-side counterpart: communicate it once per project and record it in `PROJECT-CONTEXT.md`.
+3. **Sync detection runs over `modified`, and `modified` is the real current Unix time (UTC) at the moment of writing** — never estimated, never rounded, never in the future. Mechanics: ACF compares `modified` from the JSON against the group's `post_modified_gmt` and sets the database value to the **sync moment** on import, not to the JSON value. A future value is therefore "newer" again right after every sync and can never be caught up with admin means: the sync hint returns forever. Generate the value with a command, never by head: `python -c "import time; print(int(time.time()))"` (UTC on Windows, macOS, Linux); alternatives `date +%s` (bash) and `[DateTimeOffset]::UtcNow.ToUnixTimeSeconds()` (PowerShell). **Forbidden:** PowerShell `Get-Date -UFormat %s` (adds the local UTC offset — two hours of future in CEST, plausible-looking and therefore invisible), mental arithmetic, copying a value from another file, and the counter reflex "old value + 1" — also when cleaning up a future value, the correct value is *now*. Seed files without `modified` conversely produce no false sync hints; a change to an existing group needs a value above the database state, which the current time always is.
+4. **Sync only after diff review** is the team-side counterpart: hand it over with the fixed text in "Admin Sync — Hand-Over Text For Colleagues" below, once per project, and record it in `PROJECT-CONTEXT.md`.
 
 ## Keys, Names, And Filenames
 
@@ -43,10 +43,45 @@ Use this Rule when creating or changing any ACF field definition: Section field 
 - **Deploy removal behavior:** `weseo-git-installer` removes repo-deleted or renamed files from the server (verified). With any other deploy tool, verify this once — otherwise stale files can shadow fresh ones.
 - **FTP comparisons use content hashes, never timestamps:** directory mtimes do not change on overwrite, and FTP listing modes can mix UTC and local time.
 
+## Clone Fields And Conditional Logic
+
+The WESEO `[TMPL]` model composes Section and CPT groups from clone fields on shared base groups. Three rules apply whenever a clone should appear or disappear depending on another field (layout select, variant switch):
+
+1. **No `conditional_logic` on a clone field with `"display": "seamless"`.** A seamless clone renders no `.acf-field` wrapper of its own — it injects its sub-fields straight into the parent form — so ACF's conditional-logic JavaScript has no element to attach the rule to. The rule sits dead in the JSON, ACF reports no error, the sync runs clean, and the fields stay visible. Only `"display": "group"` carries conditional logic. Do not write it "to be safe" either: a dead rule suggests a protection that does not exist.
+2. **House pattern: a local tab carries the condition.** Add a `tab` field of your own to the target group; the tab has its own wrapper, carries `conditional_logic` reliably, and groups the affected clones beneath it. **Direction:** exclusion form — several `!=` rules in **one** rule group (ACF joins rules inside a group with AND, groups with OR), so "visible" stays the default for unknown values (a seventh layout added later) and for legacy rows without a stored value. A `==` whitelist is right only for fields that belong to exactly one variant. Clones carrying functional fields (layout class, CSS ID, conditional-logic markers) stay unconditioned and visible.
+3. **Remove the source tab from the clone.** Every `[TMPL]` source group starts with its own tab. A clone on the **group key** brings that tab along; it lands directly behind the local tab and takes over all fields — the local tab ends up empty and the condition does nothing. Therefore clone the **individual field keys** of the source without its tab (sub-keys, names, and `prefix_name` stay identical, stored content is unaffected). Record the trade-off in the work record: new source fields no longer arrive automatically. For source groups without a local JSON (`local: "php"`, WST plugin groups) the field keys exist nowhere in the repository and the bridge lists only groups — an ACF export from the admin is the hand-over step to the colleague.
+
+The JSON shape of the pattern (tab with exclusion-form `conditional_logic`, clone with a field-key array instead of the group key) is in `wst-section-workflow/reference.md`; CPT groups clone the same sources and follow the same rules.
+
+## Admin Sync — Hand-Over Text For Colleagues
+
+The agent never clicks in the admin. Whenever a deploy carries field-definition changes, hand this block over verbatim (German; it is user wording):
+
+> Nach dem Deploy: ACF → Feldgruppen → Tab „Synchronisieren". Eine Gruppe per Review/Diff prüfen, danach alle angebotenen Gruppen syncen. Der Sync ist nie automatisch — strukturelle JSON-Änderungen gelten erst nach dem Klick. Plugin-Gruppen (`local: php`) nicht anfassen. Erscheint beim Veröffentlichen der Dialog „Local json file is different from the version in database …", **Abbrechen** wählen — OK würde die deployte Server-JSON mit der DB-Kopie überschreiben.
+
+Only during the setup (`setup-acf-local-json` Step 5) one more sentence follows: *danach eine Teilnehmer-Gruppe unverändert speichern, damit ACF das kanonische Dateiformat schreibt.*
+
+**Where the admin reads from:** the field-group editor and Tools → Export call `acf_disable_filters()` and show exclusively the **database copy**; frontend, REST, and the bridge serve the JSON. An empty database copy looks like "group without fields" in the admin while everything renders — repair over Tools → Import of the JSON file (import finds the group by key and replaces stale database fields). The WST `[TMPL]` override works the same way: ACFE "Sync to database" switches a PHP-registered plugin group to the database copy; with autosync active this write also creates a JSON in the theme, which is the served definition from the next request on and **must be pulled into the repository** (Rule 1) or the next deploy deletes it.
+
 ## Verification
 
-- After the bridge-verified deploy (`deployed_commit` matches local HEAD per the `status-bridge` Rule), hand over for the human sync with a short statement of which groups changed and why.
-- After the sync: confirm in the admin that the group renders (editor shows the layout, field values save and load) and that the frontend renders the affected output.
+- After the bridge-verified deploy (`deployed_commit` matches local HEAD per the `status-bridge` Rule), hand over for the human sync with the hand-over text above plus a short statement of which groups changed and why.
+- **Verification boundary:** the agent has REST over the application password but no wp-admin. Editor visibility, conditional logic, tab behavior, and everything else that is visible only in the ACF field-group editor is **not verifiable agent-side**. Such changes are never reported as a pass but as `implementation pass, backend check by colleague pending`, and the hand-over names concretely what the colleague clicks and what they should see (for example: choose layout X → tabs A and B appear, tab C disappears). A clean JSON, a clean sync, and a working rule on a neighboring normal field prove nothing about a clone rule.
+- After the colleague's check: the group renders (editor shows the layout, field values save and load) and the frontend renders the affected output.
 - The bridge lists participating groups as `local: "json"` in `GET /wp-json/wso/v1/status`; a target group still reported as a plain database group (`local: false`) means the sync or the setup is incomplete.
+- **Symptom "the sync hint returns immediately after every sync":** a `modified` in the future (Rule 3). Diagnose with a one-liner that compares every `modified` under `acf-json/` against the system time; fix = set the value to *now*, commit, push, deploy, then sync **once**; choose Abbrechen in the "Local json file is different …" dialog.
+
+## JSON Conventions Checklist
+
+The compact list Skills and colleagues point to; details live in the sections above.
+
+- Filename: the pattern the installation writes (from `PROJECT-CONTEXT.md`; determined per `setup-acf-local-json`).
+- Encode: 4-space indent, `\/` for slashes, raw UTF-8 (no `\uXXXX`), LF plus trailing newline, exactly one decode/encode pass.
+- Autosync: `"json"` present in every group file; nested `acfe.autosync` by default, legacy top-level shape only when the install writes it — never guessed.
+- `modified`: real current UTC epoch from a command, never estimated, never in the future; seeds carry none.
+- Never two files with the same group key.
+- No `conditional_logic` on seamless clones; local tab in exclusion form, source tab removed from the clone.
+- Pull-before-Deploy before every deploying commit (pre-commit hook or manual pull), including the `modified` guard.
+- Editor-only effects are reported as `implementation pass, backend check by colleague pending`.
 
 This Rule never stores project group keys, field keys, layout keys, filenames, or URLs. Concrete values live in the project repository, `PROJECT-CONTEXT.md`, and the project `docs/` layer.

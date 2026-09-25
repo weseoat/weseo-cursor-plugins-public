@@ -67,6 +67,7 @@ Added to the CPT's own JSON group, after the typed fields (or as the only conten
 - The clone group key is read from this install (the reference CPT's clone field is the precedent), never copied from another project or from documentation.
 - `prefix_name: 1` makes the cloned Flexible Content resolve as `wso_<resource>_content_<clone-field-name>` — the same shape as the reference CPT's clone. `flexible-content.php` resolves that prefix the same way it does for the reference CPT; no template change is needed for a new CPT.
 - Fresh `field_` key, additive change. On an `existing-cpt-remodel` the clone is added next to the saved fields; already-saved unprefixed field names stay as they are (renaming them is a data migration with an explicit user decision).
+- Seamless clones carry no `conditional_logic` (dead rule, no wrapper). If a CPT variant switch should hide a `[TMPL]` clone, use the clone/tab pattern from the `acf-local-json` Rule (local tab in exclusion form, source field keys without the source tab; JSON shape in `wst-section-workflow/reference.md`).
 
 ### Render order (hybrid)
 
@@ -210,7 +211,7 @@ Field group conventions:
 - For `existing-cpt-remodel`, reuse the existing field group and field keys by default; add fields only when the approved work record requires them.
 - Prefer core post fields before adding duplicate ACF fields.
 - Field names always carry the `wso_<resource>_` prefix (`wso_job_salary` on a Job CPT, never `job_salary`); keep them stable — retrofitting the prefix onto already saved fields is a data migration requiring an explicit user decision.
-- The autosync opt-in must contain `"json"` and `modified` must exceed the database state, otherwise the admin offers no sync. Nested `acfe.autosync` is the current ACFE default; if `PROJECT-CONTEXT.md` records the legacy top-level `acfe_autosync` shape for this installation, use that. The group stays editable in the admin; after deploy plus sync, `GET /status` lists it with `local: "json"`.
+- The autosync opt-in must contain `"json"`, otherwise the admin offers no sync. `<unix-timestamp>` is a placeholder: generate `modified` fresh at write time as the real current UTC epoch (`python -c "import time; print(int(time.time()))"`) — never estimated, never `Get-Date -UFormat %s`, never in the future (a future value makes the sync hint permanent; `acf-local-json` Rule 3). Nested `acfe.autosync` is the current ACFE default; if `PROJECT-CONTEXT.md` records the legacy top-level `acfe_autosync` shape for this installation, use that. The group stays editable in the admin; after deploy plus sync, `GET /status` lists it with `local: "json"`.
 
 Common field types:
 

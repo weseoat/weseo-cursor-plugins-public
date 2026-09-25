@@ -1,6 +1,6 @@
 ---
 name: wst-shortcodes
-description: Look up WST shortcode and SmartTag forms in the bundled Smart Template Gesamthilfe catalog snapshot and run the four-source proof before any new WST shortcode form is used in a template. Use when authoring or reviewing WST template markup, when a shortcode form or attribute is unknown, when catalog and runtime seem to disagree, or when another Skill asks for the four-source proof.
+description: Look up WST shortcode and SmartTag forms in the bundled Smart Template Gesamthilfe catalog snapshot and run the four-source proof - per form and nesting context (flat, loop-1, loop-2+), with the result vocabulary proven / proven except runtime - before any new WST shortcode form is used in a template; carries the project-verified runtime constraints for deep loops (wst_string_replace, wst_variable getters, loop post IDs). Use when authoring or reviewing WST template markup, when a shortcode form or attribute is unknown, when catalog and runtime seem to disagree, or when another Skill asks for the four-source proof.
 ---
 
 # WST Shortcodes (catalog entry)
@@ -34,6 +34,33 @@ On any conflict between the sources, runtime evidence (2 and 4) wins over the ca
 
 The WST workflow Skills (`wst-section-workflow`, `wst-new-post-type`) require this proof for every new shortcode form, and the `wst-shortcode-implementer` runner treats it as a gate in its return format.
 
+### The proof is per form × nesting context
+
+WST shortcodes resolve differently depending on where they sit: the order of shortcode resolution, the loop context SmartTags read from, and the visibility of `wst_variable` values all change with nesting depth. Sources 3 and 4 therefore count only for the **same context class** as the intended usage:
+
+| Context class | Meaning |
+|---|---|
+| `flat` | template level, outside any WST loop |
+| `loop-1` | inside one WST loop (`wst_acf_repeater`, `wst_posts`, `wst_acf_post_object_*`, WPGB card) |
+| `loop-2+` | inside nested loops, **or** as shortcode content inside another shortcode's content (for example inside `[wst_string_replace]…[/wst_string_replace]`) |
+
+A precedent or a served render from `flat` proves nothing for `loop-2+`. When the project has no precedent in the target context and no test render is possible before the deploy — the normal case in a shell-less SmartFlow workspace, because preview fixtures and test-page rows themselves need a deploy — the proof result is **not** `passed`. The result vocabulary is:
+
+- `proven` — all four sources in the target context.
+- `proven except runtime (<context>)` — sources 1–3 in the target context, source 4 missing; the first deploy is the runtime test.
+
+`proven except runtime` is a named runtime risk, not a pass. It goes into the work record, into the runner's `GATES` line, and into the deploy hand-over as a concrete check request ("erster Deploy ist der Runtime-Test — bitte Ausgabe X auf Seite Y prüfen"). After the served check confirms the output, upgrade the record to `proven` and add the usage to the project's precedent inventory.
+
+## Known runtime constraints (verified in projects)
+
+Unlike the discrepancies below, these are **settled** by runtime evidence in a real project. Treat them as facts for the named WST version and check the constraint before choosing a form:
+
+- **(a) `wst_string_replace` cannot manipulate dynamically resolved content in `loop-2+`.** Neither an inner shortcode (`[wst_acf]`, `[wst_post_meta]`) nor a SmartTag loop read (`{{field/loop}}`) inside its content is stripped or replaced there; the raw value (for example `2.00`) survives. For number formatting use a self-formatting shortcode instead: `[wst_acf_number field='<field-key>' id='{{post_id/<loop>}}' decimals='0']` or `wst_number_format`. In `flat` context the `string_replace` wrapper works as documented. (Quality Austria, 2026-09-24, WST 6.19.x)
+- **(b) `[wst_variable]` getters inside shortcode content in a deep loop return empty**, and `{{$var}}` getters resolve before the `SET` that should feed them. Use direct field access (`wst_acf_number`, `{{count_posts|…}}`) instead of variable indirection in `loop-2+`. (Quality Austria, 2026-09-24, WST 6.19.x)
+- **(c) `{{loopname}}` without a field is invalid.** The loop's post ID is `{{post_id/loopname}}`. (Quality Austria, 2026-09-24, WST 6.19.x)
+
+Record new constraints here with project, date, and WST version once a served check settles them; the catalog snapshot itself stays an untouched export of the vendor help.
+
 ## Known catalog discrepancies (unverified at runtime)
 
 Treat these as open questions, not as settled facts, until a runtime test on a real project decides them; then record the outcome in the project docs layer and report it back:
@@ -43,7 +70,7 @@ Treat these as open questions, not as settled facts, until a runtime test on a r
 
 ## Working method
 
-1. Check the project's templates first: an existing verified usage is the fastest correct answer and already satisfies sources 3 and 4.
-2. Search the snapshot for the shortcode name or the relevant `### 5.x` heading; read only that section.
-3. For a new form, complete the four-source proof before writing it into a template. A preview-harness fixture is the cheapest controlled test render (see the bundled `section-preview-harness` Skill).
+1. Check the project's templates first: an existing verified usage **in the same nesting context** is the fastest correct answer and already satisfies sources 3 and 4.
+2. Search the snapshot for the shortcode name or the relevant `### 5.x` heading; read only that section. Check "Known runtime constraints" for the target context.
+3. For a new form, complete the four-source proof before writing it into a template. A preview-harness fixture is the cheapest controlled test render (see the bundled `section-preview-harness` Skill). When no test render is possible before the deploy, name the result `proven except runtime (<context>)` and choose the form with the least runtime dependency (self-formatting shortcode over string manipulation, field key over field name for imported data, direct field access over variable indirection); name the riskier form as an alternative in the work record, do not ship it.
 4. Never invent attributes, SmartTag paths, or nesting shapes to "try out" in tracked templates; unproven experiments belong in a test render, not in a commit.

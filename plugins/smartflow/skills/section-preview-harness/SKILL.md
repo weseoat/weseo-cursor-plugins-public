@@ -1,6 +1,6 @@
 ---
 name: section-preview-harness
-description: Set up and operate project-local WordPress/WST Section preview pages (a "preview harness") that render a single WST Section in isolation under a stable preview URL from Git-tracked JSON fixtures. Each Section variant gets its own URL so browser QA can check one Section quickly, without reading a whole customer page (fewer tokens, stable QA hooks). Use when a project wants preview pages, Storybook-like WST previews, fixture-driven Section QA, variant verification for a Section remodel, or first browser targets for frontend-section-qa. Proven end-to-end in a full Section remodel pilot (2026-06); the fixture export route is adapted for the shell-less SmartFlow workspace.
+description: Set up and operate project-local WordPress/WST Section preview pages (a "preview harness") that render a single WST Section in isolation under a stable preview URL from Git-tracked JSON fixtures. Each Section variant gets its own URL so browser QA can check one Section quickly, without reading a whole customer page (fewer tokens, stable QA hooks). Two distinct jobs - the one-time bootstrap (harness files, include, PROJECT-CONTEXT key section-preview-pages as a gate) and the per-Section sub-workflow "Configure a further Section" (export config, backend review stop, fixture export - no bootstrap). Use when a project wants preview pages, Storybook-like WST previews, fixture-driven Section QA, variant verification for a Section remodel, fixtures for a Section in an already active harness, or first browser targets for frontend-section-qa. Proven end-to-end in a full Section remodel pilot (2026-06); the fixture export route is adapted for the shell-less SmartFlow workspace.
 ---
 
 # Section Preview Pages (Preview Harness)
@@ -17,6 +17,33 @@ Why this helps the workflow: browser QA can open one Section in isolation and ch
 The mechanism is called a "preview harness" (the technical term used in the code and the `PROJECT-CONTEXT.md` block). It renders ONE real Section template with fixed fixture data through the real WST path (`get_header()` + real Section template + `get_footer()`, real theme CSS, real tokens), so browser QA verifies variants without parsing a full customer page. No preview adapter layer is needed: WST templates read their data through ACF, and `acf_setup_meta()` (ACF Local Meta, the same mechanism ACF Blocks use) feeds them fixture data through the identical code path.
 
 The preview pages are project-local infrastructure inside the active child theme. They are not a replacement for the WST workflow Skills, `frontend-section-qa`, or final full-page verification on a real page.
+
+## Two jobs: bootstrap once, configure per Section
+
+This Skill has two separate entry points. Confusing them is the known failure mode ("harness files exist, so neither offer nor use it"):
+
+| Job | When | What it touches | Confirmation stops |
+|---|---|---|---|
+| **Bootstrap** ("Setup workflow" below) | the project has no harness | three harness PHP files, `require_once` in the snippet loader, `PROJECT-CONTEXT.md` key | `theme-functions.php` edit needs explicit user confirmation |
+| **Configure a further Section** (sub-workflow below) | the harness is active and the current Section has no fixtures | the Section's entry in the exporter config (tracked theme file), fixtures under `section-previews/<section>/`, the Section work record | backend review of the rows before export (hard stop) — no bootstrap stop |
+
+Offering the bootstrap stays a recommendation the user may decline. **Using** an active harness for a Section is not optional: `wst-section-workflow` routes every Section in an active harness through "Configure a further Section" before frontend QA starts.
+
+## Harness state detection (three states, three sources)
+
+Decide the state before any Section work, with these sources in this order:
+
+1. `PROJECT-CONTEXT.md` key `section-preview-pages` — `active` or `declined` — the fastest source and the only one that carries `declined`.
+2. File `smart-template-builder/section-preview-harness.php` in the child theme.
+3. `_export-fixtures.php` with at least one real Section config (`source_page` not `0`, `rows` not empty).
+
+| State | Condition | Action |
+|---|---|---|
+| **missing** | none of the three sources | offer the bootstrap (recommendation, not a hard stop); on no, write `section-preview-pages: declined` |
+| **active** | any one of the three sources | the harness counts as installed. Files present but key missing → write `section-preview-pages: active` into `PROJECT-CONTEXT.md` now and report it; then run "Configure a further Section" for every Section without fixtures |
+| **declined** | key `section-preview-pages: declined` | skip previews; `frontend-section-qa` records `Preview URLs: n/a (declined)` |
+
+There is no fourth state. "Files present, do not touch the setup" is the **active** state with an unconfigured Section — configure it, do not re-offer or skip.
 
 ## One workspace, one delivery path
 
@@ -103,9 +130,22 @@ Ask only for values not already in `PROJECT-CONTEXT.md` or the project docs laye
 3. Access gating beyond the default logged-in-or-`*.weseo.dev` rule?
 4. URL prefix? Default `/section-preview/<section>/<variant>`.
 
-Then: copy the three reference files into the repository child theme, adjust the function prefix and host gate if the project differs, add the `require_once` (confirm the `theme-functions.php` edit explicitly with the user), fill the exporter config, and record the preview-pages block in `PROJECT-CONTEXT.md` (stable key `section-preview-pages` so `wst-section-workflow` can detect it). Deploy pass: commit, hard stop, user pushes, bridge-verify `deployed_commit`, flush rewrites through the bridge once, then verify one URL end-to-end (200 + section class + fixture content).
+Then: copy the three reference files into the repository child theme, adjust the function prefix and host gate if the project differs, add the `require_once` (confirm the `theme-functions.php` edit explicitly with the user), fill the exporter config, and write the preview-pages block into `PROJECT-CONTEXT.md` with the stable key line `section-preview-pages: active` (plus the URL prefix and the source page). The key line is a **gate** of this Skill, not a courtesy note: `wst-section-workflow` greps for it, and prose alone ("preview URLs exist as a separate path") leaves the next run blind. Deploy pass: commit, hard stop, user pushes, bridge-verify `deployed_commit`, flush rewrites through the bridge once, then verify one URL end-to-end (200 + section class + fixture content).
 
 Before relying on rendering details, read `REFERENCE.md` — it documents the WordPress query-lifecycle hardening (`is_home`, phantom-post leaks, WST archive-404) and the ACF resolution pitfalls (multiple fields named `flexible_content`, ACFE hybrid mode) that cost the pilot the most debugging time.
+
+## Sub-workflow: Configure a further Section
+
+Run this whenever the harness is **active** and the current Section has no fixtures (no `section-previews/<section>/*.json`, or an exporter stub such as `source_page: 0` / `rows: []`). It runs in the main chat — runners do not edit harness files; they return `OPEN DECISION: preview-fixtures` per the `agent-routing` Rule and the main chat continues here. No bootstrap step is repeated and no `theme-functions.php` confirmation is needed: the exporter config is an ordinary tracked theme file.
+
+1. **Row plan.** Take the variant row plan from the `wst-section-workflow` run (one Flexible Content row per variant on the unlinked test page, real design content, media attachment IDs). If the rows are not on the page yet, they are entered first (admin by the user, or the project's documented programmatic route).
+2. **Exporter config.** Add or complete the Section's entry in `_export-fixtures.php`: `source_page` = test page ID, `variant_field` = the expanded variant field name, one row entry per variant (`slug`, `label`, `body_class`, `expect_variant`, `design`). Replace stubs; never leave `source_page: 0` behind.
+3. **HARD STOP — backend review.** The maintainer reviews the rows in the backend (layout, variant value, content, media) before anything is exported. Do not continue on your own.
+4. **Export.** After the go: the config change must be served (it goes with the Section's deploy pass, bridge-verified), then call `GET /wp-json/wso-preview/v1/export/<section>` and write every returned fixture to `section-previews/<section>/<slug>.json` (pretty-printed, trailing newline). Review the diff; `skipped` entries mean wrong row order or variant value — fix the rows or the config, never the fixture by hand.
+5. **Work record.** Write the preview URLs (`/section-preview/<section>/<variant>` per variant) into the Section work record as the first Visual QA Targets; the fixtures travel with the next deploy pass and render only after it is bridge-verified.
+6. **Hand-over.** Report: config entry, fixtures written, preview URLs, deploy pass pending. `frontend-section-qa` starts only once these URLs are real `/section-preview/…` addresses (or the project is `declined`).
+
+Re-runs (content changed, source page moved) repeat steps 2–5 with the review stop in place.
 
 ## QA integration
 
@@ -129,5 +169,9 @@ Forbidden: customer content edits, ACF/FC/CPT/WPGB setup (that belongs to the WS
 - [ ] Fixtures exported from a reviewed source page over the export route, Git-tracked, no secrets.
 - [ ] `body_class` covers palette/context variants where the design needs them.
 - [ ] Structural preview QA passes for every variant.
-- [ ] `PROJECT-CONTEXT.md` documents the preview-pages block; the Section work record in the project docs layer records preview URLs and QA targets.
+- [ ] `section-preview-pages: active` key line present in `PROJECT-CONTEXT.md` (gate — prose without the key does not count); the block names URL prefix and source page.
+- [ ] The Section work record in the project docs layer records preview URLs and QA targets.
+- [ ] No exporter stub left behind (`source_page: 0`, empty `rows`) for a Section that has rows on the source page.
 - [ ] Final full-page QA on a real page remains listed as mandatory.
+
+For "Configure a further Section" runs, the checklist reduces to: config entry complete, backend review stop held, fixtures exported over the route and tracked, preview URLs in the work record, deploy pass pending noted.

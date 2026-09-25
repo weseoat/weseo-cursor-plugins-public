@@ -1,6 +1,6 @@
 ---
 name: cpt-frontend-qa
-description: Implement and verify frontend presentation for a WST Custom Post Type in the local SmartFlow workspace from a CPT work record. Use for CPT card, archive or grid, WP Grid Builder output, carousel or filter, and optional single-template CSS/SCSS work, the Playwright MCP browser QA loop, injection-proofed iteration against the served WordPress page, and the one-time bridge-verified served check after the bundled deploy pass. Consumes and writes back the CPT work record in the project docs layer.
+description: Implement and verify frontend presentation for a WST Custom Post Type in the local SmartFlow workspace from a CPT work record. Opens with an Execution Gate - the main chat prepares the record and spawns one cpt-visual-implementer per surface, only the runner executes the CSS/browser-QA workflow, the main chat runs deploy pass and commit gate. Use for CPT card, archive or grid, WP Grid Builder output, carousel or filter, and optional single-template CSS/SCSS work, the Playwright MCP browser QA loop, injection-proofed iteration against the served WordPress page, and the one-time bridge-verified served check after the bundled deploy pass. Consumes and writes back the CPT work record in the project docs layer.
 ---
 
 # CPT Frontend QA
@@ -12,7 +12,22 @@ Everything happens in one workspace: the wp-content-level repository checkout. T
 - **Injection-proof is the main mode.** All visual iteration happens by injecting the planned rules into the served page through Playwright MCP and verifying them against the real DOM — per surface: card, archive/grid, carousel/filter, optional single. Tracked source is written once the injected rules win the cascade; iteration continues injection-proofed without per-tweak deploy rounds.
 - **The bridge-verified served check is a one-time confirmation.** When the CSS pass is complete, everything goes into one bundled deploy pass (`deploy-and-branches` Rule): commit, hard stop, the user pushes, and the status bridge confirms `deployed_commit` with the bounded retry and abort budget. Then one served confirmation pass closes the work.
 
-When a CPT display becomes primarily a dedicated WST Section layout, route Section-level layout behavior to `frontend-section-qa`; card, archive/grid, carousel/filter, WPGB output, and optional single-template QA stay in this Skill. On every start — direct start included, not only under package orchestration — the CSS/browser-QA run executes through the `cpt-visual-implementer` runner per the `agent-routing` Rule, one runner per surface; the deploy pass, bridge verification, and commit stay with the main chat (runners never commit), and hard stops from the run come back as `OPEN DECISION` in the runner's return format. The semantics are identical either way.
+When a CPT display becomes primarily a dedicated WST Section layout, route Section-level layout behavior to `frontend-section-qa`; card, archive/grid, carousel/filter, WPGB output, and optional single-template QA stay in this Skill.
+
+## Execution Gate (read first)
+
+Decide which reader you are before anything else (`runner-gate` Rule):
+
+**If you are the main chat and not `cpt-visual-implementer`: do not execute the workflow below.**
+
+1. Ensure the CPT work record exists (or create the visual-only minimal record — allowed in the main chat, see "Required Starting Point").
+2. Spawn exactly one `cpt-visual-implementer` **per surface** (card, grid/archive, filter/carousel, single) with: this Skill's name, the surface, the work-record path, the CSS/SCSS file scope for that surface, the proof mode (injection-proof), the QA profile from the record, and — on a resume after a context break — the current state of any half-finished CSS file as input.
+3. Stop until the runner returns (fixed return format, `OPEN DECISION` for hard stops).
+4. Integrate the return, then run the deploy pass, bridge verification, served check, and commit gate (Sections 4–7 stay with the main chat; runners never commit).
+
+Non-reasons for executing here instead: the Skill text is already loaded; Figma or DOM material is already in context; the task is "nur Styling" or small; discovery or `content` work already happened; a continuation summary describes a half-finished CSS file. Before the first CSS/SCSS write or the first Playwright call: not the runner → stop and spawn.
+
+**If you are `cpt-visual-implementer`:** execute everything from the marker "Runner execution" onward for your assigned surface inside your write scope; deploy pass, bridge verification, and commit are not yours — end with the return format and `NEXT OWNER: main chat`.
 
 ## Required Starting Point
 
@@ -34,14 +49,20 @@ The contract is the CPT work record in the project docs layer (default `docs/pos
 
 `pass-degraded` means Playwright MCP produced the evidence through the Degraded Mode fallback. It still counts as Playwright MCP evidence and does not unlock any substitute browser.
 
+---
+
+## Runner execution (`cpt-visual-implementer` only)
+
+Everything from here to Section 3 is the runner's job for its assigned surface. The main chat reads it to write the runner prompt, not to execute it.
+
 ## Playwright MCP Preflight
 
 Identical rules to `frontend-section-qa`, applied to the CPT display URL and — when public detail pages exist — a representative single URL:
 
-1. Read `PROJECT-CONTEXT.md` and the work record for the `playwright_mcp` status; follow the `playwright-browser-claim` Rule when parallel Playwright servers run.
-2. Setup or repair goes to the Playwright MCP step of the bundled `setup-local-project` Skill (Step 10), never improvised here.
+1. Read `PROJECT-CONTEXT.md` and the work record for the `playwright_mcp` status; run the availability check and, when needed, the troubleshooting ladder of the `playwright-browser-claim` Rule (namespace in the tool catalog, restart after `mcp.json` changes, `SingletonLock` / orphaned Chromium → `--isolated`); the claim protocol applies only when parallel Playwright servers run.
+2. Setup or repair beyond that ladder goes to the Playwright MCP step of the bundled `setup-local-project` Skill (Step 11), never improvised here.
 3. Run the Capability Probe against the display URL (and the single URL when applicable): `browser_navigate` once, then `browser_evaluate` reading `location.href`, `document.title`, a known card selector, and a known grid or single selector. Record per-tool results in the work record.
-4. Whole server down or both navigate and evaluate broken: hard stop, `browser access: blocked: playwright-mcp-unavailable`, `final status: blocked`, route to `setup-local-project` Step 10.
+4. Whole server down or both navigate and evaluate broken: hard stop, `browser access: blocked: playwright-mcp-unavailable`, `final status: blocked`, route to `setup-local-project` Step 11.
 5. Single-tool defects with a working `browser_evaluate`: Degraded Mode — evaluate-based navigation, DOM/computed-style reads, CSS injection, and stylesheet fetch for the served check, recorded as `pass-degraded` with the defect, fallback path, and next repair action documented.
 6. Content-level blockers (login, cookie consent, allowlist): record them and treat browser access as a hard precondition for final CSS writes. Throwaway session logins may be used through Playwright/CDP only; never write credentials into the work record or any tracked file.
 
@@ -62,7 +83,11 @@ If a required value is unresolved, derive it from project context, the Figma sou
 
 ```text
 CPT Frontend QA:
-- [ ] Read the CPT work record (or create the minimal visual-only record)
+Main chat:
+- [ ] Read or create the CPT work record (minimal visual-only record allowed)
+- [ ] Spawn one cpt-visual-implementer per surface with Skill, surface, record path, CSS scope, proof mode, QA profile; stop until return
+Runner (cpt-visual-implementer):
+- [ ] Read the CPT work record
 - [ ] Read PROJECT-CONTEXT.md and the gating Rules
 - [ ] Playwright MCP preflight and Capability Probe on display URL and single URL when applicable
 - [ ] Confirm browser access, or stop and ask for login/access
@@ -74,7 +99,10 @@ CPT Frontend QA:
 - [ ] Write tracked CSS/SCSS per surface once the injected rules win the cascade
 - [ ] Keep iterating injection-proofed: viewport ladder, card counts, filters, states
 - [ ] Fill the per-row Result cells of the Visual QA Targets matrix (injection-proofed values)
-- [ ] Deploy pass: one commit (CSS + work record) with trailer, HARD STOP, user pushes
+- [ ] Return: STATUS, EVIDENCE, OWN CHANGES, GATES, OPEN DECISION, NEXT OWNER: main chat
+Main chat:
+- [ ] Integrate the returns (no overlapping file edits, record consistent)
+- [ ] Deploy pass: one commit (CSS + work record) with trailer after the user's confirmation, HARD STOP, user pushes
 - [ ] Bridge check deployed_commit with the bounded retry budget; abort cleanly on mismatch
 - [ ] One-time served check on display URL and single URL when applicable
 - [ ] Final writeback: status fields, QA notes, remaining risks; refresh the CPT doc (auto-docs scoped run)
@@ -115,11 +143,17 @@ Known non-bug on single URLs: when the CPT single URL renders only the generic t
 
 Stale markup, rendered data, generated CSS, WPGB output, or cache state is recorded with URL, selector, expected and observed result; cache flushes go through the bridge (`POST /flush-cache`), not through server commands.
 
+---
+
+## Main chat again: deploy pass, verification, close
+
+The runner ends after Section 3 with its return format. Sections 4–7 are the main chat's job.
+
 ## 4. The Bundled Deploy Pass (Hard Stop)
 
-When the CSS pass is complete across all in-scope surfaces:
+When the CSS pass is complete across all in-scope surfaces and the runner returns are integrated:
 
-1. Commit the tracked CSS/SCSS (plus generated CSS) and the updated work record together on the project branch with the `Made with: SmartFlow` trailer. Set `deploy state: committed-awaiting-push`, `final status: implementation-pass-pending-deploy`.
+1. Propose the commit (files, summary, message) and, after the user's explicit confirmation, commit the tracked CSS/SCSS (plus generated CSS) and the updated work record together on the project branch with the `Made with: SmartFlow` trailer. Set `deploy state: committed-awaiting-push`, `final status: implementation-pass-pending-deploy`.
 2. HARD STOP. Hand over with the commit hash, the changed files per surface with real project paths, what the deploy will deliver, and the resume line `report back once you have pushed`. The agent never pushes.
 
 ## 5. Bridge Verification With Bounded Retries

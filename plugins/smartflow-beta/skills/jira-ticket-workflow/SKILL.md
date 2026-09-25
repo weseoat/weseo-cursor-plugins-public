@@ -1,6 +1,6 @@
 ---
 name: jira-ticket-workflow
-description: Processes a single WESEO Jira ticket (WP-xxxxx) for the current WordPress/WST project end to end - step 0 gate check that routes open mandatory gates to the bundled setup-ticket-ready Skill, fetch the issue via the Atlassian MCP including mandatory screenshot viewing, combine it with the user's extra instructions, triage/route the work (direct fix, subagent, or bundled workflow Skill), implement a minimal fix inside the child theme, verify injection-proof via Playwright (marker-verified served check on projects without a bridge), report in German, and after user approval commit per ticket (never push; in the legacy "master - user commits" state prepare only and the colleague commits) and write a calm, plainly worded German Jira solution comment. Use whenever the user shares a Jira ticket URL or WP-key ("Schau dir das Ticket an", "fixe das", ticket abarbeiten).
+description: Processes a single WESEO Jira ticket (WP-xxxxx) for the current WordPress/WST project end to end - step 0 gate check that routes open mandatory gates to the bundled setup-ticket-ready Skill, fetch the issue via the Atlassian MCP including mandatory screenshot viewing, combine it with the user's extra instructions, triage/route the work (direct fix, subagent, or bundled workflow Skill), implement a minimal fix inside the child theme (measured diagnosis and one-sentence acceptance criterion for comparison tickets, utilities before new rules, user-named fix direction binding), verify injection-proof via Playwright (marker-verified served check on projects without a bridge), report in German, and after user approval commit per ticket (never push, never touch foreign working-tree changes; in the legacy "master - user commits" state prepare only and the colleague commits), write a calm, plainly worded German Jira solution comment, and optionally transition the ticket to Done on request. Use whenever the user shares a Jira ticket URL or WP-key ("Schau dir das Ticket an", "fixe das", ticket abarbeiten).
 ---
 
 # Jira Ticket Workflow
@@ -70,6 +70,10 @@ never forces the full `setup-local-project` wizard.
    extract in its worker prompt and never calls Confluence.
 5. In parallel, start reading the code the user pointed at (file
    references in the message) — do not wait for Jira to explore.
+6. **Transition question** (once per ticket, unless the user already
+   said it in the assignment — „und schließ das Ticket"): ask in German,
+   yes/no, default no: „Ticket nach Review-Freigabe auf Fertig setzen?"
+   Remember the answer for step 7. No answer counts as no.
 
 ## 2. Triage and routing
 
@@ -109,6 +113,26 @@ gate, Git, Jira comment).
   screenshot defines which element, page state, and viewport the
   reporter means. State explicitly what the screenshot shows before
   naming the root cause.
+- **Mandatory measurement for comparison tickets.** When the ticket
+  compares against a reference element or Section („gleich breit wie",
+  „wie im Intro", „selber Abstand wie"), measure **both** on the served
+  DOM via Playwright before any hypothesis: walk upward from the visible
+  box to find the element that actually carries the visible property
+  (read `background-color`, `getBoundingClientRect`, padding, etc. per
+  candidate), and note the target and reference values. The fix must
+  move the **measured** value, not a proxy token that happens to be
+  related.
+- **Acceptance criterion in one sentence**, formulated from ticket plus
+  screenshot before the fix: element, property, target value, viewport
+  (e.g. „`.wso-section-x .wso-inner` on 1440px gets the same inner
+  width as `.wso-section-intro .wso-inner`: 1200px"). Step 5 verifies
+  exactly this sentence by measurement; „Regel angewendet" is not a
+  pass. The sentence goes into the report under Verifikation.
+- **Ambiguity is a question, not a guess.** When two readings of the
+  ticket lead to different fixes and screenshot plus measurement do
+  not decide, ask the user once with both readings and a
+  recommendation (in a runner: `route-back` / `OPEN DECISION: ambiguous
+  intent`). Never pick one silently and report it as a pass.
 - Name the root cause explicitly before editing. If the cause cannot
   be established, report findings and stop instead of speculative
   fixing.
@@ -122,6 +146,13 @@ gate, Git, Jira comment).
 - Follow existing conventions (`css-guideline` Rule: tokens/variables,
   style-loader registration for new CSS files, `wso-` selectors, comment
   style of the touched file).
+- **Fix choice:** existing project utilities and Section modifiers
+  (`.wso-bg-*`, documented classes from the work record, theme tokens)
+  come before new Section-specific rules (`css-guideline` Rule: never
+  hardcode a value when a token or utility exists). A fix direction the
+  user named in
+  the assignment is **binding** — deviate only with a stated reason and
+  a question back, never silently.
 - Reference the ticket key in code comments only where future readers
   need the why, not as change narration.
 - Run lints on edited files.
@@ -156,6 +187,12 @@ verify in the real browser, release the lock.
   full project viewport ladder from `PROJECT-CONTEXT.md` only when the
   ticket is a layout/responsive change across bands.
 
+For comparison tickets, re-measure the acceptance sentence from step 3
+after injection: target and reference values now match (or differ by
+the intended amount) at the named viewport. Report the measured
+before/after values; a fix that changed a rule without moving the
+measured value is not a pass.
+
 State plainly which proof mode was achieved (injection-proof vs
 bridge-verified served vs marker-verified served vs code-only).
 
@@ -173,6 +210,11 @@ iterate from step 3.
 ## 7. Closing (only after approval)
 
 1. **Git:** one commit per ticket on the recorded working branch.
+   Stage **only the files of this ticket** (never `git add -A`). Other
+   changed paths in `git status --short` — a colleague's open work, a
+   parallel chat's edits — are left untouched and mentioned by path in
+   the hand-over; never `git restore`, `git stash`, or `git clean` them
+   (Working Tree Discipline, `deploy-and-branches` Rule).
    Message references the WP-key and the fix, e.g.
    `Fix - WP-45755 image-boxes swiper slidesPerView auto (mobile left
    alignment)`, with the trailer per the `commit-trailer` Rule.
@@ -192,15 +234,31 @@ iterate from step 3.
    action for the reader. Commit hash and file paths belong in the work
    record, not in the ticket. Do not ask the user about the tone; a
    deviation comes as a chat instruction. The comment ends with the
-   signature line per the `jira-comment-signature` Rule. Never
-   transition the ticket status.
-3. **Records:** if the ticket closes or changes an item tracked in the
+   signature line per the `jira-comment-signature` Rule.
+3. **Transition (only when the intake answer was yes):** after the
+   solution comment, read `jira_get_transitions` and pick the
+   transition whose target status is in the status category **Done**
+   (project-dependent name: „Fertig", „Done", „Erledigt" — never guess).
+   Exactly one candidate → execute it. Several → ask once. None → report
+   it, no transition, the ticket stays open with its comment. Only a
+   ticket that received a solution comment is transitioned; in the
+   legacy „master — user commits" state the same applies once the
+   comment is written. No second comment for the transition. Without a
+   yes: never transition the ticket status.
+4. **Records:** if the ticket closes or changes an item tracked in the
    project backlog or an affected work record's QA/status section,
    update it.
-4. If browser work happened, confirm the Playwright lock was released.
+5. If browser work happened, confirm the Playwright lock was released.
 
 ## Hard rules
 
+- Never transition ticket statuses unless the intake answer was yes;
+  then only after review release, only for a ticket that received a
+  solution comment, only via the Done-category transition read from
+  `jira_get_transitions`.
+- Never discard, restore, stash, or clean working-tree changes the
+  agent did not make in this run (Working Tree Discipline,
+  `deploy-and-branches` Rule).
 - Never invent ACF keys, WPGB IDs, selectors, URLs, or paths — read
   them from the work records, `PROJECT-CONTEXT.md`, or the live install.
 - No temp artifacts in the deploy path; use repo-level `tmp/` if a

@@ -1,5 +1,5 @@
 ---
-description: SmartFlow deploy flow and branch discipline — the agent never pushes unprompted (explicit per-request user instruction can allow a push on a non-protected branch) and never commits without explicit user confirmation; deploys are bundled and bridge-verified
+description: SmartFlow deploy flow and branch discipline — the agent never pushes unprompted (explicit per-request user instruction can allow a push on a non-protected branch), never commits without explicit user confirmation, and never discards working-tree changes it did not make; deploys are bundled and bridge-verified
 alwaysApply: true
 ---
 
@@ -30,6 +30,17 @@ Everything that needs a deploy goes into one pass: WST templates and partials, A
 - Work on the branch recorded in `PROJECT-CONTEXT.md`; stay on the default working branch unless told otherwise.
 - Do not create, switch, merge, or rebase branches without an explicit user instruction.
 - Never rewrite published history.
+
+## Working Tree Discipline
+
+The working tree belongs to the user; the agent only owns the edits it made in this run. Uncommitted changes the agent did not make — a colleague's half-finished work, a parallel chat's edits, an untracked file — are never touched:
+
+- No `git restore`, `git checkout -- <path>`, `git clean`, `git reset --hard`, or `git stash` on changes that are not the agent's own from this run. There is no "tidy up before the commit"; a discard happens only after an explicit user confirmation that names the file.
+- Unexpected files are **not staged, not edited, not removed** — they are reported by path (in the hand-over, the batch board, or the leaf's return). Stage only the files that belong to the change being committed.
+- Before a run that will end in a commit, take a `git status --short` baseline. Anything on that baseline is pre-existing user work; anything new that no report explains is investigated (ask the leaf that plausibly wrote it), never resolved by discarding.
+- The agent may revert its **own** partial edits (a runner's emergency brake), but only inside its assigned write scope, and it lists reverted edits in its report so the orchestrator can reconcile the tree.
+
+This discipline is part of every worker prompt (`agent-routing` Rule, Orchestration point 2) and of every commit gate.
 
 ## Protected Branches
 

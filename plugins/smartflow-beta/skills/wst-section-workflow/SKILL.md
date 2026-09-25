@@ -1,6 +1,6 @@
 ---
 name: wst-section-workflow
-description: Plan, classify, and execute WST Flexible Content Section work in the local SmartFlow workspace as a productive implementation workflow with safety stops. Use for any new Section, existing Section remodel, or Section-related preflight before frontend CSS work. Visual-only Section changes route to the bundled frontend-section-qa Skill with a minimal work record. Section artifacts are authored as tracked source (templates plus ACF Local JSON field groups) and reach the server only through the bundled deploy pass; field-definition changes go live after a human-confirmed sync in the admin.
+description: Plan, classify, and execute WST Flexible Content Section work in the local SmartFlow workspace as a productive implementation workflow with safety stops. Use for any new Section, existing Section remodel, or Section-related preflight before frontend CSS work. Visual-only Section changes route to the bundled frontend-section-qa Skill with a minimal work record (executed by the cpt-visual-implementer runner, never by the main chat). The slug is confirmed only after classification in the Foundation confirmation block; an existing same-purpose Section makes the work type unclear until the remodel-vs-new decision is taken; an active Section preview harness makes the fixture export per Section mandatory. Section artifacts are authored as tracked source (templates plus ACF Local JSON field groups) and reach the server only through the bundled deploy pass; field-definition changes go live after a human-confirmed sync in the admin.
 ---
 
 # WST Section Workflow
@@ -11,7 +11,7 @@ Everything happens in one workspace: the wp-content-level repository checkout. T
 
 The Skill is a productive implementation workflow with safety stops, not a preflight write gate. Reads and discovery are always allowed. Repository writes proceed when scope is clear and safe; the workflow stops and asks only at concrete risk points.
 
-This Skill does not own Section CSS or SCSS. It documents CSS paths, stable classes, hooks, and measurable visual expectations in the work record; CSS implementation belongs to `frontend-section-qa`. On every start — direct start included, not only under package orchestration — the main chat acts as the orchestrator: classification, the pattern-discovery decision, work-record creation, and all hard stops stay in the main chat, while the execution run (template and ACF JSON writes) is executed through the `wst-shortcode-implementer` runner per the `agent-routing` and `wst-php-authoring-route` Rules. Hard stops that surface inside the run come back to the main chat as `OPEN DECISION` in the runner's return format; this Skill's semantics are identical either way.
+This Skill does not own Section CSS or SCSS. It documents CSS paths, stable classes, hooks, and measurable visual expectations in the work record; CSS implementation belongs to `frontend-section-qa`. On every start — direct start included, not only under package orchestration — the main chat acts as the orchestrator: classification, the pattern-discovery decision, work-record creation, and all hard stops stay in the main chat, while the execution run (template and ACF JSON writes) is executed through the `wst-shortcode-implementer` runner per the `agent-routing` and `wst-php-authoring-route` Rules. Hard stops that surface inside the run come back to the main chat as `OPEN DECISION` in the runner's return format; this Skill's semantics are identical either way. The runner prompt carries the confirmed work type as a field (for a foundation: confirmed through the Foundation confirmation block), the preview-harness state, and the distilled discovery — a runner that receives a foundation task without the confirmation returns `OPEN DECISION: foundation not confirmed`.
 
 ## Skill character
 
@@ -30,8 +30,9 @@ Stop and confirm before:
 - Touching public selectors, layout names, layout keys, or ACF field keys that templates, scripts, styles, or stored content rely on. Key or name changes on saved fields are data migrations and need an explicit user decision (per the `acf-local-json` Rule).
 - Creating new artifacts during an `existing-section-remodel` (new template file, ACF JSON group file, Flexible Content layout, clone child field, or style loader entry) unless explicitly approved.
 - Making a structural ACF/FC decision that discovery cannot resolve.
+- Choosing between a **new Section/FC layout** and a **variant on an existing same-purpose Section** (brief "alternatives Intro" while `layout_intro` exists). That is a structural ACF/FC decision: hard stop with a recommendation, never decided implicitly by proposing a slug. The Foundation confirmation block below is the only place where a foundation gets approved.
 - Preparing content changes that overwrite existing page content (the row plan for the admin must be explicit about replace vs append).
-- Backend review of prefilled variant rows before fixtures are exported for the Section preview pages.
+- Backend review of prefilled variant rows before fixtures are exported for the Section preview pages. When the harness is active and this Section has no fixtures yet, the review stop is mandatory — not only inside a voluntarily entered preview path (see "Section preview pages").
 - Replace-or-keep decision for existing catalog page entries before migrating preview variants there.
 - Test page deletion: only after the migration spot-check and explicit maintainer confirmation.
 - Editing `theme-functions.php` (explicit confirmation for the exact change; `functions.php` is forbidden entirely, per the `file-edit-boundary` Rule).
@@ -52,13 +53,13 @@ Structural ACF database writes are forbidden without exception (`acf-local-json`
 ## Workflow at a glance
 
 1. Read `PROJECT-CONTEXT.md`, the project docs layer, and the `acf-local-json` Rule. When `PROJECT-CONTEXT.md` records a Confluence anchor, re-read the anchored PL page **fresh at run start** over the Atlassian MCP and pull only the section relevant to this Section — the matching task row, module notes, and the Section's Figma link — into the work record (`confluence-source` Rule). No anchor, or no usable Atlassian MCP: skip cleanly, record `confluence-source: no anchor` (or `MCP unavailable`) in the work record, and continue from the mirror. Never re-read mid-run; runners receive the distilled extract in their prompt and never call Confluence.
-2. Run the Start question block in one compact message; skip any question whose answer is already in project context or the run-start Confluence extract.
-3. Inspect Figma/source, search similar Sections, identify the work type, and record `Discovery and safety status` in the work record.
-4. If a structural ambiguity remains, run one Structural question block. Otherwise continue.
+2. Run the Start question block in one compact message — classification-neutral questions only (design link, test placement, variants); skip any question whose answer is already in project context or the run-start Confluence extract. The slug is **not** asked here.
+3. Inspect Figma/source, search similar Sections (the brief's wording is discovery input: "alternatives Intro" means search for `intro` first), identify the work type, and record `Discovery and safety status` in the work record.
+4. If a structural ambiguity remains — including an existing Section with the same purpose — run one Structural question block. For `new-section-foundation`, run the Foundation confirmation block (this is where the slug is proposed and the foundation is approved as such). Otherwise continue.
 5. Announce a short Execution Plan before any repository write.
-6. Implement the Section artifacts as tracked source: template, ACF JSON group, Flexible Content layout and clone child wiring, registration. Prove every new WST shortcode form with the four-source proof (`wst-shortcodes`).
-7. Bundle everything deploy-needing into one pass: pull-before-deploy on `acf-json/`, commit, hard stop, hand over. After the user pushes, verify `deployed_commit` over the status bridge; field-definition changes then need the human sync in the admin.
-8. Served verification (function and existence only), test content, and Section preview pages.
+6. Implement the Section artifacts as tracked source: template, ACF JSON group, Flexible Content layout and clone child wiring, registration. Prove every new WST shortcode form with the four-source proof (`wst-shortcodes`), per nesting context.
+7. Bundle everything deploy-needing into one pass: pull-before-deploy on `acf-json/` (pre-commit hook or manual pull, incl. the `modified` guard), commit, hard stop, hand over. After the user pushes, verify `deployed_commit` over the status bridge; field-definition changes then need the human sync in the admin (hand-over text from the `acf-local-json` Rule).
+8. Served verification (function and existence only), test content, and Section preview pages — with an active harness, the fixture configuration and export for this Section are mandatory.
 9. Complete the work record with the Frontend QA Brief and route to `frontend-section-qa`.
 
 ## Question budget
@@ -69,12 +70,13 @@ Questions are structural and operational. Do not ask for HTML tags, CSS classes,
 
 ### Start question block (after context check)
 
-Ask in one message, only the values that project context did not already supply:
+Ask in one message, only the values that project context did not already supply. These questions are classification-neutral — nothing in this block presumes a new Section:
 
 1. Figma or source design link.
 2. Test placement: on which page should the Section be visible for verification?
-3. For a new Section: confirm the proposed Section slug. The Skill may propose `<derived-slug>` from the Figma frame or brief; the maintainer confirms or replaces it.
-4. Are there server-relevant variants or states? If none mentioned, the Skill derives them from Figma.
+3. Are there server-relevant variants or states? If none mentioned, the Skill derives them from Figma.
+
+The Section slug is deliberately not part of this block: proposing a slug before discovery is a silent foundation classification, and a "passt" on it would approve a decision that was never stated. The slug is confirmed in the Foundation confirmation block after the work type is known.
 
 ### Structural question block (only when needed)
 
@@ -84,7 +86,28 @@ Ask only after Figma analysis and pattern discovery if a structural choice remai
 Recommendation: <X> because <Y>. Confirm or correct.
 ```
 
+When discovery found an existing Section with the same purpose, the block reads:
+
+```text
+Existing same-purpose Section found: <section> (layout <layout>, group <group>).
+Option 1: remodel <section> — new layout value / variant on the existing group and template.
+Option 2: new Section <derived-slug> — new template, new ACF group, new FC layout.
+Recommendation: remodel, because <reason>. Confirm or correct.
+```
+
 Do not ask about visual styling, classes, or design details that the frontend QA pass owns.
+
+### Foundation confirmation block (only for `new-section-foundation`)
+
+Runs after classification, never before. It names the decision for what it is:
+
+```text
+Work type new-section-foundation — new template, new ACF group, new FC layout.
+Proposed slug: <derived-slug> (from the Figma frame / brief).
+Confirm, replace the slug, or redirect to a remodel of <candidate or none>.
+```
+
+A yes here is recognizably a foundation approval. The confirmed work type goes into the runner prompt as a field (`Work type: new-section-foundation (confirmed <date>)`); without it the `wst-shortcode-implementer` returns `OPEN DECISION: foundation not confirmed` instead of writing.
 
 ### Failsafe question block (last resort)
 
@@ -92,20 +115,20 @@ If a write would otherwise risk a wrong Section structure, ask one more compact 
 
 ## Work type classification
 
-Classify based on discovery, not on the wording of the request.
+Classify based on discovery, not on the wording of the request — but treat the wording as **discovery input**, never discard it: a brief that names an existing Section type ("alternatives Intro", "zweiter Teaser") tells you what to search for, not what to do.
 
 | Work type | Trigger |
 | --- | --- |
-| `new-section-foundation` | No suitable existing Section/layout/template is found; Figma or brief requires a new reusable Section. |
+| `new-section-foundation` | No suitable existing Section/layout/template is found; Figma or brief requires a new reusable Section. Confirmed only through the Foundation confirmation block. |
 | `existing-section-remodel` | A matching existing Section exists and the change touches template markup, the ACF JSON group, Flexible Content wiring, or registration. Visual change alone is not enough. |
 | `visual-only` | Template, field group, and Flexible Content already fit; only CSS, spacing, typography, colors, responsive behavior, or interaction states need to change. |
-| `unclear` | The Skill cannot decide after discovery. Use the Structural question block. |
+| `unclear` | The Skill cannot decide after discovery — **by default also whenever discovery finds an existing Section with the same purpose** (same Section type in the brief, same role on the page, same base group) while the design differs. Use the Structural question block with the remodel-vs-new recommendation. |
 
 Routing:
 
-- `new-section-foundation` -> continue with this Skill.
+- `new-section-foundation` -> Foundation confirmation block, then continue with this Skill.
 - `existing-section-remodel` -> continue with this Skill under the in-place protections below.
-- `visual-only` -> no template/ACF/FC work; create a minimal work record and route to `frontend-section-qa`.
+- `visual-only` -> no template/ACF/FC work; create a minimal work record and spawn the `cpt-visual-implementer` with `frontend-section-qa` (see "Visual-only routing").
 - `unclear` -> ask one Structural question block; if still unclear, stop and record the blocker.
 
 ### Reclassification rule
@@ -144,7 +167,7 @@ If a local example contradicts a hard invariant, do not copy it blindly. Record 
 
 The Skill searches for a structural reference by itself before asking. Sources include Section template files under `themes/<child-theme>/smart-template-builder/sections/`, the ACF JSON groups under `themes/<child-theme>/acf-json/`, Flexible Content layouts, and rendered markup on existing pages. Do not search inside `plugins/weseo-smart-template-builder/` for project-owned references; it is the WST runtime/library and contains framework code, not the project's Sections.
 
-Only ask when no usable reference is found, when multiple references would change the structural model differently, or when the maintainer might prefer a specific reference Section.
+Only ask when no usable reference is found, when multiple references would change the structural model differently, when the maintainer might prefer a specific reference Section — or when **exactly one strong reference with the same purpose** exists. That last case is the most common one: a brief "alternatives Intro" with `layout_intro` in the repository, a second teaser next to an existing teaser Section, a design whose role on the page an existing Section already fills. It is never resolved by proposing a new slug. Default the work type to `unclear` and run the Structural question block with the recommendation "remodel `<section>` (variant / layout value on the existing group) vs. new Section" — the remodel is usually the right answer because stored content, selectors, and CSS already exist.
 
 This discovery deliberately stays in the main chat: one reference Section and one design frame do not justify a discovery leaf, and the pattern-discovery decision is a main-chat responsibility (routing paragraph above). Delegate the Figma read to the `cpt-figma-analyst` only when a full raw design spec is needed — a pixel-parity target or a genuinely complex new component, per its agent file. The `cpt-codebase-analyst` is CPT-package-scoped and not part of Section runs (`agent-routing` Rule).
 
@@ -163,6 +186,26 @@ If a desired change only affects spacing, typography, color, responsive behavior
 
 Record protected artifacts in the work record under `Protected existing artifacts`.
 
+### Existing Section remodel steps
+
+Run when `Work type` is `existing-section-remodel` and the work record names the matched Section and its protected artifacts. Same discipline as the foundation checklist, without new artifacts:
+
+```text
+Existing WST FC Section remodel:
+- [ ] Discovery sources recorded (Figma, matched Section, rules applied, test placement)
+- [ ] Protected existing artifacts recorded (layout name/key, field keys, template path, public selectors)
+- [ ] Execution Plan announced (in-place scope; any new artifact explicitly approved)
+- [ ] Template change in place; every new WST shortcode form four-source-proven per nesting context (wst-shortcodes)
+- [ ] ACF JSON change in place: existing keys preserved, new fields with fresh keys, modified = real current UTC epoch (acf-local-json Rule); variant switches on clones follow the tab pattern (no conditional_logic on seamless clones)
+- [ ] Deploy pass: pull-before-deploy, commit with trailer, HARD STOP, user pushes, bridge-verify deployed_commit; hand over the admin sync text
+- [ ] Flush caches through the bridge
+- [ ] Served verification (function and existence only)
+- [ ] Test content: exact row plan for the new variant rows
+- [ ] Preview pages: harness active and this Section unconfigured → configure the export, HARD STOP backend review, export fixtures, record preview URLs (do not re-offer the setup); harness absent → offer once; declined → n/a (declined)
+- [ ] Visual QA Targets matrix updated for the new variants
+- [ ] Complete the work record with the Frontend QA Brief and route to frontend-section-qa
+```
+
 ## WST paths in the repository
 
 The repository root is the wp-content level. Resolve before any write:
@@ -176,7 +219,7 @@ Read `PROJECT-CONTEXT.md` for the child theme name and any project deviations. T
 
 ## Slug, derived names, and work record
 
-For a new Section, the Skill proposes a slug derived from the Figma frame or brief and asks the maintainer to confirm.
+For a new Section, the Skill proposes a slug derived from the Figma frame or brief in the Foundation confirmation block — after classification, never in the Start question block — and asks the maintainer to confirm.
 
 Once the slug is confirmed, derive the rest deterministically:
 
@@ -194,10 +237,11 @@ For `existing-section-remodel`, do not re-confirm the slug if a single existing 
 
 All ACF work is Local JSON authoring per the `acf-local-json` Rule; see [`reference.md`](reference.md) for the concrete shapes.
 
-- The Section field group is one JSON file under `acf-json/` with a stable fresh `group_<unique>` key and stable `field_<unique>` keys for every field, the ACFE autosync opt-in containing `"json"` (nested `acfe.autosync` by default, or the shape `PROJECT-CONTEXT.md` records), and a `modified` timestamp above the database state.
-- The Flexible Content layout entry and the seamless clone child field are added by editing the JSON file of the Page-Builder Flexible Content container (with its own `modified` bump; if the container has no JSON source yet — the bridge reports it `local: false` — stop: the `setup-acf-local-json` Skill must run first).
+- The Section field group is one JSON file under `acf-json/` with a stable fresh `group_<unique>` key and stable `field_<unique>` keys for every field, the ACFE autosync opt-in containing `"json"` (nested `acfe.autosync` by default, or the shape `PROJECT-CONTEXT.md` records), and `modified` = the **real current UTC epoch from a command** (`acf-local-json` Rule 3 — never estimated, never `Get-Date -UFormat %s`, never in the future; the example values in `reference.md` are placeholders to regenerate at write time).
+- The Flexible Content layout entry and the seamless clone child field are added by editing the JSON file of the Page-Builder Flexible Content container (with its own fresh `modified`; if the container has no JSON source yet — the bridge reports it `local: false` — stop: the `setup-acf-local-json` Skill must run first).
 - Generate the layout key once and record it immediately in the work record. The clone child field references it exactly through `parent_layout`.
 - Standard clone settings: `type=clone`, `clone=[<section-field-group-key>]`, `display=seamless`, `prefix_name=1`, `prefix_label=0`, `parent_layout=<layout-key>`, `acfe_save_meta=1` when the project uses ACF Extended save-meta behavior.
+- **Variant switches on `[TMPL]` clones inside the Section group** (a layout select that should hide the content, button, or image clone for some values) follow the clone/tab pattern of the `acf-local-json` Rule: never `conditional_logic` on a seamless clone (dead rule, no wrapper); a local `tab` field carries the condition in exclusion form (`!=` rules in one group); the clone targets the source's field keys without its tab, not the group key. JSON shape in `reference.md`. The effect is editor-only and therefore reported as `implementation pass, backend check by colleague pending`, with the concrete click path in the hand-over.
 
 ## Registration
 
@@ -236,24 +280,24 @@ Plan:
 
 ## New Section foundation steps
 
-Run only when `Work type` is `new-section-foundation`, the slug is confirmed, and the work record captures the discovery sources and scope.
+Run only when `Work type` is `new-section-foundation`, the Foundation confirmation block was answered (slug confirmed), and the work record captures the discovery sources and scope.
 
 ```text
 New WST FC Section:
-- [ ] Discovery sources recorded (Figma, similar Sections, rules applied, test placement)
-- [ ] Section slug confirmed and derived names recorded
+- [ ] Discovery sources recorded (Figma, similar Sections incl. same-purpose check, rules applied, test placement)
+- [ ] Foundation confirmed (Foundation confirmation block), Section slug confirmed and derived names recorded
 - [ ] Execution Plan announced
 - [ ] Create Section template at themes/<child-theme>/smart-template-builder/sections/<section-slug>.php (never under plugins/weseo-smart-template-builder/)
-- [ ] Every new WST shortcode form four-source-proven (wst-shortcodes)
-- [ ] Create the Section ACF JSON group file under acf-json/ (fresh stable keys, autosync opt-in includes "json" — nested acfe.autosync by default, modified bump — acf-local-json Rule)
-- [ ] Add the Flexible Content layout entry and clone child field in the FC container's JSON file (own modified bump; parent_layout matches the layout key exactly)
+- [ ] Every new WST shortcode form four-source-proven per nesting context (wst-shortcodes); "proven except runtime" is named in the deploy hand-over
+- [ ] Create the Section ACF JSON group file under acf-json/ (fresh stable keys, autosync opt-in includes "json" — nested acfe.autosync by default, modified = real current UTC epoch, no conditional_logic on seamless clones — acf-local-json Rule)
+- [ ] Add the Flexible Content layout entry and clone child field in the FC container's JSON file (own fresh modified; parent_layout matches the layout key exactly)
 - [ ] Register the Section in flexible-content.php
 - [ ] Document CSS hooks and CSS path in the work record (no CSS file from this Skill)
-- [ ] Deploy pass: commit with trailer, HARD STOP, user pushes, bridge-verify deployed_commit
+- [ ] Deploy pass: pull-before-deploy (hook or manual, modified guard), commit with trailer, HARD STOP, user pushes, bridge-verify deployed_commit; hand over the admin sync text
 - [ ] Flush caches through the bridge when templates or field definitions changed
 - [ ] Served verification (function and existence only)
 - [ ] Test content: hand the exact row plan to the user for the admin (or a project-documented route)
-- [ ] Offer Section preview pages if the project has none (run section-preview-harness on yes; record `declined` on no); record preview URLs or `n/a`
+- [ ] Preview pages: harness active → configure the export for this Section, HARD STOP backend review, export fixtures, record preview URLs; harness absent → offer once (run section-preview-harness on yes; record `declined` on no); declined → n/a (declined)
 - [ ] Fill the Visual QA Targets matrix (viewport mapping, all base variants answered or n/a, mobile rows sourced from Design mobile)
 - [ ] Complete the work record with the Frontend QA Brief and route to frontend-section-qa
 ```
@@ -274,22 +318,30 @@ Foundation work may proceed without a test placement; dependent content steps ar
 
 Section preview pages render one Section in isolation under a stable URL (`/section-preview/<section>/<variant>`) from Git-tracked JSON fixtures — the mechanism of the bundled `section-preview-harness` Skill. This is optional project-local infrastructure; never assume it exists.
 
-For every built Section (`new-section-foundation` and `existing-section-remodel`), resolve the preview-pages state from `PROJECT-CONTEXT.md`:
+For every built Section (`new-section-foundation` and `existing-section-remodel`), resolve the preview-pages state. There are exactly **three states**, and the harness is detected over **three sources** — never over the context key alone:
 
-1. Look for a preview-pages block (stable key `section-preview-pages`).
-2. If it is present and active, use the preview route for variant work and write the resulting preview URLs into the work record.
-3. If it is absent and there is no `section-preview-pages: declined` marker, actively offer to set it up (plain words, benefit stated: each variant gets its own preview URL, so QA checks one Section in isolation with fewer tokens). On `yes`: the **main chat** runs the bundled `section-preview-harness` Skill itself and then records the preview URLs — the harness is deliberately not routed to runners (`agent-routing` Rule) because its bootstrap needs the `theme-functions.php` confirmation stop and other interactive hard stops. If the offer point surfaces inside a `wst-shortcode-implementer` run, the runner returns it as `OPEN DECISION`; the main chat runs the harness after integrating the runner's return. On `no`: record `section-preview-pages: declined` in `PROJECT-CONTEXT.md` and set `Preview URLs: n/a (declined)`. Do not ask again for this project.
-4. If the preview-pages block is missing values needed to build URLs, keep `Preview URLs: <unresolved: ...>` rather than inventing them.
+| State | Detected when | Action |
+| --- | --- | --- |
+| **active** | any of: `section-preview-pages: active` in `PROJECT-CONTEXT.md`; the file `section-preview-harness.php` exists in the child theme; `_export-fixtures.php` contains at least one real Section config (`source_page != 0`) | **use it** — run the mandatory block below for this Section. Files present but key missing → write the key now and report it (the first harness run of the project left prose instead of the key). |
+| **declined** | `section-preview-pages: declined` in `PROJECT-CONTEXT.md` | skip; `Preview URLs: n/a (declined)`. Do not ask again. |
+| **absent** | none of the above | **offer** the setup once (plain words, benefit stated: each variant gets its own preview URL, so QA checks one Section in isolation with fewer tokens). On `yes`: the **main chat** runs the bundled `section-preview-harness` Skill itself — the harness bootstrap is deliberately not routed to runners (`agent-routing` Rule) because it needs the `theme-functions.php` confirmation stop. On `no`: record `declined`, set `Preview URLs: n/a (declined)`. |
 
-The offer is a recommendation, not a hard stop. A `no` never blocks the Section work.
+There is no fourth state "files exist, so neither offer nor use". "Do not re-install the harness" never means "do not use it". The setup **offer** is a recommendation, not a hard stop — a `no` never blocks the Section work. The **use** of an existing harness is not optional.
 
-### Preview-pages-backed variant workflow (recommended for variants)
+### Preview fixtures for this Section (mandatory when the harness is active)
 
-1. After the deploy pass is bridge-verified, have the variant rows entered on an unlinked test page (exact row plan for the admin; real design content, media attachment IDs recorded).
-2. HARD STOP: the maintainer reviews the rows in the backend before fixtures are exported (content, images, variant assignment, line breaks).
-3. Export fixtures over the harness export route (`GET /wp-json/wso-preview/v1/export/<section>`); write the returned fixtures into the repository. Never write fixture JSON by hand. Fixtures ship with the next deploy pass.
-4. Run structural preview QA per variant (HTTP 200, `data-preview-variant`, variant root class, expected content/image, body classes incl. brand palettes). Record results in the work record.
-5. The Frontend QA Brief lists the preview URLs as first browser targets. Full-page QA on the test page stays mandatory (previews are nocache and hide cache/Delay-JS bug classes).
+Runs for every built Section while the state is **active**, foundation and remodel alike. A Section stub in `_export-fixtures.php` with `source_page: 0` and empty `rows` is exactly this case: configure it, do not treat it as "already handled".
+
+1. **Export config:** if `_export-fixtures.php` has no real config for this Section, write it in the **main chat** (it is a tracked theme file without a bootstrap stop; only the harness bootstrap needs the `theme-functions.php` confirmation) — `source_page`, the row indices per variant, `variant_field`. Follow the "Configure a further Section" sub-workflow of `section-preview-harness`.
+2. After the deploy pass is bridge-verified, have the variant rows entered on an unlinked test page (exact row plan for the admin; real design content, media attachment IDs recorded).
+3. **HARD STOP:** the maintainer reviews the rows in the backend before fixtures are exported (content, images, variant assignment, line breaks). This stop lives here, not only inside an optional path.
+4. Export fixtures over the harness export route (`GET /wp-json/wso-preview/v1/export/<section>`); write the returned fixtures into the repository. Never write fixture JSON by hand. Fixtures ship with the next deploy pass.
+5. Run structural preview QA per variant (HTTP 200, `data-preview-variant`, variant root class, expected content/image, body classes incl. brand palettes). Record results in the work record.
+6. Write the preview URLs into the work record (never invent them — a missing value stays `<unresolved: …>` and is resolved in this block). The Frontend QA Brief lists them as first browser targets. Full-page QA on the test page stays mandatory (previews are nocache and hide cache/Delay-JS bug classes).
+
+`frontend-section-qa` starts only when `Preview URLs` holds real `/section-preview/…` addresses **or** `n/a (declined)` / `n/a (no preview pages)`. `Preview URLs: <unresolved: …>` while the harness is active and not declined is a **hard stop with a route back to this block**, never a silent switch of the CSS pass to the test page. When the fixture point surfaces inside a `wst-shortcode-implementer` run, the runner returns `OPEN DECISION: preview-fixtures` (it never edits harness files); the main chat runs config, review stop, and export. No orchestrator prompt may contain "do not touch the harness" unless the state is `declined`.
+
+Brand or palette variants that depend on page context (for example `body.brand-<slug>` from a company taxonomy) are verified through the fixture `body_class`. On the test page all rows render in the page's own palette, and that is expected.
 
 Brand or palette variants that depend on page context (for example `body.brand-<slug>` from a company taxonomy) are verified through the fixture `body_class`. On the test page all rows render in the page's own palette, and that is expected.
 
@@ -320,10 +372,10 @@ After Figma or source analysis, perform a lightweight Media Library check over t
 
 Everything deploy-needing from this run goes into one pass (`deploy-and-branches` Rule): template, ACF JSON group, FC wiring, registration, fixtures, work record. Then:
 
-1. Pull-before-deploy: pull the complete `acf-json/` listing from the server over read-only FTP into the repository so the deploy cannot overwrite newer server JSONs (`acf-local-json` Rule).
-2. Commit with the `Made with: SmartFlow` trailer. HARD STOP: hand over with the commit hash and what the deploy will deliver. The agent never pushes.
+1. Pull-before-deploy: the pre-commit hook (`acf_json_pull_hook: active` in `PROJECT-CONTEXT.md`) mirrors the server `acf-json/` into the repository on the commit and stops on a future `modified`; without the hook, pull the complete listing over read-only FTP manually and run the `modified` check yourself (`acf-local-json` Rule 1). Either way the deploy cannot overwrite or delete newer server JSONs.
+2. Commit with the `Made with: SmartFlow` trailer. HARD STOP: hand over with the commit hash, what the deploy will deliver, and every `proven except runtime (<context>)` shortcode form as a named runtime risk ("the first deploy is the runtime test — please check output X on page Y"). The agent never pushes.
 3. After the user reports pushing, verify `deployed_commit` over the status bridge with the bounded retry budget (`status-bridge` Rule). No served result counts while the hashes differ.
-4. Field-definition sync: when the pass changed ACF JSON, hand over for the human sync — the admin shows "Sync available", a colleague reviews the diff and clicks Sync. Structural changes are not live before that click.
+4. Field-definition sync: when the pass changed ACF JSON, hand over for the human sync with the fixed text from "Admin Sync — Hand-Over Text For Colleagues" in the `acf-local-json` Rule — a colleague reviews the diff and clicks Sync. Structural changes are not live before that click. Editor-only effects (tabs, conditional logic) additionally stay `implementation pass, backend check by colleague pending` until the colleague confirms them.
 5. Flush caches through the bridge (`POST /flush-cache`) when templates or field definitions changed.
 6. Served verification (function and existence only):
    - Target or preview page loads without PHP fatal errors or new warnings.
@@ -350,7 +402,7 @@ If `Work type` is `visual-only`:
 1. Identify the existing Section first using project discovery (template path, layout key/name, primary class) before asking.
 2. Do not touch templates, field groups, or FC wiring.
 3. Create a minimal work record with the existing Section identity, Figma/source link, target URL, stable classes/hooks, CSS status, and a clear `No template/ACF changes required` note.
-4. Route to `frontend-section-qa`.
+4. **Spawn exactly one `cpt-visual-implementer` with `frontend-section-qa`** (Skill name, Section, work-record path, CSS file scope, proof mode, QA profile) and stop until it returns. The main chat never executes the CSS/Playwright pass itself — "nur Styling", a small task, or design material already read are not reasons to skip the runner (`runner-gate` Rule).
 
 If discovery cannot identify the existing Section unambiguously, ask one compact Structural question with candidate Sections listed.
 
@@ -425,4 +477,11 @@ When editing this Skill or related plugin files, follow the `plugin-package-boun
 ### Example C: Visual-only `intro` change
 
 - `Work type`: `visual-only`. No template/ACF/FC writes.
-- The Skill identifies the existing `layout_intro` first, writes a minimal work record, and routes to `frontend-section-qa`.
+- The Skill identifies the existing `layout_intro` first, writes a minimal work record, and spawns the `cpt-visual-implementer` with `frontend-section-qa`.
+
+### Example D: "Alternatives Intro" with `layout_intro` already in the repository
+
+- Brief: "Das ist ein alternatives Intro" plus a Figma frame with three images. Discovery uses "Intro" as search input and finds `sections/intro.php`, `layout_intro`, group `[TMPL] Intro`, `.wso-section-intro`.
+- Work type after discovery: `unclear` (existing same-purpose Section). Structural question block: "remodel `intro` — new layout value `three` on the existing layout select — vs. new Section `intro-subpage`. Recommendation: remodel, because content, selectors, and `intro.css` already exist." No slug is proposed before this answer.
+- Confirmed: `existing-section-remodel`. New layout value on the existing group, the image clone for the new variant grouped under a local conditional tab in exclusion form (clone/tab pattern, `acf-local-json` Rule), template branch in place, protected artifacts recorded.
+- Harness state `active` (files present, key missing → key written): Intro export config filled, HARD STOP backend review, fixtures exported, `/section-preview/intro/three` recorded before `frontend-section-qa` starts.

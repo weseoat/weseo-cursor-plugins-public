@@ -88,3 +88,4 @@ Nested loops also pass the row context downward through `id='{{row_id/<loop-name
 - **Suffix only on the opening tag:** `[wst_if_a] … [/wst_if]` breaks. The closing tag must be `[/wst_if_a]`.
 - **`else` without suffix:** `[wst_if_a] … [else] … [/wst_if_a]` pairs the `else` with the wrong `wst_if`. Correct: `[else_a]`.
 - **Suffix on self-closing shortcodes:** `wst_acf`, `wst_acf_image`, and friends never take a suffix; a `[wst_acf_a]` does not exist.
+- **Correct suffixes, wrong runtime context:** a syntactically valid nesting can still resolve empty or unstripped in nested loops (`loop-2+`) — for example `wst_string_replace` around dynamic content, or `[wst_variable]` getters inside shortcode content. See "Known runtime constraints (verified in projects)" in the `wst-shortcodes` Skill before choosing the form.

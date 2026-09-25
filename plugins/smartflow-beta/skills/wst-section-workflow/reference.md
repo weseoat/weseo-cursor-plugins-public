@@ -53,13 +53,57 @@ The group is cloned into the Flexible Content layout and needs no location rule.
 }
 ```
 
-The autosync opt-in must contain `"json"` and `modified` must exceed the database state, otherwise the admin offers no sync (`acf-local-json` Rule). Nested `acfe.autosync` is the current ACFE default; if `PROJECT-CONTEXT.md` records the legacy top-level `acfe_autosync` shape for this installation, use that. Button clone, layout clone, and Section-specific fields follow the same field shape.
+The autosync opt-in must contain `"json"`, otherwise the admin offers no sync (`acf-local-json` Rule). `<unix-timestamp>` is a placeholder: generate the value **fresh at write time** as the real current UTC epoch (`python -c "import time; print(int(time.time()))"`) — never estimated, never rounded, never `Get-Date -UFormat %s`, never in the future (a future value makes the sync hint permanent; Rule 3). Nested `acfe.autosync` is the current ACFE default; if `PROJECT-CONTEXT.md` records the legacy top-level `acfe_autosync` shape for this installation, use that. Button clone, layout clone, and Section-specific fields follow the same field shape.
 
 Key discipline (`acf-local-json` Rule): every group, field, and layout carries a stable explicit fresh key. Never reuse an existing key for a different field, and never rename a saved field's `name` or `key` casually — stored content references both; such changes are data migrations needing an explicit user decision.
 
+### Variant switch on clones: the tab pattern (JSON)
+
+When a layout select in the Section group should hide whole `[TMPL]` clones for some values, `conditional_logic` **must not** sit on a seamless clone — it has no wrapper and the rule is dead (`acf-local-json` Rule, "Clone Fields And Conditional Logic"). A local `tab` field carries the condition in **exclusion form**, and the clone targets the source's **field keys without its tab** so the source tab cannot take the fields over:
+
+```json
+{
+    "key": "field_<unique>_<section_slug>_layout",
+    "label": "Layout",
+    "name": "layout",
+    "type": "select",
+    "choices": { "CLASSIC": "Classic", "COLLAGE": "Collage", "THREE": "Drei Bilder" }
+},
+{
+    "key": "field_<unique>_<section_slug>_tab_content",
+    "label": "Inhalt",
+    "name": "",
+    "type": "tab",
+    "conditional_logic": [
+        [
+            { "field": "field_<unique>_<section_slug>_layout", "operator": "!=", "value": "THREE" }
+        ]
+    ]
+},
+{
+    "key": "field_<unique>_<section_slug>_content",
+    "label": "Content",
+    "name": "content",
+    "type": "clone",
+    "clone": [
+        "<content-source-field-key-title>",
+        "<content-source-field-key-subtitle>",
+        "<content-source-field-key-text>"
+    ],
+    "display": "seamless",
+    "prefix_name": 1,
+    "prefix_label": 0,
+    "conditional_logic": 0
+}
+```
+
+- Several `!=` rules that should all apply go into **one** inner array (ACF joins rules inside a group with AND, groups with OR). "Visible" thereby stays the default for unknown values and for legacy rows without a stored value. A `==` whitelist is right only for fields of exactly one variant (for example the three image fields of `THREE`).
+- The clone lists the source's field keys **without** its tab (sub-keys, `name`, `prefix_name` unchanged — stored content is unaffected). Trade-off for the work record: new source fields do not arrive automatically. Sources without a local JSON (`local: "php"`) need an ACF export from the admin to read the field keys; hand that step to the colleague.
+- Clones with functional fields (layout class, CSS ID) stay unconditioned. Editor behavior is not verifiable agent-side: report `implementation pass, backend check by colleague pending` with the click path (choose layout → which tabs appear/disappear).
+
 ## Flexible Content layout wiring (JSON)
 
-The Page-Builder Flexible Content container is itself a JSON-versioned group in `acf-json/` (set up per project; see `setup-acf-local-json`). The layout entry and the seamless clone child field are added by editing that container's JSON file — with a `modified` bump so the admin offers the sync:
+The Page-Builder Flexible Content container is itself a JSON-versioned group in `acf-json/` (set up per project; see `setup-acf-local-json`). The layout entry and the seamless clone child field are added by editing that container's JSON file — with `modified` set to the real current UTC epoch (fresh at write time, never in the future) so the admin offers the sync once:
 
 ```json
 // Inside the FC field's "layouts" object:

@@ -18,11 +18,14 @@ This file is the project-local source of truth for site-specific SmartFlow facts
 | Deployment path | `<deployment-method>` |
 | Cloned from | `<motherboard-hostname>` |
 | css_setup | `pending` |
-| docs_layer | `pending` |
 | acf_local_json | `pending` |
+| acf_json_pull_hook | `pending` |
+| ftp_acf_json_path | `<remote acf-json path as seen by the FTP user, set by setup-acf-local-json>` |
+| docs_layer | `pending` |
+| section-preview-pages | `<active | declined | absent — written by section-preview-harness>` |
 | ftp_guide | `<confluence-page-id — url — title, as found by setup-local-project Step 8>` |
 
-Every project starts as a clone of a fully loaded master installation (team name: Motherboard), so the theme initially carries the master's CSS values. `setup-local-project` reads the current Motherboard hostname from the team's Erstinstallation Confluence page and writes it as `Cloned from` — it does not ask the user for a name — then writes `css_setup: pending`; the `project-css-setup` Skill reconciles the values with this project's design and flips the marker to `reconciled (<date>)`. The closing gates `docs_layer` (first `auto-docs` run, `done | pending: <reason>`) and `acf_local_json` (`setup-acf-local-json`, `done | pending: <reason> | skipped: <reason>` — `skipped` only by explicit user decision) are flipped by `setup-local-project` Steps 14 and 15; the `setup-ticket-ready` lite track leaves them `pending: Voll-Setup`. Per-block status for that pass (values: `pending | in-progress | done (<date>) | skipped: <reason>`):
+Every project starts as a clone of a fully loaded master installation (team name: Motherboard), so the theme initially carries the master's CSS values. `setup-local-project` reads the current Motherboard hostname from the team's Erstinstallation Confluence page and writes it as `Cloned from` — it does not ask the user for a name — then writes `css_setup: pending`; the `project-css-setup` Skill reconciles the values with this project's design and flips the marker to `reconciled (<date>)`. The closing gates run in this order: `acf_local_json` (`setup-acf-local-json`, `done | pending: <reason> | skipped: <reason>` — `skipped` only by explicit user decision; `acf_json_pull_hook: active` once the pre-commit hook is installed) first, then `docs_layer` (first `auto-docs` run, `done | pending: <reason> | done (field-groups pending: rerun auto-docs after acf_local_json)`) — `setup-local-project` Steps 14 and 15; the `setup-ticket-ready` lite track leaves them `pending: Voll-Setup`. Per-block status for that pass (values: `pending | in-progress | done (<date>) | skipped: <reason>`):
 
 ```text
 css_setup_widths: pending

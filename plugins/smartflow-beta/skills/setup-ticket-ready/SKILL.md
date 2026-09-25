@@ -50,7 +50,12 @@ git clone <repo-url> <server-hostname>
 ```
 
 Verify `wp-content/themes/<child-theme>/` exists and the deny-all
-`.gitignore` is intact.
+`.gitignore` is intact. If the repository carries `.githooks/pre-commit`
+(the ACF Local JSON pull-before-deploy hook from `setup-acf-local-json`
+Step 8), activate it in this clone with `git config core.hooksPath .githooks`
+— so the server `acf-json/` mirror runs on the colleague's commits too,
+even though the FTP user and `acf-json/` setup themselves stay
+`pending: Voll-Setup` on this track.
 
 ### Gate 2: `.env` Plus REST Test
 
@@ -124,10 +129,17 @@ Confluence anchor is an on-first-need gate. Record
 ### Gate 6: Playwright MCP Running
 
 Verify the Playwright MCP server as in `setup-local-project` Step 11:
-Node.js present, server entry in the untracked `.cursor/mcp.json`, browser
-tools listed after restart, and a short loop against the dev URL
-(navigate, snapshot, screenshot). Injection-proof verification — the proof
-mode of every ticket fix — depends on it. Record `playwright_mcp: ready`
+Node.js 18.17 or newer (blocker below), server entry in the untracked
+`.cursor/mcp.json` with the same template (`--isolated --browser=chromium`
+— in-memory profile, no `SingletonLock`, no "Browser is already in use"
+from orphaned Chromium processes), **manual server restart under
+`Settings` -> `Tools & MCP` after every `mcp.json` change and the check
+that the `playwright` namespace is back in the tool catalog** (a server
+missing after an edit is deregistered, not loading), and a short loop
+against the dev URL (navigate, snapshot, screenshot). Injection-proof
+verification — the proof mode of every ticket fix — depends on it; the
+availability check and troubleshooting for later runs live in the
+`playwright-browser-claim` Rule. Record `playwright_mcp: ready`
 (or `pending: <reason>`).
 
 ## On-First-Need Gates
@@ -149,10 +161,10 @@ part of ticket readiness: `weseo-git-installer` configuration, the
 read-only FTP user with `.ftpaccess`, ACF options REST exposure, the
 deploy-marker **file** `.wso-deployed-commit` (written by the installer,
 read by the status bridge — not a CSS class), the `css_setup` marker
-pass, the `docs/` layer generation (first `auto-docs` run, gate
-`docs_layer`), and the ACF Local JSON setup (`setup-acf-local-json`,
-gate `acf_local_json`). Record them as `pending: Voll-Setup` in
-`PROJECT-CONTEXT.md` and move on.
+pass, the ACF Local JSON setup (`setup-acf-local-json`, gate
+`acf_local_json`, including its pull-before-deploy hook), and — after it —
+the `docs/` layer generation (first `auto-docs` run, gate `docs_layer`).
+Record them as `pending: Voll-Setup` in `PROJECT-CONTEXT.md` and move on.
 
 ## Deploy Proof Without A Bridge
 

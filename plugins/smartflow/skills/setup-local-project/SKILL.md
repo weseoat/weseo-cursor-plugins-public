@@ -1,6 +1,6 @@
 ---
 name: setup-local-project
-description: Guided wizard for the complete first setup of a local SmartFlow workspace for a WESEO WordPress/WST project. Use when starting a new project, re-orienting a partially set up local workspace, cloning the wp-content-level repository, naming the folder after the server hostname, filling .env with the application password, configuring the weseo-git-installer deploy to the child theme from the live Confluence guide, creating the read-only FTP user with .ftpaccess, running the REST test, installing the status bridge, exposing post types, taxonomies, ACF field groups, and options pages over REST, configuring Playwright MCP, verifying that Atlassian MCP (community mcp-atlassian preflight, version 0.22.0 or newer) and Figma MCP are running, anchoring the project's Confluence page and mirroring its extract into PROJECT-CONTEXT.md, recording the current Motherboard hostname from the Erstinstallation Confluence guide as Cloned from, writing the css_setup pending marker for the later project-css-setup pass, running the first auto-docs pass to establish the project docs/ layer, setting up the ACF Local JSON workflow via setup-acf-local-json as the closing gates, or creating PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation.
+description: Guided wizard for the complete first setup of a local SmartFlow workspace for a WESEO WordPress/WST project. Use when starting a new project, re-orienting a partially set up local workspace, cloning the wp-content-level repository, naming the folder after the server hostname, filling .env with the application password, configuring the weseo-git-installer deploy to the child theme from the live Confluence guide, creating the read-only FTP user with .ftpaccess, running the REST test, installing the status bridge, exposing post types, taxonomies, ACF field groups, and options pages over REST, configuring Playwright MCP (isolated browser profile, restart-and-verify after every mcp.json change), verifying that Atlassian MCP (community mcp-atlassian preflight, version 0.22.0 or newer) and Figma MCP are running, anchoring the project's Confluence page and mirroring its extract into PROJECT-CONTEXT.md, recording the current Motherboard hostname from the Erstinstallation Confluence guide as Cloned from, writing the css_setup pending marker for the later project-css-setup pass, setting up the ACF Local JSON workflow via setup-acf-local-json and then running the first auto-docs pass to establish the project docs/ layer as the closing gates (in that order), or creating PROJECT-CONTEXT.md with deploy branch and bridge version. Successor to the legacy Remote-SSH setup-orientation.
 ---
 
 # Setup Local Project
@@ -111,6 +111,8 @@ Guide a colleague without any Atlassian MCP through this route: create an Atlass
 ```
 
 The user fills the token values themselves; `uvx` requires an installed `uv` (ask the user to install it if missing). Do not write Atlassian credentials, tokens, or cloud IDs into any tracked file, `.env`, chat, or `PROJECT-CONTEXT.md` — the user-level `mcp.json` env block is the only sanctioned token location. Record the observed server identifier, never secrets.
+
+**Every change to an `mcp.json` ends with a manual restart and a verification** (applies to Steps 5, 11, and 12 alike): Cursor takes a server out of the list after a configuration change and registers it again only after the user restarts it under `Settings` -> `Tools & MCP` (or restarts Cursor). Until the namespace appears again in the tool catalog (`GetDynamicTools`), the server counts as deregistered — not as "coming soon". Never end an `mcp.json` edit with "should work now".
 
 1. Probe the MCP catalog for any server whose name contains `atlassian`. Treat `needsAuth`, `error`, and `loading` as not ready. Classify a found server by type from its tool names: the community server exposes `confluence_search`, `confluence_get_page`, ...; an official Rovo server exposes `searchConfluenceUsingCql`, `getConfluencePage`, .... If the server is missing or broken, guide the user through the community install above, then restart or reconnect.
    - **Found Rovo server:** put the choice to the user **before** the health check — keep Rovo, or switch to the community `mcp-atlassian` >= 0.22.0 — with a one-sentence rationale (the community server carries the full Jira and Confluence tool surface including labels and attachments, and its version floor >= 0.22.0 reflects the audited security state; Rovo stays a functioning but limited read variant). Proceed with the chosen server; a switch follows the community install route above.
@@ -237,7 +239,7 @@ GET <site-url>/wp-json/wso/v1/options/wso-website-settings
 
 Playwright QA runs locally against the target URLs, so the local workspace needs Playwright MCP.
 
-1. Verify the local Node.js runtime: `node --version` (18.17+ required, LTS recommended), `npm --version`, `npx --version`. If missing, ask the user to install Node.js LTS and restart Cursor before continuing.
+1. Verify the local Node.js runtime: `node --version` (**18.17 or newer is a blocker** — below 18.17 do not continue; LTS recommended), `npm --version`, `npx --version`. If missing or too old, ask the user to install Node.js LTS and restart Cursor before continuing.
 2. Add the Playwright MCP server to the untracked `.cursor/mcp.json` in this workspace (keep existing entries):
 
 ```json
@@ -245,13 +247,14 @@ Playwright QA runs locally against the target URLs, so the local workspace needs
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": ["-y", "<playwright-mcp-package>"]
+      "args": ["-y", "<playwright-mcp-package>", "--isolated", "--browser=chromium"]
     }
   }
 }
 ```
 
-3. Ask the user to restart Cursor, then confirm the `playwright` server is active under `Settings` -> `Tools & MCP` and browser tools are listed.
+   `--isolated` keeps the browser profile in memory: no persistent profile under `.local-browsers/mcp-chromium`, no `SingletonLock`, and every server start is clean. Without it, a Chromium child process left over from an aborted chat or a parallel agent holds the lock of the fixed profile and every later call fails with "Browser is already in use … use --isolated". A persistent profile is right only when a project needs logged-in sessions — then use `--user-data-dir=<path>` **per workspace** and tell the user that orphaned processes can lock it (troubleshooting in the `playwright-browser-claim` Rule).
+3. **Restart and verify** (see the `mcp.json` rule in Step 5): the user restarts the server under `Settings` -> `Tools & MCP` (or Cursor); then confirm that the `playwright` namespace is back in the tool catalog and browser tools are listed. A server missing from the catalog after an edit is deregistered, not loading.
 4. Run a short verification loop: navigate to `<site-url>`, take a snapshot and a screenshot, switch viewport once.
 
 `.cursor/mcp.json` stays untracked; never add credentials, cookies, or session tokens to it or to tracked examples. Record `playwright_mcp: ready` (or `pending: <reason>` with next action) in `PROJECT-CONTEXT.md`.
@@ -262,7 +265,7 @@ Section and CPT work reads Figma through the Figma MCP, not through the browser.
 
 Do not write Figma credentials, OAuth tokens, or personal access tokens into `.cursor/mcp.json`, `.env`, chat, or `PROJECT-CONTEXT.md`. The official Cursor Figma plugin authenticates with OAuth. Prefer a **user-level** server so every project workspace inherits it; a project-level server whose name contains `figma` is also acceptable. Record the observed server identifier, never secrets, emails, or account handles.
 
-1. Probe the MCP catalog for any server whose name contains `figma` (covers `plugin-figma-figma`, `figma`, and similar). Treat `needsAuth`, `error`, and `loading` as not ready. If `needsAuth`, ask the user to complete OAuth under `Settings` -> `Tools & MCP`, then re-probe. If the server is missing, ask the user to add the official Figma Cursor plugin there (user-level) and restart or reconnect.
+1. Probe the MCP catalog for any server whose name contains `figma` (covers `plugin-figma-figma`, `figma`, and similar). Treat `needsAuth`, `error`, and `loading` as not ready. If `needsAuth`, ask the user to complete OAuth under `Settings` -> `Tools & MCP`, then re-probe. If the server is missing, ask the user to add the official Figma Cursor plugin there (user-level) and restart or reconnect — any `mcp.json` change ends with the manual restart and the catalog verification from Step 5.
 2. When the server is usable, discover the tool schema and run a cheap live read: `whoami` (no arguments). Do not call `get_design_context` or `use_figma` during setup — those need a file, skills, and are not a health check.
 3. Record in `PROJECT-CONTEXT.md`:
    - `figma_mcp: ready` when `whoami` succeeded, plus the server identifier. Do not copy the returned email, handle, or plan names.
@@ -290,33 +293,34 @@ Do not declare setup complete while this gate is unresolved unless the user choo
 - Credential environment variable names (`WSO_BRIDGE_USER`, `WSO_BRIDGE_APP_PASSWORD`, `WSO_FTP_USER`, `WSO_FTP_PASSWORD`) with purposes — names only, never values.
 - FTP host and the verified read-only status.
 - REST exposure state: post types and taxonomies with `show_in_rest`, REST-exposed ACF field groups, and the reachable options-page slugs under `wso/v1/options/` (or the open item).
-- `rest_access`, `rest_exposure`, `ftp_read_access`, `playwright_mcp`, `atlassian_mcp`, `confluence_anchor`, and `figma_mcp` gate statuses, plus the closing gates `docs_layer` and `acf_local_json` (Steps 14 and 15).
+- `rest_access`, `rest_exposure`, `ftp_read_access`, `playwright_mcp`, `atlassian_mcp`, `confluence_anchor`, and `figma_mcp` gate statuses, plus the closing gates `acf_local_json` and `docs_layer` (Steps 14 and 15, in that order).
 - Location of the project `docs/` layer and `tmp/` policy (gitignored scratch space).
 - Setup completion status per step (`done`, `pending: <reason>`, `skipped: <reason>`).
 
 Never store real tokens, application passwords, token-bearing URLs, or any secret values.
 
-## Step 14: Generate The Docs Layer (First auto-docs Run)
+## Step 14: Set Up ACF Local JSON
 
-The project `docs/` layer at the repository root is where every later Section and CPT work record lives; the SmartFlow workflow Skills read it first. Establish it now with a first run of the bundled `auto-docs` Skill:
+Move the project's ACF field definitions from database-only into the versioned Local JSON workflow now, while both preconditions from this wizard are in place: the status bridge (Step 9) and the read-only FTP user (Step 8). This step runs **before** the docs layer on purpose: `auto-docs` documents field groups and field tables from `acf-json/`; without the folder the first docs run writes `unbekannt` fields and a `field-groups/` `todo` that a second full run would have to repair. The dependency points one way only — the ACF setup needs bridge and FTP, never the docs.
 
-1. Run `auto-docs` as a full run: build the target inventory from the repo, generate the missing docs (sections, elements, post-types, field-groups, coding-standard) with README indexes, one worker subagent per element per that Skill.
-2. When the project uses an allowlist `.gitignore`, make sure `docs/` is fully released (`!/docs/`, `!/docs/**`).
-3. On a fresh Motherboard clone the inventory is mostly master content — that is fine: the run documents what exists, and later Section/CPT builds keep the layer current through the auto-docs auto-trigger. Element docs may be deferred to a marked follow-up run when the user prefers a short first pass; record that in the gate reason.
-
-Record `docs_layer: done` (or `pending: <reason>` with the next action) in `PROJECT-CONTEXT.md`.
-
-## Step 15: Set Up ACF Local JSON
-
-Move the project's ACF field definitions from database-only into the versioned Local JSON workflow now, while both preconditions from this wizard are in place: the status bridge (Step 9) and the read-only FTP user (Step 8).
-
-Route to the bundled `setup-acf-local-json` Skill: bridge inventory of the participant groups, `acf-json/` in the child theme, seed from the user-driven admin export, the ACF Extended autosync opt-in fix, empirical write-format determination at the first admin save, both-direction proofs, and the FTP-plus-bridge acceptance. That Skill carries its own commit-and-hand-over stops per the `deploy-and-branches` Rule.
+Route to the bundled `setup-acf-local-json` Skill: bridge inventory of the participant groups, `acf-json/` in the child theme, seed from the user-driven admin export, the ACF Extended autosync opt-in fix, empirical write-format determination at the first admin save, both-direction proofs, the FTP-plus-bridge acceptance, and the pull-before-deploy pre-commit hook. That Skill carries its own commit-and-hand-over stops per the `deploy-and-branches` Rule. The colleague's admin steps (collective sync, one unchanged save) are handed over with the fixed text from "Admin Sync — Hand-Over Text For Colleagues" in the `acf-local-json` Rule — that block is the hand-over artifact, not an improvised chat explanation.
 
 Record the gate in `PROJECT-CONTEXT.md`:
 
 - `acf_local_json: done` — acceptance reached (the bridge lists every participant group as `local: "json"`).
 - `acf_local_json: pending: Export fehlt` (or another concrete reason with the next action) when the run cannot finish yet.
 - `acf_local_json: skipped: <reason>` only after an explicit user decision — never silently.
+
+## Step 15: Generate The Docs Layer (First auto-docs Run)
+
+The project `docs/` layer at the repository root is where every later Section and CPT work record lives; the SmartFlow workflow Skills read it first. Establish it now with a first run of the bundled `auto-docs` Skill — with `acf-json/` from Step 14 in place, the run writes `field-groups/` and the field tables of every Section and CPT doc completely instead of `unbekannt` markers:
+
+1. Run `auto-docs` as a full run: build the target inventory from the repo, generate the missing docs (sections, elements, post-types, field-groups, coding-standard) with README indexes, one worker subagent per element per that Skill.
+2. When the project uses an allowlist `.gitignore`, make sure `docs/` is fully released (`!/docs/`, `!/docs/**`).
+3. On a fresh Motherboard clone the inventory is mostly master content — that is fine: the run documents what exists, and later Section/CPT builds keep the layer current through the auto-docs auto-trigger. Element docs may be deferred to a marked follow-up run when the user prefers a short first pass; record that in the gate reason.
+4. **Fallback when Step 14 ended `pending` or `skipped`:** run `auto-docs` anyway, but record the gate as `docs_layer: done (field-groups pending: rerun auto-docs after acf_local_json)` — `auto-docs` writes the `unbekannt` markers and announces the follow-up run in the README index instead of documenting the gap as final. Projects set up before this ordering resolve their `unbekannt` fields with one second `/auto-docs` run after the JSON setup; nothing else is needed.
+
+Record `docs_layer: done` (or `pending: <reason>` with the next action) in `PROJECT-CONTEXT.md`.
 
 ## Final Verification
 
@@ -332,11 +336,11 @@ Walk the gates once more and confirm each has a recorded outcome:
 - [ ] Read-only FTP user created from the Confluence guide found this run (`ftp_guide` recorded) and verified over FTPS: read works, write denied by `.ftpaccess`.
 - [ ] Status bridge installed and bridge-verified after the first deploy (`bridge_version` and `deployed_commit` match).
 - [ ] REST exposure done: relevant post types, taxonomies, and ACF field groups reachable over REST; options-page endpoints probed and installed if needed.
-- [ ] Playwright MCP ready, verification loop done.
+- [ ] Playwright MCP ready (`--isolated` template, server re-registered after the `mcp.json` change), verification loop done.
 - [ ] Figma MCP running: server identifier recorded, `whoami` succeeded.
 - [ ] `Cloned from` recorded from the current Motherboard hostname on the Erstinstallation Confluence page (not user-supplied); `css_setup: pending` marker written, with the `project-css-setup` pointer for the pass shortly before the first Section.
-- [ ] Docs layer established: first `auto-docs` run done (`docs_layer: done`), or `pending` with reason and next action.
-- [ ] ACF Local JSON workflow set up over `setup-acf-local-json` (`acf_local_json: done`), or `pending`/`skipped` recorded by explicit user decision.
+- [ ] ACF Local JSON workflow set up over `setup-acf-local-json` (`acf_local_json: done`, pull hook active), or `pending`/`skipped` recorded by explicit user decision.
+- [ ] Docs layer established after the ACF setup: first `auto-docs` run done (`docs_layer: done`), or `pending` with reason and next action, or `done (field-groups pending: …)` when the ACF gate was open.
 - [ ] `PROJECT-CONTEXT.md` complete, including deploy branch and bridge version.
 
 If a required gate is unresolved, ask the user whether to fix it now, consciously record it as `pending` with reason and next action, or stop. Do not declare setup complete while required gates are unresolved. End with a short German summary: what the project is ready for now, and which points remain open.

@@ -1,13 +1,29 @@
 ---
-description: Claim/release protocol for parallel Playwright MCP browsers (playwright-a/b/c)
+description: Playwright MCP browser availability for every browser use — availability check before the first call, troubleshooting for deregistered servers, locked profiles (SingletonLock), and transient Cursor tool errors, no silent substitute browser — plus the claim/release protocol for parallel servers (playwright-a/b/c)
 alwaysApply: true
 ---
 
-# Playwright Browser Claim/Release
+# Playwright Browser Availability And Claim/Release
 
-Use this Rule before any Playwright MCP browser tool use in a workspace that runs **multiple parallel Playwright MCP servers** (`playwright-a`, `playwright-b`, `playwright-c`, each with its own persistent browser profile). Multiple agents may work at the same time, so before ANY browser tool use you MUST claim exactly one server via the lock directory `.cursor/pw-locks/`.
+Use this Rule before any Playwright MCP browser tool use in a SmartFlow workspace — inside the CSS QA Skills, in the `jira-ticket-runner`, and in ad-hoc browser checks alike. It has two parts: the availability check and troubleshooting that apply to **every** setup (single server included), and the claim/release protocol that applies only when the workspace runs **multiple parallel Playwright MCP servers**.
 
-If the workspace configures only one Playwright MCP server, this protocol is inert — use that server directly.
+## Availability Check And Troubleshooting (single server too)
+
+Before the first browser tool call of a run:
+
+1. **Namespace check.** Look the Playwright namespace up with `GetDynamicTools` (pattern `playwright`). If it is absent from the catalog — not `needsAuth`, not `error`, simply missing — the server is **deregistered**. This is the normal state after any edit of `.cursor/mcp.json`: Cursor drops the server and re-registers it only after a manual restart under `Settings` -> `Tools & MCP`. Report exactly that („Playwright-Server ist deregistriert — bitte unter Settings → Tools & MCP neu starten") and wait; do not treat it as "loading", and do not fall back to another browser.
+2. **"Browser is already in use" / `SingletonLock`.** The default persistent profile (`.local-browsers/mcp-chromium/`) holds a `SingletonLock -> <host>-<pid>` while a Chromium runs. When a launch fails with this message: read the PID from the lock, check whether that process still exists and whether it belongs to a live server. An orphaned Chromium (left by an aborted chat or a parallel agent) is the usual cause. Ending a process is a state-changing action: present the evidence (PID, start time, parent) and ask the user before killing it or restarting the server. The durable fix is the `--isolated` profile from `setup-local-project` Step 11 — in-memory profile, no lock file, every server start clean.
+3. **Transient Cursor tool errors.** `Timeout waiting for bubble creation` / `Failed to find tool call context` — even when shown as `User rejected MCP: …` — is a technical Cursor error, not a user decision. Retry the identical call up to two times with a short pause; only then report it. Do not open a question round for it.
+4. **No substitute browser.** `cursor-ide-browser`, manual inspection, pasted screenshots, DevTools output, and Chrome Local Overrides never replace Playwright MCP for proof or verification (the "No substitute browser" section of `frontend-section-qa` / `cpt-frontend-qa` stays authoritative). A read-only diagnostic look through another browser is documented as such and sets no `pass`.
+5. **Node floor.** Playwright MCP needs Node 18.17 or newer; below that, stop and route to `setup-local-project` Step 11 instead of debugging launch failures.
+
+Repair beyond this ladder is `setup-local-project` Step 11 (or `setup-ticket-ready` Gate 6). Every `mcp.json` change ends with the restart **and** a repeated namespace check.
+
+## Claim/Release For Parallel Servers
+
+The rest of this Rule applies when the workspace runs **multiple parallel Playwright MCP servers** (`playwright-a`, `playwright-b`, `playwright-c`, each with its own persistent browser profile). Multiple agents may work at the same time, so before ANY browser tool use you MUST claim exactly one server via the lock directory `.cursor/pw-locks/`.
+
+If the workspace configures only one Playwright MCP server, the claim protocol is inert — use that server directly after the availability check above.
 
 ## Claim (Before The First Browser Tool Call)
 

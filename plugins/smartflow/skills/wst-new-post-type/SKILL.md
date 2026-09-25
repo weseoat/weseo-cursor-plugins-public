@@ -145,13 +145,13 @@ New WST CPT Foundation:
 - [ ] Content model recorded (typed-only | flexible-content-only | hybrid | not-applicable), maintainer-confirmed
 - [ ] Prepare CPT registration apply-spec for the user (CPT UI)
 - [ ] Prepare taxonomy apply-spec if needed (wordpress-taxonomies Rule)
-- [ ] Create the ACF JSON field group for CPT fields (plus the Flexible Content clone field for hybrid / flexible-content-only)
+- [ ] Create the ACF JSON field group for CPT fields (plus the Flexible Content clone field for hybrid / flexible-content-only); modified = real current UTC epoch, never in the future; variant switches on clones follow the tab pattern (acf-local-json Rule)
 - [ ] Prepare WP Grid Builder card and grid apply-spec (wpgb-specialist under orchestration)
-- [ ] Create card template foundation (four-source proof for new shortcode forms)
+- [ ] Create card template foundation (four-source proof for new shortcode forms, per nesting context; "proven except runtime" named in the deploy hand-over)
 - [ ] Create optional single template foundation
 - [ ] Prepare Smart Template assignment apply-spec when detail pages exist (single rendering path)
 - [ ] Document CSS hooks and CSS path in the work record (no CSS from this Skill)
-- [ ] Deploy pass: commit with trailer, HARD STOP, user pushes, bridge-verify deployed_commit
+- [ ] Deploy pass: pull-before-deploy (hook or manual, modified guard), commit with trailer, HARD STOP, user pushes, bridge-verify deployed_commit; hand over the admin sync text
 - [ ] User applies CPT UI / taxonomy / WPGB / Smart Template apply-specs in the admin
 - [ ] Flush permalinks through the bridge after registration; flush caches after template/field changes
 - [ ] Served verification
@@ -193,7 +193,7 @@ Add a taxonomy only when the content model requires grouping, filtering, admin c
 
 ### 4.4 Create the ACF JSON field group
 
-Create one JSON group file under `themes/<child-theme>/acf-json/` (named per the installation's filename convention from `PROJECT-CONTEXT.md`) whose location rule targets the new CPT, per the `acf-local-json` Rule: fresh stable `group_`/`field_` keys, the ACFE autosync opt-in containing `"json"` (nested `acfe.autosync` by default, or the shape `PROJECT-CONTEXT.md` records), and a `modified` timestamp so the admin offers the sync. See `reference.md` for the shape. If the project has no `acf-json/` setup yet, run the bundled `setup-acf-local-json` Skill first.
+Create one JSON group file under `themes/<child-theme>/acf-json/` (named per the installation's filename convention from `PROJECT-CONTEXT.md`) whose location rule targets the new CPT, per the `acf-local-json` Rule: fresh stable `group_`/`field_` keys, the ACFE autosync opt-in containing `"json"` (nested `acfe.autosync` by default, or the shape `PROJECT-CONTEXT.md` records), and `modified` = the real current UTC epoch from a command (never estimated, never in the future — Rule 3) so the admin offers the sync once. See `reference.md` for the shape. If the project has no `acf-json/` setup yet, run the bundled `setup-acf-local-json` Skill first. CPT groups clone the same `[TMPL]` sources as Sections: a variant switch that should hide a clone follows the clone/tab pattern of the `acf-local-json` Rule (no `conditional_logic` on seamless clones; local tab in exclusion form; source field keys without the source tab — JSON shape in `wst-section-workflow/reference.md`), and the editor effect is reported as `implementation pass, backend check by colleague pending`.
 
 Recommended structure: a tab field for admin organization, content fields specific to the CPT, optional tabs for complex CPTs. Field names always carry the `wso_<resource>_` prefix per the `acf-local-json` Rule: a salary field on a Job CPT is `wso_job_salary`, never `job_salary` or `salary`. Prefer core post title, thumbnail, editor, excerpt, and taxonomy terms before duplicating data in ACF fields.
 
@@ -282,7 +282,7 @@ When the project requires a new CSS file or style loader entry, record that requ
 
 ## 6. Deploy, flush, and verify
 
-Bundle everything deploy-needing into one pass (`deploy-and-branches` Rule): card/single templates, ACF JSON group, Section integrations, work record. Before committing, pull the complete `acf-json/` listing from the server over read-only FTP (`acf-local-json` Rule, pull-before-deploy). Commit with the `Made with: SmartFlow` trailer, HARD STOP, the user pushes, then verify `deployed_commit` over the status bridge with the bounded retry budget. When the pass changed ACF JSON, hand over for the human sync in the admin — structural field changes are not live before that click.
+Bundle everything deploy-needing into one pass (`deploy-and-branches` Rule): card/single templates, ACF JSON group, Section integrations, work record. Before committing, pull-before-deploy runs: the pre-commit hook (`acf_json_pull_hook: active`) mirrors the server `acf-json/` and stops on a future `modified`; without the hook, pull the complete listing over read-only FTP manually and check `modified` yourself (`acf-local-json` Rule 1). Commit with the `Made with: SmartFlow` trailer, HARD STOP, the user pushes — the hand-over names every `proven except runtime (<context>)` shortcode form as a runtime risk to check on the first deploy — then verify `deployed_commit` over the status bridge with the bounded retry budget. When the pass changed ACF JSON, hand over for the human sync with the fixed text from "Admin Sync — Hand-Over Text For Colleagues" in the `acf-local-json` Rule — structural field changes are not live before that click.
 
 After the deploy, the sync, and the admin apply-specs are done:
 
