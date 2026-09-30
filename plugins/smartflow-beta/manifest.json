@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "smartflow-beta",
   "displayName": "SmartFlow (Beta)",
-  "version": "1.6.0",
+  "version": "1.7.0-beta.1",
   "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
   "assumptions": [
     "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
@@ -306,6 +306,12 @@
       "path": "skills/sync-project-brief/SKILL.md",
       "source": "docs/confluence-integration-plan.md (grill-me decision log 2026-08-25, decision 4)",
       "description": "Refresh the local mirror of the project's anchored Confluence page on demand: re-read the anchored PL page over the Atlassian MCP, extract per the confluence-source Rule, show a compact impact-grouped diff against the Confluence mirror block in PROJECT-CONTEXT.md (naming affected work records), and overwrite only after user confirmation - never silently, never mid-work. Anchors the page as part of the run when setup never recorded one; secrets become placeholders plus pointer; runs in the main chat by design."
+    },
+    {
+      "name": "code-cleanup",
+      "path": "skills/code-cleanup/SKILL.md",
+      "source": "Web research 2026-09-25 (WordPress coding standards and WPCS 3.4.x, stylelint 17, ACF escaping and Local JSON hygiene, Astra child-theme references, 10up/Human Made/VIP standards, Anthropic /simplify and code-simplifier, community clean-ai-slop and remove-ai-slops, Tidy First?, Fowler, Google small CLs, GitClear 2025/2026 reports, Cursor hooks and Automations docs)",
+      "description": "Recurring, behavior-preserving cleanup pass over child-theme code: WST PHP templates and partials, section and CPT CSS/SCSS, theme snippets (audit always, edit only with the file-edit-boundary confirmation), and ACF Local JSON as audit only. Three modes - post-run on the files a Section, CPT, or ticket run just touched, recurring (weekly, scope = everything since the last cleanup/<date> tag plus the top-3 90-day hotspots), scoped on a named Section, CPT, or file. Six ordered passes from safest to riskiest (format, leftovers, comments and filler, conventions, duplication via the deletion ladder, simplification), each applied only after a proof baseline (Playwright screenshots at the QA rungs plus injection-proof for CSS, normalized HTML snapshots for templates), verified, scope-checked with git diff --stat, and committed on its own (cleanup(<pass>): ...) - through a per-run cleanup commit mandate asked at intake (default no) or individual proposals. Conventions come from docs/coding-standard/ first, the bundled Rules second, the WordPress handbook as default; a documented project deviation is never a finding. Hard rules: behavior preserved, scope locked, skip when in doubt, never renames of wso- hooks, ACF names, functions, or files, never new abstractions, never functions.php; budget of 5 judgment findings per run with the rest deferred. Optional tooling ladder (phpcs/WPCS 3.4.x pinned to PHPCS 3.13, stylelint 17, editorconfig-checker, acf-lint) detected but never installed inside a run; optional staged-files pre-commit check chained with the ACF pull hook. Closes with the deploy hand-over and bridge check, a local cleanup/<date> tag as the next scope anchor, the docs/cleanup-log.md ledger (deferred, rejected, recurring), and a convention proposal when a finding recurs three times. Runs in the main chat by design (per-finding decisions); read-only audits of large scopes may go to generic worker subagents."
     }
   ],
   "agents": [
@@ -347,5 +353,5 @@
     }
   ],
   "commands": [],
-  "releaseNotes": "release-notes/1.6.0.md"
+  "releaseNotes": "release-notes/1.7.0-beta.1.md"
 }
