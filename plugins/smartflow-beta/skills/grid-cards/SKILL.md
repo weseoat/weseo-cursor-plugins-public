@@ -1,6 +1,6 @@
 ---
 name: grid-cards
-description: Author WST grid-card templates for WP Grid Builder under smart-template-builder/post-types/<resource>/cards/ in the child theme. Core rule: every wst_ shortcode that reads a field from the database needs id='{{post_id}}'. Use when creating new CPT cards or WPGB card templates, remodeling cards, or when grid cards render empty or missing ACF values.
+description: "Author WST grid-card templates for WP Grid Builder under smart-template-builder/post-types/<resource>/cards/ in the child theme. Core rule: every wst_ shortcode that reads a field from the database needs id='{{post_id}}'. Use when creating new CPT cards or WPGB card templates, remodeling cards, or when grid cards render empty or missing ACF values."
 ---
 
 # Grid Cards
