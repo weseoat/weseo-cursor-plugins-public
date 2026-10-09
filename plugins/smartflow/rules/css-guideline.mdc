@@ -75,6 +75,11 @@ Never hardcode project values when a token exists. If the token is missing, add 
 Follow existing WST and Astra selector style:
 
 - Use stable `wso-` classes from the work record as the primary hooks.
+- If `PROJECT-CONTEXT.md` or the project's documented coding standards explicitly require a conflicting naming convention, resolve that conflict with the user before introducing new class names. Do not silently override the project requirement or infer an exception from an isolated legacy class.
+- For new project-owned `wso-` classes, use lowercase words separated by single hyphens: `wso-<component>`, `wso-<component>-<part>`, and `wso-<component>-<modifier>`. For example, `wso-feature-card`, `wso-feature-card-title`, and `wso-feature-card-highlight` illustrate the pattern.
+- Apply a modifier as an additional class on the same element, retaining its base class: `class="wso-feature-card wso-feature-card-highlight"`.
+- Do not introduce BEM `__` or `--` separators in new `wso-` class names. This naming convention does not affect CSS custom properties: their `--` prefix stays unchanged.
+- Preserve existing stable hooks, legacy classes, and third-party classes even when they use another naming pattern. Renaming them is a separate change that must cover their template, script, style, and QA consumers.
 - Preserve selectors that templates, scripts, or Playwright checks rely on.
 - Preserve WP Grid Builder wrapper, grid, card, filter, and pagination selectors named in a CPT work record.
 - Keep specificity as low as the theme allows.

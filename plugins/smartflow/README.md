@@ -13,9 +13,13 @@ Installing `smartflow` (or `smartflow-beta`) replaces the complete legacy set:
 
 ## Status
 
-Wave 1 in progress. The package structure, manifest, beta twin, status bridge (`status-bridge` Rule plus `install-status-bridge` Skill), the migrated rules layer, the five package Agents (with orchestrator/handoff practices in `agent-routing`), the setup and migration Skills (`setup-local-project` — including the absorbed legacy `setup-wordpress-cursor` REST exposure and options endpoints — and `migrate-ssh-to-local`), the WST workflow Skills (`wst-section-workflow`, `wst-new-post-type`, `section-preview-harness`, `wst-shortcodes` with the bundled `SMART-TEMPLATE-HILFE.md` catalog snapshot), the topic Skills from the cursor.zip deltas (`grid-cards`, `wst-nested-shortcodes`, `smarttags`, `headline-filling` — the 159 per-shortcode catalog skills from the zip are deliberately discarded), the frontend QA Skills (`frontend-section-qa`, `cpt-frontend-qa` with injection-proof as the main mode and the one-time bridge-verified served check, plus the REST-based `wp-media-import`), the `content` Skill for REST content edits (from the zip `/content` command), and the documentation layer (`auto-docs`, `cpt-docs` — the docs/ work records absorb the legacy handoffs, including the Visual QA Targets matrix) exist. Slash entry points are the Skills; the Commands folder stays empty by decision. Wave 2 is ported (0.9.0-beta.1): `figma-page-builder`, `jira-ticket-workflow`, and `jira-batch-workflow` with the sixth agent `jira-ticket-runner`, adapted to the SmartFlow model (REST content writes, status-bridge flushes, docs-layer work records, commit-and-hand-over). The three deterministic QA tools from the `Tests/` prototype are deliberately not ported.
+Stable `smartflow` 1.7.0 contains 24 Rules, 26 Skills, and 6 Agents for Cursor, Claude Code, and Codex. Cursor packages are published through the public distribution repository; the native Claude Code and Codex marketplaces remain in the private maintainer repository. The generated targets and installer share one authored source.
+
+`smartflow-beta` 1.8.0-beta.1 adds the `code-cleanup` Skill (27 Skills total). The entire cleanup workflow, including structured intake and comment policy, remains in the test phase and is excluded from production 1.7.0. Slash entry points are Skills; the Commands folder remains empty.
 
 ## Package Layout
+
+The package includes the theme-scoped `prefer-generic-over-custom` Rule: reuse existing elements, styles, and tokens while preserving the requested design. New project-owned `wso-` class names follow the centralized `css-guideline` convention; existing hooks remain stable.
 
 ```text
 plugins/smartflow/
@@ -38,4 +42,4 @@ python scripts/manage-beta.py refresh smartflow
 python scripts/manage-beta.py promote smartflow --release <version>
 ```
 
-Edit in-flight changes only in `plugins/smartflow-beta/`; the production folder changes only through `promote`. The stable half is initially not added to the frontend Team Access group in the Cursor dashboard; testers work with `smartflow-beta` until the migration is validated.
+Edit in-flight changes only in `plugins/smartflow-beta/`; the production folder changes through promotion. For a selective release that retains beta-only work, use an isolated staging copy as documented in `docs/beta-channel.md`: the commands above replace the beta tree and must not run against the active cleanup beta unchanged. Run exactly one channel in each workspace.

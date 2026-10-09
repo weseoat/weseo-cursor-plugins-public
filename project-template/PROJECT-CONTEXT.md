@@ -24,9 +24,6 @@ This file is the project-local source of truth for site-specific SmartFlow facts
 | docs_layer | `pending` |
 | section-preview-pages | `<active | declined | absent — written by section-preview-harness>` |
 | ftp_guide | `<confluence-page-id — url — title, as found by setup-local-project Step 8>` |
-| cleanup_tooling | `none` |
-| cleanup_hook | `none` |
-| cleanup_last_tag | `<cleanup/YYYY-MM-DD — written by code-cleanup at the end of a run>` |
 
 Every project starts as a clone of a fully loaded master installation (team name: Motherboard), so the theme initially carries the master's CSS values. `setup-local-project` reads the current Motherboard hostname from the team's Erstinstallation Confluence page and writes it as `Cloned from` — it does not ask the user for a name — then writes `css_setup: pending`; the `project-css-setup` Skill reconciles the values with this project's design and flips the marker to `reconciled (<date>)`. The closing gates run in this order: `acf_local_json` (`setup-acf-local-json`, `done | pending: <reason> | skipped: <reason>` — `skipped` only by explicit user decision; `acf_json_pull_hook: active` once the pre-commit hook is installed) first, then `docs_layer` (first `auto-docs` run, `done | pending: <reason> | done (field-groups pending: rerun auto-docs after acf_local_json)`) — `setup-local-project` Steps 14 and 15; the `setup-ticket-ready` lite track leaves them `pending: Voll-Setup`. Per-block status for that pass (values: `pending | in-progress | done (<date>) | skipped: <reason>`):
 
@@ -36,6 +33,16 @@ css_setup_fonts: pending
 css_setup_colors: pending
 css_setup_buttons: pending
 ```
+
+### Optional Cleanup Markers — Beta Only
+
+These markers apply only when the project deliberately uses `smartflow-beta` with the experimental `code-cleanup` Skill (active test channel 1.8.0-beta.1). Stable `smartflow` 1.7.0 does not include that Skill and does not require these markers. They neither enable cleanup nor grant a commit mandate. Keep existing project values when switching channels; do not treat unused markers as an instruction to delete project history.
+
+| Field | Value |
+|-------|-------|
+| cleanup_tooling | `none` |
+| cleanup_hook | `none` |
+| cleanup_last_tag | `<cleanup/YYYY-MM-DD — written by the beta-only code-cleanup Skill at the end of a run>` |
 
 ## Environment
 

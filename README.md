@@ -6,9 +6,11 @@ This repository is a **generated artifact**. It is produced from the private WES
 
 ## Plugins
 
-- `plugins/wordpress-server-ops` - server-phase guidance for safe Cursor Remote-SSH work in WordPress and WST projects.
-- `plugins/wst-builder` - WST Flexible Content Section and Custom Post Type foundation workflows.
-- `plugins/frontend-design-qa` - local frontend implementation guidance for CSS, Figma-to-code, and Playwright-oriented QA.
+- `plugins/smartflow` - stable 1.7.0: the complete WordPress/WST workflow with 24 Rules, 26 Skills, and 6 Agents.
+- `plugins/smartflow-beta` - test channel 1.8.0-beta.1: the stable workflow plus the `code-cleanup` Skill (27 Skills). Cleanup and its intake/comment policy remain in testing and are excluded from production.
+- `plugins/wordpress-server-ops`, `plugins/wst-builder`, and `plugins/frontend-design-qa` are frozen legacy packages. SmartFlow replaces these packages and their former beta twins.
+
+Install either SmartFlow stable or beta, never both, and remove the six legacy packages when switching. Native Claude Code and Codex packages are distributed through the private team repository; this public repository remains the Cursor distribution endpoint.
 
 ## How to install
 

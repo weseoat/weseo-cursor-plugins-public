@@ -23,7 +23,7 @@ Decide which reader you are before anything else (`runner-gate` Rule):
 1. Ensure the CPT work record exists (or create the visual-only minimal record — allowed in the main chat, see "Required Starting Point").
 2. Spawn exactly one `cpt-visual-implementer` **per surface** (card, grid/archive, filter/carousel, single) with: this Skill's name, the surface, the work-record path, the CSS/SCSS file scope for that surface, the proof mode (injection-proof), the QA profile from the record, and — on a resume after a context break — the current state of any half-finished CSS file as input.
 3. Stop until the runner returns (fixed return format, `OPEN DECISION` for hard stops).
-4. Integrate the return, then run the deploy pass, bridge verification, served check, and commit gate (Sections 4–7 stay with the main chat; runners never commit).
+4. Integrate the return. For missing target markup, follow "Main-chat recovery for missing markup" before resuming the same runner. The deploy pass, bridge verification, served check, and commit gate also stay with the main chat (Sections 4–7; runners never commit).
 
 Non-reasons for executing here instead: the Skill text is already loaded; Figma or DOM material is already in context; the task is "nur Styling" or small; discovery or `content` work already happened; a continuation summary describes a half-finished CSS file. Before the first CSS/SCSS write or the first Playwright call: not the runner → stop and spawn.
 
@@ -43,6 +43,7 @@ The contract is the CPT work record in the project docs layer (default `docs/pos
 - `browser access`: `ready`, `degraded: <broken-tool>-fallback-evaluate`, or `blocked: <reason>`.
 - `mcp tool defect`: empty, or a short tag plus reason.
 - `injection proof` (per surface: card, grid/archive, filter/carousel, single): `pending`, `pass`, `pass-degraded`, `fail`, or `blocked: <reason>`.
+- `markup cache recovery` (per surface, main-chat-owned): `not-attempted` or `attempted`, with attempt time and outcome (`confirmed`, `failed`, or `unknown`). Preserve this evidence across resumes of the same missing-markup incident.
 - `deploy state`: `not-committed`, `committed-awaiting-push`, `bridge-verified: <commit-hash>`, or `aborted: hash-mismatch`.
 - `served check`: `pending`, `pass`, `pass-degraded`, `fail: <symptom>`, or `blocked: <reason>`.
 - `final status`: `implementation-pass-pending-deploy`, `final-bridge-verified-pass`, `final-bridge-verified-pass-degraded`, or `blocked`.
@@ -92,6 +93,7 @@ Runner (cpt-visual-implementer):
 - [ ] Playwright MCP preflight and Capability Probe on display URL and single URL when applicable
 - [ ] Confirm browser access, or stop and ask for login/access
 - [ ] Confirm display target, selectors, and detail-page decision from the work record
+- [ ] Pass the authentic DOM gate on the served target URL before injecting CSS; missing required markup blocks that surface
 - [ ] Re-read the Figma/source design (card, grid, filter, single frames)
 - [ ] Inspect existing CPT, card, grid, and theme CSS/SCSS patterns
 - [ ] Browser QA loop: real DOM, matched and computed styles per surface
@@ -120,9 +122,19 @@ Keep the work inside project-approved frontend paths (`file-edit-boundary` Rule)
 
 Work against the served pages, which render the last bridge-verified deployed commit. Scope checks to the target display's chunk and never anchor on HTML comments (minifiers strip them).
 
+### Authentic DOM Gate
+
+Before CSS injection or a proof result, confirm that the assigned surface exists in the actual WordPress/WST/WPGB output at the work record's target URL. Record the resolved URL, required stable selectors, observed match counts, and a DOM snapshot before injection. Use a bounded readiness check for asynchronously rendered output before declaring it missing. Check the required wrapper, card, or single markup for this surface and the expected counts for the current state; a successful navigation or screenshot alone does not pass this gate. A legitimate empty filter result may have zero cards while its grid and controls remain present; it cannot prove the styling of absent cards.
+
+If required markup is missing, record `injection proof: blocked: target-markup-missing` for this surface, with the URL, selectors, expected and observed DOM. Return `STATUS: blocked`, the evidence, `OPEN DECISION: target markup missing; main-chat recovery or foundation/deploy correction required`, and `NEXT OWNER: main chat`. The runner never flushes caches or changes the aggregate `final status` for this finding. A known pending single-template assignment instead keeps `smart-template-assignment-pending` and the admin hand-over in Section 3; do not request speculative cache recovery for that known cause.
+
+Never insert, reconstruct, or replace target markup to make this gate pass. A mock DOM, synthetic card/grid/single, local HTML copy, or intercepted replacement response cannot prove the served surface. Clearly marked interim shims and exploratory previews remain diagnostic-only where required markup is missing and never earn `pass` or `pass-degraded`. Injecting CSS into the authentic served DOM remains the intended proof mode; it does not prove that those styles are deployed.
+
+### Core Loop
+
 Core loop (display URL; repeat the proof on the single URL when single rules are in scope):
 
-1. Navigate and snapshot to confirm the page rendered; locate the grid, carousel, archive, or Section wrapper by the stable selector; assert the expected card selector is visible or matches the expected count.
+1. Navigate and snapshot to confirm the page rendered; pass the authentic DOM gate for the grid, carousel, archive, Section wrapper, or single and its required child selectors. Repeat the gate after navigation or reload.
 2. Capture matched and computed styles for the elements the planned rules target; note theme, WPGB, or plugin selectors that compete.
 3. Compose the planned rules in their tracked-file form and inject them through Playwright MCP or CDP; re-read computed styles; confirm the rules win the cascade, adjusting minimally per the `css-guideline` Rule. `!important` only when the theme, WPGB, or plugin pattern leaves no better option.
 4. Once the proof passes for a surface, write the tracked CSS/SCSS for that surface and set its `injection proof: pass`:
@@ -137,17 +149,24 @@ If a visual decision requires a new project token or shared card pattern, record
 
 ## 3. Server, Markup, CPT, ACF, WST, Or WPGB Discrepancies
 
-If browser QA shows a problem CSS cannot legitimately fix, hard stop for that finding: record the defect (URL, selector, expected DOM, observed DOM, console or PHP symptom) as a server blocker in the work record, at most add a clearly marked interim shim, and route back to `wst-new-post-type` for CPT/taxonomy/ACF/WPGB foundation issues or `wst-section-workflow` for Section-level WST/ACF issues. Ask the user for OK before another workflow starts. This is the normal path, not an escalation.
+If browser QA shows a problem CSS cannot legitimately fix, hard stop for that finding: record the defect (URL, selector, expected DOM, observed DOM, console or PHP symptom) as a server blocker in the work record, at most add a clearly marked interim CSS shim against existing markup, and route back to `wst-new-post-type` for CPT/taxonomy/ACF/WPGB foundation issues or `wst-section-workflow` for Section-level WST/ACF issues. A shim cannot replace required served markup or clear its blocked proof status. Ask the user for OK before another workflow starts. This is the normal path, not an escalation.
 
 Known non-bug on single URLs: when the CPT single URL renders only the generic theme output and the expected single selector (usually `.wso-<resource>-single`) is absent, the Smart Template assignment for the CPT single view is missing or incomplete (see `wst-new-post-type`, single template foundation) — WST projects never render single partials through the WordPress template hierarchy. That is a pending admin step, not a CSS or template defect: do not start a debugging round; record `injection proof: blocked: smart-template-assignment-pending` for the single surface, hand over to the user with the assignment apply-spec reference, and continue with the other surfaces.
 
-Stale markup, rendered data, generated CSS, WPGB output, or cache state is recorded with URL, selector, expected and observed result; cache flushes go through the bridge (`POST /flush-cache`), not through server commands.
+Stale markup, rendered data, generated CSS, WPGB output, or cache state is recorded with URL, selector, expected and observed result. Cache recovery belongs to the main chat below; runners never flush caches.
 
 ---
 
 ## Main chat again: deploy pass, verification, close
 
 The runner ends after Section 3 with its return format. Sections 4–7 are the main chat's job.
+
+### Main-chat recovery for missing markup
+
+1. Integrate the blocked return without granting a proof result. Set aggregate `final status: blocked` while any in-scope surface remains blocked; a successful sibling must not clear that finding. Other surfaces may continue independently through their assigned runners. Keep known `smart-template-assignment-pending` cases on their existing admin path.
+2. Read this surface's `markup cache recovery` evidence. At most one cache POST is allowed for the same missing-markup incident, including across interruptions and resumes. Do not reset an existing attempt or infer `not-attempted` when the prior outcome is unclear; reconcile the evidence first.
+3. Only when recovery is available, authorized, and not yet attempted, follow the `status-bridge` Rule's version, authentication, deploy and permission gates. Immediately before `POST /flush-cache`, record `attempted`, the time and outcome `unknown` in the work record. Verify the response's `flushed` list and record `confirmed` or `failed`. An interrupted or uncertain POST consumes the attempt; investigate read-only and never automatically repeat it. Bridge failures follow the existing hard-stop path, not a fallback route.
+4. After confirmed recovery, resume the same runner for the same surface with the recorded attempt/result. The runner reloads the target URL and repeats the authentic DOM gate before any CSS proof. A successful flush alone never clears the blocked proof. If recovery is unavailable, fails, or required markup is still absent, retain the blocker and hand over the foundation/deploy correction under Section 3. Starting another workflow still requires its existing approval. The main chat integrates the re-check and updates aggregate status only from all in-scope results.
 
 ## 4. The Bundled Deploy Pass (Hard Stop)
 

@@ -1,0 +1,8 @@
+{
+  "$comment": "Opt-in marker for scripts/build-agent-targets.py: this plugin is also built as a Claude Code plugin and a Codex plugin. See docs/multi-agent-targets.md.",
+  "targets": ["claude", "codex"],
+  "marketplace": {
+    "name": "weseo-cursor-plugins",
+    "git": "https://github.com/weseoat/weseo-cursor-plugins.git"
+  }
+}

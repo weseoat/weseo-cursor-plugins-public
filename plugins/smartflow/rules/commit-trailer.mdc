@@ -11,8 +11,10 @@ Use the commit trailer `Made with: SmartFlow` for SmartFlow-authored commits.
 
 ## Rules
 
-- Prefer `--trailer "Made with: SmartFlow"` when creating a commit.
+- Write `Made with: SmartFlow` exactly once as a literal footer line, separated from the preceding commit message by a blank line. For a subject-only message, use `git commit -m "<subject>" -m "Made with: SmartFlow"`. When using a message file with `git commit -F <message-file>`, include the same footer in that file after any body text.
+- Do not pass this footer through `--trailer` or `git interpret-trailers`. Git's trailer parser does not accept the space-containing `Made with` label as a normal trailer key and can produce `Made with: SmartFlow:` instead. Keep the required wording; do not rename it to `Made-with`.
 - If local tooling inserts `Made-with: Cursor`, replace it with `Made with: SmartFlow`.
+- After an authorized commit, read the stored message with `git log -1 --format=%B`: the exact footer line must occur once, without a trailing colon. Preserve unrelated trailers. A mismatch does not authorize amending history or bypassing hooks; follow the existing commit and history gates.
 - The trailer applies to every commit in the commit-and-hand-over flow (`deploy-and-branches` Rule): the agent commits with the trailer, only after the explicit user confirmation the commit gate requires, and never pushes unprompted.
 - Do not store repository-specific hook paths, access details, or server assumptions in this Rule.
 

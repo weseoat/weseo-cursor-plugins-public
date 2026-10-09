@@ -2,7 +2,7 @@
   "$schema": "../../schemas/plugin-manifest.schema.json",
   "name": "smartflow",
   "displayName": "SmartFlow",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "responsibility": "Package the complete WESEO SmartFlow workflow for WordPress/WST projects in one plugin: server-side WordPress and WST foundations, Section and CPT work, local frontend CSS/SCSS implementation, Playwright QA, and the documentation layer. Successor to the six legacy packages wordpress-server-ops, wst-builder, frontend-design-qa, and their -beta twins.",
   "assumptions": [
     "The plugin is used in a Cursor workspace whose repository root is the wp-content level of a WESEO WordPress/WST project checkout; only the child theme subdirectory is deployed to the server.",
@@ -27,7 +27,7 @@
       "name": "webroot-safety",
       "path": "rules/webroot-safety.mdc",
       "source": "plugins/wordpress-server-ops-beta/rules/webroot-safety.mdc",
-      "description": "Keep non-source artifacts out of the deployed child theme path: the wp-content-level repository root is never served, so only the deploy path needs webroot precautions. Shrunk from the legacy full-webroot rule to the deploy-path boundary."
+      "description": "Keep non-source artifacts out of the deployed child theme path; use ignored task-specific scratch outside that path, preserve permanent docs and QA evidence, and clean up only artifacts owned by the current run."
     },
     {
       "name": "deploy-and-branches",
@@ -39,7 +39,7 @@
       "name": "secrets",
       "path": "rules/secrets.mdc",
       "source": "plugins/smartflow/rules/secrets.mdc",
-      "description": "Secret handling for SmartFlow repositories: the tracked repo-root .env pushed to the private remote is a deliberate accepted decision, and secrets enter commands exclusively through environment variables, never as literals in tracked files, chat, logs, or docs."
+      "description": "Keep the deliberately tracked repo-root .env and environment-variable-only credential usage. Before WordPress REST calls, verify required variables in the executing shell, use the verified project loader, preserve session values, and never execute .env or alter persistent shell profiles."
     },
     {
       "name": "acf-local-json",
@@ -57,13 +57,19 @@
       "name": "commit-trailer",
       "path": "rules/commit-trailer.mdc",
       "source": "plugins/wordpress-server-ops-beta/rules/commit-trailer.mdc",
-      "description": "Apply the commit trailer `Made with: SmartFlow` to every SmartFlow-authored commit in the commit-and-hand-over flow."
+      "description": "Write the exact Made with: SmartFlow footer as a literal commit-message paragraph, not through the Git trailer parser; verify the stored message after the authorized commit without changing approval or history rules."
     },
     {
       "name": "css-guideline",
       "path": "rules/css-guideline.mdc",
       "source": "plugins/frontend-design-qa-beta/rules/css-guideline.mdc",
-      "description": "CSS and SCSS conventions for WESEO frontend implementation: tokens, selectors, rem scaling, responsive strategy, and the two proof modes injection-proof and bridge-verified served check (deployed_commit match over the status bridge) replacing the legacy source-served verification."
+      "description": "CSS and SCSS conventions for WESEO frontend implementation: tokens, selectors, rem scaling, responsive strategy, and the two proof modes injection-proof and bridge-verified served check (deployed_commit match over the status bridge) replacing the legacy source-served verification. Centralizes single-hyphen naming for new project-owned wso- classes, retains the base class with modifiers, and resolves explicit project naming conflicts before introducing new names while preserving existing hooks and CSS custom properties."
+    },
+    {
+      "name": "prefer-generic-over-custom",
+      "path": "rules/prefer-generic-over-custom.mdc",
+      "source": "Confluence Rule submission page 1953988642; accepted 2026-09-25",
+      "description": "Prefer established theme elements, styles, and tokens over duplicate custom patterns while preserving the requested behavior and Figma parity; keep exceptions scoped and documented without broadening the change."
     },
     {
       "name": "figma-to-code",
@@ -221,7 +227,7 @@
       "name": "cpt-frontend-qa",
       "path": "skills/cpt-frontend-qa/SKILL.md",
       "source": "plugins/frontend-design-qa-beta/skills/cpt-frontend-qa/SKILL.md",
-      "description": "Frontend CSS/SCSS pass for a WST Custom Post Type from the CPT work record in the project docs layer: per-surface injection-proofed iteration (card, archive/grid, carousel/filter, WPGB output, optional single) as the main mode, the Playwright MCP browser QA loop, one bundled deploy pass with hard stop, bridge verification of deployed_commit with a bounded retry and abort budget, and the one-time served check on the display and single URLs. Generic theme output on a single URL means the Smart Template assignment is pending — an admin step handed to the user, never a CSS debugging round. Structured as an Execution Gate first (main chat: work record, spawn one cpt-visual-implementer per surface, stop until return) and a 'Runner execution (cpt-visual-implementer only)' part (preflight with the playwright-browser-claim availability ladder, per-surface workflow, injection loop, writeback), followed by the main-chat deploy pass, bridge verification, served check, and commit gate; the non-reasons for skipping the runner are spelled out per the runner-gate Rule."
+      "description": "Frontend CSS/SCSS pass for a WST Custom Post Type from the CPT work record in the project docs layer: per-surface injection-proofed iteration (card, archive/grid, carousel/filter, WPGB output, optional single) as the main mode, the Playwright MCP browser QA loop, one bundled deploy pass with hard stop, bridge verification of deployed_commit with a bounded retry and abort budget, and the one-time served check on the display and single URLs. Generic theme output on a single URL means the Smart Template assignment is pending — an admin step handed to the user, never a CSS debugging round. Structured as an Execution Gate first (main chat: work record, spawn one cpt-visual-implementer per surface, stop until return) and a 'Runner execution (cpt-visual-implementer only)' part (preflight with the playwright-browser-claim availability ladder, per-surface workflow, injection loop, writeback), followed by the main-chat deploy pass, bridge verification, served check, and commit gate; the non-reasons for skipping the runner are spelled out per the runner-gate Rule. An authentic served-DOM gate checks required selectors before injection; missing markup blocks the surface. The main chat owns at most one authorized bridge cache-recovery attempt, recorded across resumes, then resumes the same runner. Mocks and replacement DOM never establish proof; known pending single assignments retain their admin path."
     },
     {
       "name": "wp-media-import",
@@ -293,7 +299,7 @@
       "name": "jira-batch-workflow",
       "path": "skills/jira-batch-workflow/SKILL.md",
       "source": "Tests/skills/jira-batch-workflow/SKILL.md",
-      "description": "Orchestrate a batch of open Jira subtasks (default 10) of one parent task: JQL intake over statusCategory To Do only, screenshot-based triage, untracked statusboard under .cursor/jira-batch/, up to three parallel background jira-ticket-runner leaves with file-disjoint write ownership and chain serialization, feedback relay via resume, serialized per-ticket commits under an explicit batch commit mandate asked at intake (never push, never without the mandate or an individual confirmation), a git status baseline taken at intake with the Working Tree Discipline for unexpected files (checked against the baseline, reported by path, asked from the plausible runner via resume, never git restore), final batch review, Jira solution comments after the user closes the review, and the optional ticket transition on request (intake question next to the mandate, default no, recorded as transition: ja | nein in the board header; Done-category transition read from jira_get_transitions, only for commented tickets). Router and closer only; per-ticket semantics stay in jira-ticket-workflow, while model routing, the fixed return contract, and the handoff schema come from the agent-routing Rule."
+      "description": "Orchestrate a batch of open Jira subtasks (default 10) of one parent task: JQL intake over statusCategory To Do only, screenshot-based triage, untracked statusboard under .cursor/jira-batch/, up to three parallel background jira-ticket-runner leaves with file-disjoint write ownership and chain serialization, feedback relay via resume, serialized per-ticket commits under an explicit batch commit mandate asked at intake (never push, never without the mandate or an individual confirmation), a git status baseline taken at intake with the Working Tree Discipline for unexpected files (checked against the baseline, reported by path, asked from the plausible runner via resume, never git restore), final batch review, Jira solution comments after the user closes the review, and the optional ticket transition on request (intake question next to the mandate, default no, recorded as transition: ja | nein in the board header; Done-category transition read from jira_get_transitions, only for commented tickets). Router and closer only; per-ticket semantics stay in jira-ticket-workflow, while model routing, the fixed return contract, and the handoff schema come from the agent-routing Rule. At actual runner dispatch the main chat automatically uses a unique In Progress transition, records start evidence and run ownership, and distinguishes its own resumes from externally started tickets; Done opt-in remains separate."
     },
     {
       "name": "smartflow-feedback",
@@ -347,5 +353,5 @@
     }
   ],
   "commands": [],
-  "releaseNotes": "release-notes/1.6.0.md"
+  "releaseNotes": "release-notes/1.7.0.md"
 }

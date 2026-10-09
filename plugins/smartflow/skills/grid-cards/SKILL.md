@@ -1,6 +1,6 @@
 ---
 name: grid-cards
-description: Author WST grid-card templates for WP Grid Builder under smart-template-builder/post-types/<resource>/cards/ in the child theme. Core rule: every wst_ shortcode that reads a field from the database needs id='{{post_id}}'. Use when creating new CPT cards or WPGB card templates, remodeling cards, or when grid cards render empty or missing ACF values.
+description: "Author WST grid-card templates for WP Grid Builder in the resource-specific cards folder under smart-template-builder/post-types/ in the child theme. Core rule: every wst_ shortcode that reads a field from the database needs id='{{post_id}}'. Use when creating new CPT cards or WPGB card templates, remodeling cards, or when grid cards render empty or missing ACF values."
 ---
 
 # Grid Cards
@@ -70,10 +70,8 @@ When an enclosing `wst_if` contains another `wst_if`, the inner shortcode needs 
 
 ## Markup Conventions
 
-- Stable CSS hooks with the `wso-` prefix, for example `.wso-<resource>-card`
-- Modifiers with a **single** hyphen: `wso-resource-card-highlight`, not `--`
+- Use the stable CSS hooks from the work record, for example `.wso-<resource>-card`. New class names follow the bundled [css-guideline Rule](../../rules/css-guideline.mdc#selectors): single-hyphen component, part, and modifier names, modifiers added alongside the base class, and explicit project naming conflicts resolved before introducing new names. Preserve existing stable, legacy, and third-party hooks.
 - Full-area links: `.wso-absolute-link` with an `aria-label` derived from the visible title
-- Class naming rule: if the project has a local Cursor Rule for `wso-` class names, follow it; otherwise use single hyphens instead of BEM `--`
 
 ## Workflow
 
@@ -92,7 +90,7 @@ New-to-the-project shortcode forms go through the four-source proof of the `wst-
 - [ ] Path: smart-template-builder/post-types/<resource>/cards/
 - [ ] Every wst_ shortcode with field='…' has id='{{post_id}}'
 - [ ] Nested wst_if / wst_acf_repeater: correct suffixes (_a, _b, …)
-- [ ] CSS hooks wso-* with single hyphens
+- [ ] New CSS hooks follow css-guideline naming; existing stable hooks are preserved
 - [ ] No field data cached through [wst_variable] when the WPGB card context is affected (prefer direct field references)
 - [ ] Accessibility: meaningful aria-label on icon-only or overlay links
 ```

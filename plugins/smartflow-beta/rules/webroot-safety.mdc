@@ -28,7 +28,12 @@ The workspace root is the wp-content level of the project checkout and is never 
 
 ## Temporary Artifacts
 
-Place temporary scripts, exports, and scratch notes outside the deploy path: repo-level `tmp/` or the OS temp directory. Delete them as soon as they are no longer needed. If a task is interrupted, report any remaining temporary artifacts before continuing work.
+- Resolve the repository root with `git rev-parse --show-toplevel`. Default to `<repo-root>/tmp/<task-name>/` with a short, unused task name; never derive the root from the current subdirectory. The OS temp directory remains an alternative when appropriate. Both locations must be outside the deploy path.
+- Keep only generated scratch for the current task there, such as temporary scripts, exports, and comparison images. Permanent documentation and retained QA evidence belong in the project `docs/` layer, outside the deploy path.
+- Ensure the repo-local task directory is Git-ignored and verify this with `git check-ignore` before writing artifacts. Never stage temporary artifacts, including with force-add.
+- Never copy `.env` files or write credentials into scratch scripts, exports, logs, or notes; scripts consume secrets through environment variables per the `secrets` Rule.
+- Delete only artifacts created by this run as soon as they are no longer needed, and clean up remaining disposable artifacts at completion. Before any recursive removal, verify the resolved absolute path stays inside the intended scratch directory and contains no artifacts belonging to others. Never clear a shared `tmp/` or OS temp directory.
+- If interrupted, report the remaining artifacts by path before continuing work; do not remove another run's files.
 
 ## Before Creating Any File Inside The Deploy Path
 

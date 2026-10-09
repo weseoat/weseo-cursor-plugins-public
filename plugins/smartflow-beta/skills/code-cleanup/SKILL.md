@@ -38,11 +38,11 @@ Do not invent conventions, token names, prefixes, or breakpoints. When a convent
 These hold in every mode and every pass:
 
 1. **Behavior is preserved.** Rendered HTML, computed styles at every QA rung, field values, hook order, and error behavior stay the same. A change the user thinks is "better behavior" is a ticket, not a cleanup. When a proof diff shows a change, revert the pass.
-2. **One pass at a time, safest first, verified and committed before the next.** Never mix passes in one commit; never jump ahead.
+2. **One selected pass at a time, safest first, verified and committed before the next.** Never mix passes in one commit or reorder the selected passes. An explicit comments-only scope selects only Pass 3; it does not require unrelated passes first.
 3. **Scope is locked.** Only files on the scope list are edited. Findings outside the scope are listed under `Außerhalb des Scopes` in the report, never fixed as a drive-by. The run ends with `git diff --stat` against the scope list.
 4. **When in doubt, skip — never guess.** A finding without a `file:line` citation is not reported. A deletion without proof is a candidate, not a change.
 5. **Never in this Skill:** renames of `wso-` CSS hooks, ACF field names or keys, function or hook names, shortcode attributes, or file names (all break consumers — they are a planned change with a migration); file moves; new abstractions, helpers, or dependencies; `!important` shuffles to win a cascade; structural ACF changes (audit only, see Pass 4); edits to `functions.php` (forbidden) or `theme-functions.php` / the bridge block in `js-snippets.php` without the explicit confirmation the `file-edit-boundary` Rule requires; anything on the default off-limits list of that Rule.
-6. **Budgets.** Default: at most 5 applied judgment findings (Passes 4–6) per run, at most 60 minutes; mechanical passes (1–2) have no finding cap but stay inside the scope. The rest goes to the ledger as `deferred`. The user can raise the budget at intake.
+6. **Budgets.** Default: at most 5 applied judgment findings (Passes 3–6, including comment-removal judgments) per run, at most 60 minutes; mechanical passes (1–2) have no finding cap but stay inside the scope. The rest goes to the ledger as `deferred`. The user can raise the budget at intake.
 7. **Not before a deploy, not mid-feature.** A cleanup pass does not run while a Section or ticket is half-finished in the working tree, and it does not run into a push the user is about to make. Finish or park the work first.
 
 ## Workflow
@@ -59,17 +59,23 @@ These hold in every mode and every pass:
 
 ### 0. Intake
 
-Ask in one message, with recommended answers:
+Collect missing intake answers through `AskQuestion` when available, or the host's equivalent structured question tool. Put each recommended option first and label it `(empfohlen)`. Reuse explicit answers already given for this run; a preselected option or an unanswered prompt is not consent. If no suitable question tool is available, present the same concise choices in chat.
 
 - **Modus** (`post-run` / `recurring` / `scoped`) — recommended from the situation (uncommitted changes present → `post-run`).
 - **Budget** — default 5 judgment findings, 60 minutes.
 - **Cleanup-Commit-Mandat** — "Darf ich die Pass-Commits dieses Laufs ohne einzelne Rückfrage setzen (nur `cleanup(<pass>): …`-Commits, nur dieser Lauf, nie ein Push)?" Default **nein**. This is the scoped standing mandate the `deploy-and-branches` Rule allows a Skill to ask for; it covers only the pass commits of this run. Without it, every pass commit is proposed individually. In the legacy state `Working branch: master — user commits`, the agent only prepares commits regardless of the answer.
 
+Bundle these questions when the tool permits it. Use a tool for the commit mandate only if that host allows permission requests through it; otherwise ask the mandate separately through an allowed channel. In particular, Codex's `request_user_input` must not carry a permission request. Ask for a free-text target only when `scoped` was selected and no target was provided. Record explicit answers before applying changes. If the host permits proceeding with non-permission defaults for mode or budget, label them as assumptions, not user answers; an unclear target scope must be resolved before edits. Without explicit commit consent, the mandate remains **nein**.
+
+For an explicit comments-only request, keep the audit and changes to Pass 3 within the agreed scope; a CSS/SCSS-only request never expands to PHP, JavaScript or other files. Preserve structural banners and naming labels that provide orientation, and every explanation of a constraint, workaround, design decision, or cascade reason. A comment's length or mention of Figma is not a reason to remove it. An explicit removal-only request adds no new comments: report missing explanations or banners without applying C-06. Do not change declarations, reorder rules or run unrelated formatting/fixers; tidy only empty lines left by the removed comments. If no file scope can be established from the request or agreed mode, clarify it rather than cleaning the entire project.
+
+Where SCSS is the authoritative source, edit that source and regenerate its documented, tracked CSS outputs through the project's build instead of independently cleaning compiled CSS. Include those outputs in the scope list before applying changes. If the build path is unavailable, defer the affected source/output pair; if the build produces unrelated changes, stop, report them and keep them outside the cleanup commit without discarding foreign work.
+
 Take the `git status --short` baseline and confirm the working tree carries no half-finished feature work (Hard Rule 7).
 
 ### 1. Scope List
 
-Build the list per the mode table, then filter to the editable areas of the `file-edit-boundary` Rule (child theme minus `functions.php`, `docs/`, `.cursor/`; never plugin folders, parent theme, uploads, generated files). Group by file type: PHP templates/partials, CSS/SCSS, theme snippets (`theme-functions.php`, `js-snippets.php` — audit yes, edit only with the Rule's confirmation), ACF JSON (audit only), other.
+Build the list per the mode table, then filter to the editable areas of the `file-edit-boundary` Rule (child theme minus `functions.php`, `docs/`, `.cursor/`; never plugin folders, parent theme, uploads, or generated files except the documented, tracked CSS outputs of in-scope SCSS sources). Those CSS outputs are build-only targets, never independently edited. Group by file type: PHP templates/partials, CSS/SCSS, theme snippets (`theme-functions.php`, `js-snippets.php` — audit yes, edit only with the Rule's confirmation), ACF JSON (audit only), other.
 
 Recurring mode adds the hotspots — the files changed most often in the last 90 days — because churn is where duplication and drift accumulate:
 

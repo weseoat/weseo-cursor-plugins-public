@@ -1,6 +1,6 @@
 ---
 name: jira-batch-workflow
-description: Orchestrates a batch of open Jira subtasks (default 10) of one parent task in the local SmartFlow workspace - JQL intake, screenshot-based triage, statusboard, up to three parallel jira-ticket-runner subagents with file-disjoint write ownership, feedback relay via resume, serialized per-ticket commits under an explicit batch commit mandate (never push, never without the mandate or an individual confirmation), working-tree baseline and discipline for foreign changes, final batch review, Jira solution comments, and optional ticket transition to Done on request. Use when the user hands over a parent task key and wants its open subtasks processed as a batch ("Subtasks abarbeiten", "Ticket-Batch").
+description: Orchestrates a batch of open Jira subtasks (default 10) of one parent task in the local SmartFlow workspace - JQL intake, screenshot-based triage, statusboard, up to three parallel jira-ticket-runner subagents with file-disjoint write ownership, automatic In Progress transition at runner start, feedback relay via resume, serialized per-ticket commits under an explicit batch commit mandate (never push, never without the mandate or an individual confirmation), working-tree baseline and discipline for foreign changes, final batch review, Jira solution comments, and optional ticket transition to Done on request. Use when the user hands over a parent task key and wants its open subtasks processed as a batch ("Subtasks abarbeiten", "Ticket-Batch").
 ---
 
 # Jira Batch Workflow (local orchestrator)
@@ -11,9 +11,9 @@ SmartFlow workspace (no server shell, no served docroot). This Skill is a
 semantics (intake, screenshot rule, diagnosis, implementation, Playwright
 verification, report format) live in the bundled `jira-ticket-workflow`
 Skill. The main chat owns only: ticket selection, triage, the
-statusboard, slot scheduling, feedback relay, the per-ticket commits
-under the batch commit mandate, and the final batch review with Jira
-closing.
+statusboard, slot scheduling and start transitions, feedback relay,
+the per-ticket commits under the batch commit mandate, and the final
+batch review with Jira closing.
 
 Delegation is strictly two levels: main chat → `jira-ticket-runner`
 leaf agents. Runners never spawn further agents, never commit, never
@@ -30,8 +30,10 @@ write to Jira.
    capped at the batch size. **Only genuinely open tickets** ("Offen"
    / To-Do status category) enter the batch. Tickets that are
    "In Arbeit" (In Progress), in review, done, or in any other status
-   are never touched — someone else may own them. If the JQL returns
-   a ticket whose live status turns out not to be open at spawn time,
+   never enter a new batch — someone else may own them. The sole
+   resume exception is a ticket with this run's recorded start evidence
+   (step 3). If the JQL returns a ticket whose live status turns out
+   not to be open at spawn time,
    skip it and note the skip on the board.
 3. Ask for the **batch commit mandate** once, in German: may the main
    chat commit each ticket on the recorded working branch as soon as
@@ -48,23 +50,33 @@ write to Jira.
    Yes means: after the user releases the final review and after the
    solution comment, the main chat moves each commented ticket to the
    project's Done-category status (step 6). No means the tickets stay
-   open with the solution comment, as before.
+   in their current status with the solution comment. This answer
+   controls only closing; the automatic start transition in step 3
+   needs no separate intake opt-in.
 5. Take the **working-tree baseline**: `git status --short` at intake,
    recorded verbatim in the board header as `pre-existing working-tree
    changes`. A dirty start is not a blocker — the colleague may have
    own work open — but this list is the reference for step 5: anything
    on it is user work and is never staged, touched, or discarded.
 6. Create the statusboard at `.cursor/jira-batch/<parent-key>.md`
-   (untracked, never committed, deleted at batch closure). One row per
+   (untracked, never committed, deleted at batch closure). Give the
+   header a stable `run_id` (parent key plus start timestamp). One row per
    ticket: key (linked), short title, status, suspected target
-   file(s), slot/agent, proof mode, open question / user feedback.
+   file(s), slot/agent, proof mode, open question / user feedback, and
+   `start_transition` (initially `not attempted`). At dispatch record
+   the run ID, time, observed status, transition ID/target when present,
+   result and confirmed live status alongside the runner ID. These are
+   local ownership evidence, not an atomic Jira lock.
    Statuses: `queued` / `needs-routing` / `running` / `iterating` /
    `implemented` / `committed` / `blocked` / `skipped`.
 7. If the board file already exists for this parent, this is a
    **resume**: reconstruct the batch state from the board instead of
    restarting finished tickets (including the recorded mandate answer,
-   the transition answer, and the baseline; if the header carries
-   none, ask or take them now).
+   the transition answer, run ID, start evidence and the baseline; if
+   older headers lack an answer or baseline, ask or take it now; add a
+   missing run ID for the continuation).
+   Missing start evidence never grants ownership of an In Progress
+   ticket; do not invent it from the current Jira status.
 
 ## 2. Triage round (main chat, read-only)
 
@@ -94,6 +106,42 @@ file(s). Tickets with disjoint files may run in parallel; tickets
 sharing a file form a **chain** on one slot, strictly serialized.
 
 ## 3. Spawning and slots
+
+For each first dispatch, only after triage, a free slot, the file scope
+and all spawn prerequisites are ready:
+
+1. Immediately before launch, re-read the ticket's live `status` via
+   `jira_get_issue`. It must still be in **To Do**; otherwise mark it
+   `skipped` with the observed status. Queued, skipped and not-yet-routed
+   tickets receive no start transition.
+2. The **main chat** reads `jira_get_transitions` and selects by target
+   status category **In Progress**, never by a guessed name or ID.
+   Exactly one candidate → execute that actual transition with
+   `jira_transition_issue`, then confirm the live target status. A
+   different result blocks the row for clarification before spawning.
+   No candidate, several candidates, or unavailable category metadata → record the
+   reason under `start_transition` and launch without changing Jira.
+   API/auth/permission errors are not "no candidate": record the error,
+   mark the row `blocked` and report it. If a write's outcome is unclear,
+   re-read the live status before any retry; never claim success or
+   repeat the write blindly.
+3. Record the result and immediately launch the runner. Mark `running`
+   only when launch succeeds and record its agent ID. If launch fails,
+   record `blocked`, the failure and the actual Jira status; do not
+   automatically move the ticket back to To Do. A later route-back,
+   failed QA or interruption likewise never triggers a status rollback.
+
+On resume or feedback iteration, first reconcile the board with the
+runner and live Jira status; an active runner is never spawned twice.
+Continue this run's documented work
+without repeating its completed start transition, including when Jira
+is now In Progress or a launch must be retried after a confirmed
+transition. An In Progress ticket without this run's start evidence
+is never adopted. If the ticket changed status again or ownership is
+unclear, block that row and resolve it with the user; do not reopen it
+or infer ownership from its status. A ticket previously launched
+without an available start transition does not get another attempt
+merely because its runner resumes.
 
 - Spawning follows the `agent-routing` Rule: the model routing for the
   `jira-ticket-runner` (including the pre-spawn availability check),
@@ -236,10 +284,12 @@ written here — they wait for the final review.
   gate); pushes only under the explicit per-request push exception of
   the `deploy-and-branches` Rule — the batch mandate never covers a
   push.
-- Never transition ticket statuses unless the intake answer was yes;
-  then only after review release, only for tickets that received a
-  solution comment, only via the Done-category transition read from
-  `jira_get_transitions`.
+- Start transitions belong to the main chat at actual runner dispatch
+  (step 3), never at intake or triage. No automatic status rollback.
+- Done transitions still require `transition: ja`, review release and
+  a solution comment, using the actual Done-category transition from
+  `jira_get_transitions` (step 6). Start transitions grant no closing
+  authorization.
 - Never discard, restore, stash, or clean working-tree changes the
   agent did not make in this run; unexpected files are reported by
   path, not resolved (Working Tree Discipline, `deploy-and-branches`).

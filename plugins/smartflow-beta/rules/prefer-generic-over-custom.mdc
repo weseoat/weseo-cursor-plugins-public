@@ -1,0 +1,22 @@
+---
+description: Prefer existing WESEO theme elements, styles, and tokens when implementing WST templates or frontend CSS/SCSS without weakening the requested design
+globs:
+  - "**/themes/**/*.php"
+  - "**/themes/**/*.css"
+  - "**/themes/**/*.scss"
+alwaysApply: false
+---
+
+# Prefer Generic Over Custom
+
+Use this Rule when choosing markup or styling patterns for WST Sections, CPT surfaces, or shared elements in a WESEO child theme.
+
+Read `PROJECT-CONTEXT.md` for the active child-theme path, style loader, and tokens, and the work record for the required design and stable hooks. Inspect nearby implementations before adding a new pattern.
+
+- Reuse existing elements, partials, utility classes, modifiers, and tokens when they meet the requested behavior and Figma target. Do not duplicate a shared button, heading, spacing, or media pattern in a new component rule.
+- Keep common behavior in its established shared source. Change that source only when shared behavior is intended and the affected uses are in scope; otherwise use a narrowly scoped component exception.
+- Prefer simple selectors and the project's existing class composition over extra wrappers, duplicate declarations, or escalating specificity. Follow `css-guideline` for class naming and cascade verification.
+- Preserve the user's explicit target and required Figma parity. Reuse is not permission to simplify the design, change behavior, rename stable hooks, or broaden the requested work.
+- When no existing pattern meets the requirement, add the smallest scoped extension or new pattern needed. Record the requirement, the existing pattern's limitation, and the exception in the work record; promote it to shared behavior only when reuse is established.
+
+Project-specific values belong in project context and theme tokens. This Rule does not authorize changes outside the project's file boundary or bypass the WST and frontend runner workflows.

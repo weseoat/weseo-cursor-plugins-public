@@ -49,8 +49,8 @@ File-type keys: **PHP** = WST Section templates, partials, card templates, singl
 | C-02 | Docblocks that only restate the signature or are empty templates (`@param mixed $x`, `@return void` with nothing else) | PHP SNIP | judgment, safe | — |
 | C-03 | Placeholder comments left in: `// TODO: implement`, `// add logic here`, `// ...` | PHP CSS SNIP | auto detect, safe | grep |
 | C-04 | Closing-brace labels (`} // end if`) and section dividers that duplicate structure without adding orientation; **keep** the project's file and section banners (`css-guideline` pattern) | PHP CSS | judgment, safe | — |
-| C-05 | LLM filler: conversational comments ("Let's…", "Here we…"), emoji, explanatory prose inside code, redundant inline type annotations in comments | all | judgment, safe | — |
-| C-06 | Missing file header banner or `@package` where the project uses them; missing `!important` explanation next to an `!important` that stays | PHP CSS | auto detect, safe | WPCS Docs / grep |
+| C-05 | LLM filler: conversational comments ("Let's…", "Here we…"), emoji, narration that only restates the code, redundant inline type annotations in comments; preserve explanations of constraints, workarounds, design decisions, and cascade behavior regardless of length or a Figma reference | all | judgment, safe | — |
+| C-06 | Missing file header banner or `@package` where the project uses them; missing `!important` explanation next to an `!important` that stays; report only for an explicit comment-removal request, which adds no comments | PHP CSS | auto detect, safe | WPCS Docs / grep |
 
 ## Pass 4 — Conventions
 
