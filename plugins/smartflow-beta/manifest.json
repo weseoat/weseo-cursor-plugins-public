@@ -305,7 +305,7 @@
       "name": "smartflow-feedback",
       "path": "skills/smartflow-feedback/SKILL.md",
       "source": "docs/confluence-integration-plan.md (grill-me decision log 2026-08-25, decisions 5-9 and 11, label fallback amendment 2026-08-26)",
-      "description": "Report SmartFlow bugs, questions, ideas and Skill/Rule proposals from the working chat to Confluence, with session autofill, redaction and confirmed deduplication. Local contributions can include a complete reviewed ZIP built from an explicit inventory, a source-version manifest and SHA-256 hashes; discover attachment transport, use unique snapshot filenames, verify by download and record a receipt. Proposals start at eingereicht; ordinary feedback stays text-only. No plugin integration, existing-status changes or hub-table edits from the customer workspace."
+      "description": "Report SmartFlow bugs, questions, ideas and Skill/Rule proposals from the working chat to Confluence, with session autofill, redaction and confirmed deduplication. New entries pre-fill area and owner fields from a bundled artifact mapping and live ownership page, then add only the derived area labels at intake; unresolved ownership or missing label support stays explicit for curation. Local contributions can include a complete reviewed ZIP built from an explicit inventory, a source-version manifest and SHA-256 hashes; discover attachment transport, use unique snapshot filenames, verify by download and record a receipt. Proposals start at eingereicht; ordinary feedback stays text-only. No plugin integration, existing-status changes or hub-table edits from the customer workspace."
     },
     {
       "name": "sync-project-brief",

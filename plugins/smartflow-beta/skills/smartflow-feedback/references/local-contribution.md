@@ -53,7 +53,7 @@ The ZIP contains `submission.json` (schema version 1, UTC timestamp, artifact li
 
 ## Draft the page and confirm scope
 
-Use the live Skill/Rule template headings; proposals begin at `eingereicht`. A bug carrying a fix remains a Bug at `offen`; do not create an unnecessary second Skill submission. If template choices still list legacy plugins, fill `smartflow` and the proposed area. In its source-code section link the exact ZIP; an inline excerpt is only a preview, the ZIP is the source snapshot.
+Use the live Skill/Rule template headings; proposals begin at `eingereicht`. Fill `Bereich` and `Zuständig` in `Bereich und Zuständigkeit` directly after the author section through the main Skill's ownership pre-fill (bundled mapping, live owner lookup, curation placeholders when unresolved). A bug carrying a fix remains a Bug at `offen`; do not create an unnecessary second Skill submission. If template choices still list legacy plugins, fill `smartflow` and the proposed area. In its source-code section link the exact ZIP; an inline excerpt is only a preview, the ZIP is the source snapshot.
 
 Add these German sections (prefill from the session, ask only for missing material facts):
 
@@ -61,7 +61,7 @@ Add these German sections (prefill from the session, ask only for missing materi
 - **Getestet:** actual scenario/result, source plugin version, observed limitations, original-to-redacted snapshot changes; never infer a successful test from a file's existence.
 - **Übertragungspaket:** exact filename, whole ZIP SHA-256, source entrypoints, complete file list and project dependencies to resolve. Initially say `Upload ausstehend`; this is transfer evidence, not a workflow status.
 
-Show the draft, selected files, redaction/dependency notes, exact target and intended page/comment + ZIP upload + receipt comment. Obtain or reuse confirmation covering those actions. Perform the normal confirmation-gated duplicate search before creating a page. Nothing in this workflow changes existing statuses or overview tables.
+Show the draft including ownership fields, selected files, redaction/dependency notes, exact target and intended page/comment + area labels (new pages only) + ZIP upload + receipt comment. Obtain or reuse confirmation covering those actions. Perform the normal confirmation-gated duplicate search before creating a page. Nothing in this workflow changes existing statuses or overview tables.
 
 ## Discover the transport and verify the receipt
 
@@ -75,7 +75,7 @@ Check transport availability **before creating a new submission page**. If it is
 
 After scope confirmation:
 
-1. Create the page or use the explicitly confirmed duplicate target. Record its returned ID/URL immediately. For an existing entry, publish the proposed package description in a new comment, never overwrite the page or an earlier package.
+1. Create the page or use the explicitly confirmed duplicate target. Record its returned ID/URL immediately. For a new page, apply the main Skill's area-label step and report any missing labels without blocking the transfer. For an existing entry, publish the proposed package description in a new comment, never overwrite the page or an earlier package and never add labels.
 2. List attachments (paginate); ensure the selected filename is absent. If it exists, compare ID/hash/version to the run's receipt. Reuse an already verified identical upload; otherwise choose a fresh name and update the planned metadata before upload. Never silently create a new version of another person's attachment.
 3. Upload exactly the reviewed ZIP. Record attachment ID, filename, version and page ID. Re-list, then download that attachment and run `inspect --sha256 <expected ZIP SHA-256>`. Check metadata again if a concurrent change is possible. File-name/size matches alone do not prove the bytes.
 4. Add a German **Übertragungsbeleg** footer comment containing page ID, attachment ID, filename, attachment version, ZIP SHA-256 and `Paket vollständig übertragen und rückgelesen`. Read the comment back. This receipt completes the initial `Upload ausstehend` note without editing the original page body.

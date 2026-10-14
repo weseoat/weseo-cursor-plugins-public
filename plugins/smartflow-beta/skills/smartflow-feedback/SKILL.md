@@ -24,7 +24,7 @@ When the type is unclear, propose one classification with a one-sentence reason 
 
 ## Bundled Reference: Hub Pages
 
-Space key `Frontend`. IDs re-verified against the live space tree on 2026-08-26.
+Space key `Frontend`. Hub/template IDs re-verified against the live space tree on 2026-08-26; ownership page added on 2026-10-14.
 
 | Page | ID |
 | --- | --- |
@@ -37,6 +37,7 @@ Space key `Frontend`. IDs re-verified against the live space tree on 2026-08-26.
 | Vorlage: Skill-Einreichung | `1826390049` |
 | Rule-Einreichungen | `1867612178` |
 | Vorlage: Rule-Einreichung | `1868562438` |
+| SmartFlow Ownership – wer betreut was? | `2065334303` |
 
 If a hub page cannot be found by ID, re-orient over the space page tree or a CQL title search before creating anything, and report the drift as its own finding.
 
@@ -50,9 +51,10 @@ The team standard is the **community `mcp-atlassian` server** (version 0.22.0 or
 | List subpages of a hub page | `confluence_get_page_children` | `getConfluencePageDescendants` |
 | Create the entry subpage | `confluence_create_page` | `createConfluencePage` |
 | Add an occurrence comment | `confluence_add_comment` | `createConfluenceFooterComment` |
+| Add an area label to a new entry | `confluence_add_label` (discover schema) | Not available — skip and report missing labels |
 | Duplicate search (CQL) | `confluence_search` | `searchConfluenceUsingCql` |
 
-Intake stays narrow: no labels and **never edit the hub pages' overview tables**. Table rows, labels, and status changes belong to owner/maintainer curation. The only attachment exception is the reviewed contribution ZIP in the linked reference; discover upload, list and binary-download capabilities before creating its page. Legacy Rovo may support text feedback but cannot be assumed to support this transfer.
+Intake sets ownership fields and only the derived area labels on new entries; **never edit the hub pages' overview tables**. Table rows, status changes, `sf-abgeschlossen`, `sf-vorlage` and label corrections belong to owner/maintainer curation. No @mentions or notifications. The only attachment exception is the reviewed contribution ZIP in the linked reference; discover upload, list and binary-download capabilities before creating its page. Legacy Rovo may support text feedback but cannot be assumed to support this transfer.
 
 If no Atlassian MCP is available or it needs auth, stop and guide the reporter through the community `mcp-atlassian` install from the `setup-local-project` preflight (version floor 0.22.0, token in the env block); do not fall back to REST calls or manual copy-paste pages.
 
@@ -70,7 +72,12 @@ Determine the type. For the bug case, pre-fill **everything** from the session b
 - the plugin version, read from `.cursor-plugin/plugin.json` in the installed plugin package (next to this Skill's plugin root); if unreadable, `<unbekannt>`,
 - the project name and dev URL from `PROJECT-CONTEXT.md` (allowed on internal Confluence; if the workspace has no project context, use the workspace name).
 
-Show the filled draft to the reporter for a yes/edit. Do not ask for fields the session already answers.
+For every entry type, pre-fill ownership using [Ownership areas](references/ownership-areas.md):
+
+- Map affected Skill/Rule/Agent names to their areas; list all distinct areas, comma-separated, and derive one `sf-bereich-<slug>` label per area. No match (unknown name, `keiner`, or an unmapped new artifact) means `Bereich: <ergänzt die Kuration>` and no area label. Proposals changing existing artifacts use their areas; new artifacts get an area only when the submitter's answer or related existing artifacts make it unambiguous.
+- Read owner name(s) for each derived area live from `SmartFlow Ownership – wer betreut was?` (`2065334303`). Use the owner(s), not supporting members or deputies as substitute owners. If the page or any required area row cannot be read, use `Zuständig: <ergänzt die Kuration>` and note the gap for hand-back; known areas and their labels remain valid. With no area, use the same owner placeholder. Never invent names or copy them from bundled content.
+
+Show the filled draft, including `Bereich` and `Zuständig`, to the reporter for a yes/edit. The reporter may correct the classification; reconcile area labels and re-read the corresponding live owner row before writing. Do not ask for fields the session already answers or make the reporter supply structure.
 
 ### 2. Redaction Check (Hard, Before Any Upload)
 
@@ -85,7 +92,7 @@ If the report only works with content that the rules forbid, describe the conten
 
 ### 3. Duplicate Search (Confirmation-Gated)
 
-Search before creating. Because entry pages carry no labels, narrow by text:
+Search before creating. Narrow by text so entries without area labels remain discoverable:
 
 - Scoped candidate search: CQL `ancestor = 1727889413 AND type = page AND (title ~ "<symptom keywords>" OR text ~ "<skill name and symptom keywords>")` (for skill/rule proposals: `parent = 1827405826` or `parent = 1867612178` plus title match).
 - Optionally list the target hub page's subpages when the candidate set is small.
@@ -94,27 +101,31 @@ Present the top candidates as **title + one-liner + status** (status read from t
 
 ### 4a. On Match: Occurrence Comment
 
-Add a German footer comment to the existing entry page with occurrence context: date, project, plugin version, one-sentence finding. If the entry's status is `erledigt` and the deviation reappeared in a **newer** plugin version, state the regression explicitly ("Regression in <version>"). **The comment never changes the entry's status and never edits the entry page** — status transitions stay maintainer curation.
+Add a German footer comment to the existing entry page with occurrence context: date, project, plugin version, one-sentence finding. If the entry's status is `erledigt` and the deviation reappeared in a **newer** plugin version, state the regression explicitly ("Regression in <version>"). **The comment never changes the entry's status, edits the entry page or adds labels** — status transitions stay maintainer curation.
 
 For a contribution ZIP, retain this confirmed entry as the target and follow the attachment/revision procedure in the reference. A matching title never authorizes replacing an older submitted package or silently choosing its latest revision.
 
 ### 4b. On No-Match: New Entry Subpage
 
-Create the entry as an **own subpage under the matching hub page** (parent ID from the reference table), page content in **German**, with the fixed structure below. For skill/rule proposals, read the matching Vorlage page live and mirror its headings, using `smartflow` plus the affected area instead of frozen legacy plugin choices. Keep one authoritative `Status` section with `eingereicht`; do not add a contradictory `offen` block. Add the contribution sections from the reference when transferring files. The overview-table row is owner/maintainer curation (intake cannot edit tables).
+Create the entry as an **own subpage under the matching hub page** (parent ID from the reference table), page content in **German**, with the fixed structure below. For skill/rule proposals, read the matching Vorlage page live and mirror its headings; fill `Bereich` and `Zuständig` in its `Bereich und Zuständigkeit` section directly after the author section. Use `smartflow` plus the affected area instead of any frozen legacy plugin choices. Keep one authoritative `Status` section with `eingereicht`; do not add a contradictory `offen` block. Add the contribution sections from the reference when transferring files. The overview-table row is owner/maintainer curation (intake cannot edit tables).
 
-Bug/Frage/Idee pages start with the **metadata block as plain text** — this replaces Confluence labels:
+Bug/Frage/Idee pages start with the **metadata block as plain text**, with ownership directly after `Betroffener Skill/Rule`:
 
 ```text
 ## Meta
 
 - **Typ:** Bug | Frage | Idee | Skill-Vorschlag | Rule-Vorschlag
 - **Betroffener Skill/Rule:** <skill-oder-rule-name>
+- **Bereich:** <Bereich(e) oder ergänzt die Kuration>
+- **Zuständig:** <live gelesene Owner-Namen oder ergänzt die Kuration>
 - **Status:** offen
 - **Plugin-Version:** <version>
 - **Projekt:** <projektname / dev-URL>
 ```
 
-Initial status is `offen` for Bug/Frage/Idee and `eingereicht` for Skill/Rule proposals. This Skill never changes an existing status. Real labels and hub-table rows are added later by the owner/maintainer.
+Initial status is `offen` for Bug/Frage/Idee and `eingereicht` for Skill/Rule proposals. This Skill never changes an existing status.
+
+After creation, keep the returned page ID/URL and add exactly the derived `sf-bereich-<slug>` labels through the discovered add-label operation and its schema, once per distinct area. Never add `sf-abgeschlossen`, `sf-vorlage` or any other label. With no derived area, skip labeling; the page belongs under `Neu, noch ohne Bereich`. If the operation is missing or fails, keep the page and hand back `Labels fehlen, ergänzt die Kuration` (name any missing areas after partial success); do not recreate the page or retry labels in this run. Hub rows and later label corrections remain curation; the community MCP has no remove-label operation.
 
 **Bug structure** (all agent-prefilled in the session case):
 
@@ -171,7 +182,7 @@ The redaction rules from step 2 apply to the annex without exception.
 
 ### 6. Hand Back
 
-Report the created page URL (or the commented entry's URL) in one line. Mention open curation steps (labels, hub-table row) only as a note — they are the maintainer's, not the reporter's.
+Report the created page URL (or the commented entry's URL). For new entries, briefly report the area(s) and label result; if assignment is unresolved, say `Bereich und Zuständigkeit ergänzt die Kuration`. If live owner lookup failed, say `Zuständig: <ergänzt die Kuration>` and name the lookup gap. If derived labels could not be added, say `Labels fehlen, ergänzt die Kuration`. Mention the hub-table row only as a curation note, never as a reporter task. Occurrence comments need only the entry URL; no ownership or labeling changes.
 
 For a contribution, also report the verified ZIP receipt and the next step: open the SmartFlow development checkout and give its optional repository-local integration workflow the entry link and selected package hash. That workflow is not bundled in customer installations and is not required to submit. Distinguish `text submitted, package transfer incomplete` from a verified full handoff.
 
@@ -179,6 +190,7 @@ For a contribution, also report the verified ZIP receipt and the next step: open
 
 - Never edit hub pages, overview tables, other entries' bodies, or any entry's status; never delete pages.
 - Never write into `plugin-feedback/` — that folder exists only in the maintainer workspace, not in project workspaces.
-- Occurrence and regression comments never change status.
-- Only the reviewed contribution ZIP is allowed as an attachment; no screenshots, unrelated files, or labels.
+- Occurrence and regression comments never change status, page bodies or labels.
+- Only derived area labels on newly created entries are allowed; no other labels, @mentions or notifications.
+- Only the reviewed contribution ZIP is allowed as an attachment; no screenshots or unrelated files.
 - One entry per run; a second finding is a second run.
