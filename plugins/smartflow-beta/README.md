@@ -15,7 +15,7 @@ Installing `smartflow` (or `smartflow-beta`) replaces the complete legacy set:
 
 Stable `smartflow` 1.7.0 contains 24 Rules, 26 Skills, and 6 Agents for Cursor, Claude Code, and Codex. Cursor packages are published through the public distribution repository; the native Claude Code and Codex marketplaces remain in the private maintainer repository. The generated targets and installer share one authored source.
 
-`smartflow-beta` 1.8.0-beta.2 is an unpublished candidate with 27 Skills. It preserves the complete experimental `code-cleanup` workflow and extends `smartflow-feedback` with reviewed, verifiable ZIP submissions for locally developed Skills/Rules. Stable 1.7.0 is unchanged. Slash entry points are Skills; the Commands folder remains empty.
+`smartflow-beta` 1.8.0-beta.2 (published 2026-10-14) has 27 Skills. It preserves the complete experimental `code-cleanup` workflow and extends `smartflow-feedback` with reviewed, verifiable ZIP submissions for locally developed Skills/Rules and with ownership areas set at intake. Stable 1.7.0 is unchanged. Slash entry points are Skills; the Commands folder remains empty.
 
 Local contributions are submitted from the customer project through Confluence with source/test context and a verified attachment receipt. Integration into the shared plugin is a separate owner workflow in the development repository; it is not a required customer-plugin dependency. The ZIP helper and format reference are bundled under `skills/smartflow-feedback/`. Live transport and real-project integration validation remain pending.
 
